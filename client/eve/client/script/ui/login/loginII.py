@@ -598,8 +598,6 @@ class Login(uicls.LayerCore):
                  str(serverStatus.get('boot_codename', const.responseUnknown)),
                  serverStatus.get('update_info', const.responseUnknown))
                 serverUserCount, serverversion, serverbuild, servercodename, updateinfo = self.serverStatus[self.serverIP]
-                if serverUserCount:
-                    uthread.new(self.StartXFire, str(fmtutil.FmtAmt(serverUserCount)))
                 actualStatusMsg = self.GetActualStatusMessage(serverUserCount, serverbuild, serverversion, statusMessage)
                 if serverversion and serverbuild:
                     self.CompareVersionsAndAct(bootbuild, bootversion, isAutoPatch, serverbuild, serverversion, actualStatusMsg)
@@ -614,10 +612,6 @@ class Login(uicls.LayerCore):
                 self.serverStatusTextFunc = None
 
             return
-
-    def StartXFire(self, serverUserCount):
-        blue.pyos.synchro.SleepWallclock(5000)
-        sm.StartService('xfire').AddKeyValue('Users', serverUserCount)
 
     def SetNameText(self, text):
         if self.serverNameTextControl and not self.serverNameTextControl.destroyed:

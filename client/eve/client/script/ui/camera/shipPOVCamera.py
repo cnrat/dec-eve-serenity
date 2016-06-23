@@ -5,21 +5,23 @@ import blue
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 from eve.client.script.ui.camera.cameraUtil import GetBallPosition
+from eve.client.script.ui.inflight.povCameraInSceneContainer import PovCameraInSceneContainer
 import evecamera
 import geo2
 import uthread
+ROTANGLE = (math.pi - 1.0) / 2.0
 
 class ShipPOVCamera(BaseSpaceCamera):
+    name = 'ShipPOVCamera'
     cameraID = evecamera.CAM_SHIPPOV
     minZoom = 100000
-    kOrbitSpeed = 5.0
-    kPanSpeed = 8.0
-    default_fov = 1.5
+    default_fov = 1.0
 
     def __init__(self):
         BaseSpaceCamera.__init__(self)
         self.lastLookAtID = None
         self.trackBall = None
+        self.inSceneContainer = None
         return
 
     def Update(self):
@@ -30,7 +32,7 @@ class ShipPOVCamera(BaseSpaceCamera):
             if self.trackBall and getattr(self.trackBall, 'model', None) and hasattr(self.trackBall.model.rotationCurve, 'value'):
                 self.UpdateUpDirection()
                 self.UpdateAtEyePositions()
-                self.UpdateCrosshairPosition()
+                self.UpdateInSceneContainer()
             if self.trackBall and self.trackBall.id != self.ego:
                 uthread.new(sm.GetService('sceneManager').SetPrimaryCamera, evecamera.CAM_SHIPORBIT)
             return
@@ -43,8 +45,8 @@ class ShipPOVCamera(BaseSpaceCamera):
             radius = self.trackBall.model.GetBoundingSphereRadius()
         else:
             radius = self.trackBall.radius * 1.2
-        self.eyePosition = geo2.Vec3Add(ballPos, geo2.Vec3Scale(lookDir, -radius))
-        self.atPosition = geo2.Vec3Add(ballPos, geo2.Vec3Scale(lookDir, -2 * radius))
+        self.SetEyePosition(geo2.Vec3Add(ballPos, geo2.Vec3Scale(lookDir, -radius)))
+        self.SetAtPosition(geo2.Vec3Add(ballPos, geo2.Vec3Scale(lookDir, -2 * radius)))
 
     def GetTrackPosition(self):
         trackPos = self.trackBall.GetVectorAt(blue.os.GetSimTime())
@@ -60,17 +62,26 @@ class ShipPOVCamera(BaseSpaceCamera):
         upDirection = geo2.QuaternionTransformVector(model.rotationCurve.value, (0.0, 1.0, 0.0))
         self.upDirection = geo2.Vec3Normalize(upDirection)
 
-    def UpdateCrosshairPosition(self):
+    def UpdateInSceneContainer(self):
+        self.UpdateInSceneContainerPosition()
         lookAtDir = self.GetLookAtDirection()
         pitch = math.acos(geo2.Vec3Dot(lookAtDir, (0, -1, 0)))
         rightDir = geo2.Vec3Cross(self.GetUpDirection(), lookAtDir)
         roll = math.acos(geo2.Vec3Dot(rightDir, (0, 1, 0)))
-        sm.ChainEvent('ProcessPOVCameraOrientation', pitch, roll)
+        self.inSceneContainer.Update(pitch, roll)
+
+    def UpdateInSceneContainerPosition(self):
+        translation = geo2.Vec3Add(self.eyePosition, geo2.Vec3Scale(self.GetLookAtDirection(), -10))
+        self.inSceneContainer.transform.translation = translation
+        x = 10000.0 / uicore.desktop.width * self.fov ** 0.85
+        self.inSceneContainer.transform.scaling = (x, x, 1.0)
 
     def OnDeactivated(self):
         BaseSpaceCamera.OnDeactivated(self)
         if self.trackBall:
             self.trackBall = None
+        if self.inSceneContainer:
+            self.inSceneContainer.Close()
         return
 
     def OnActivated(self, **kwargs):
@@ -80,6 +91,7 @@ class ShipPOVCamera(BaseSpaceCamera):
         bp = sm.GetService('michelle').GetBallpark()
         if bp:
             self.trackBall = bp.GetBall(self.ego)
+        self.inSceneContainer = PovCameraInSceneContainer(scene=sm.GetService('sceneManager').GetRegisteredScene('default'), name='PovCameraBracket', width=500, height=500, clearBackground=True, backgroundColor=(0, 0, 0, 0), faceCamera=True)
 
     def LookAt(self, itemID, *args, **kwargs):
         if itemID == self.ego:
@@ -92,3 +104,9 @@ class ShipPOVCamera(BaseSpaceCamera):
 
     def Track(self, itemID):
         pass
+
+    def _ClampRotateX(self, x):
+        return max(-ROTANGLE, min(x, ROTANGLE))
+
+    def _ClampRotateY(self, y):
+        return max(-ROTANGLE, min(y, ROTANGLE))

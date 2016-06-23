@@ -46,18 +46,18 @@ def CreateFisRenderJob(scene):
 
 
 def CreateBackgroundLandscape(scene, medDetailThreshold=0.0001, lowDetailThreshold=0.0001, shaderModel='SM_3_0_DEPTH'):
+    m10 = trinity.Load('res:/dx9/scene/universe/m10_cube.red')
+    scene.backgroundEffect = m10.backgroundEffect
+    scene.envMapResPath = m10.envMapResPath
+    scene.envMap1ResPath = m10.envMap1ResPath
+    scene.envMap2ResPath = m10.envMap2ResPath
+    scene.envMap3ResPath = m10.envMap3ResPath
+    scene.backgroundEffect = scene.backgroundEffect
     scene.sunDiffuseColor = (1.5, 1.5, 1.5, 1.0)
     trinity.settings.SetValue('eveSpaceSceneVisibilityThreshold', 3.0)
     trinity.settings.SetValue('eveSpaceSceneMediumDetailThreshold', medDetailThreshold)
     trinity.settings.SetValue('eveSpaceSceneLowDetailThreshold', lowDetailThreshold)
     trinity.SetShaderModel(shaderModel)
-    scene.sunDirection = (1.0, -1.0, 1.0)
-    scene.envMapRotation = (0.0, 0.0, 0.0, 1.0)
-    scene.envMapResPath = 'res:/dx9/scene/universe/m10_cube_refl.dds'
-    scene.envMap1ResPath = 'res:/dx9/scene/universe/m10_cube.dds'
-    scene.envMap2ResPath = 'res:/dx9/scene/universe/m10_cube_blur.dds'
-    scene.envMap3ResPath = ''
-    scene.backgroundEffect = trinity.Load('res:/dx9/scene/starfield/nebula.red')
     scene.starfield = trinity.Load('res:/dx9/scene/starfield/spritestars.red')
     scene.starfield.minDist = 40
     scene.starfield.maxDist = 80
@@ -73,3 +73,8 @@ def CreateBackgroundLandscape(scene, medDetailThreshold=0.0001, lowDetailThresho
     scene.backgroundRenderingEnabled = True
     if jessica:
         CreateFisRenderJob(scene)
+
+
+def LoadObjectFromPath(path):
+    blue.motherLode.Delete(path)
+    return trinity.Load(path, True)

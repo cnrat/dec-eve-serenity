@@ -95,6 +95,9 @@ class MapViewCamera(object):
         self.callback = None
         return
 
+    def OnDeactivated(self):
+        self.Close()
+
     def SetCallback(self, callback):
         self.callback = callback
 
@@ -345,3 +348,6 @@ class MapViewCamera(object):
         cameraSettings['pointOfInterest'] = self._pointOfInterest
         cameraSettings['eyePosition'] = self._eyePosition
         return cameraSettings
+
+    def UpdateViewportSize(self, width, height):
+        pass

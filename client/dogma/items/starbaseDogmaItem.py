@@ -10,14 +10,14 @@ class StarbaseDogmaItem(LocationDogmaItem):
 
     @TimedFunction('StarbaseDogmaItem::__init__')
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
-        super(StarbaseDogmaItem, self).__init__(dogmaLocation, item, eveCfg, clientIDFunc)
+        LocationDogmaItem.__init__(self, dogmaLocation, item, eveCfg, clientIDFunc)
         self.controlTower = None
         return
 
     def SetLocation(self, locationID, locationDogmaItem, flagID):
         if self.controlTower and locationID != self.controlTower:
             raise RuntimeError('Structure %s being assigned to a different location than its currently marked control tower!' % self)
-        super(StarbaseDogmaItem, self).SetLocation(locationID, locationDogmaItem, flagID)
+        LocationDogmaItem.SetLocation(self, locationID, locationDogmaItem, flagID)
         if self.controlTower:
             self.AddModifierSet(locationDogmaItem.locationMods)
             try:
@@ -34,7 +34,7 @@ class StarbaseDogmaItem(LocationDogmaItem):
                     pass
 
     def UnsetLocation(self, locationDogmaItem):
-        super(StarbaseDogmaItem, self).UnsetLocation(locationDogmaItem)
+        LocationDogmaItem.UnsetLocation(self, locationDogmaItem)
         if self.controlTower is not None:
             raise RuntimeError('Structure %s being disowned but marked as owned by tower %s' % (self, self.controlTower))
         if locationDogmaItem:

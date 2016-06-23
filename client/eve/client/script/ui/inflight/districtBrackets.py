@@ -1,10 +1,10 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\districtBrackets.py
 import math
+from carbonui.ui3d import InSceneContainer
 import uicontrols
 import trinity
 import carbonui.const as uiconst
-import ui3d
 import geo2
 import planet
 import blue
@@ -41,7 +41,7 @@ class DistrictBracket(object):
         self.destrictGfxID = self.planet.GetDistrictNum('district-%d' % self.districtID)
         if self.container:
             self.container.Close()
-        self.container = ui3d.Container(scene=sm.GetService('sceneManager').GetRegisteredScene('default'), name=self.name, width=512, height=512, clearBackground=True, backgroundColor=(0, 0, 0, 0))
+        self.container = InSceneContainer(scene=sm.GetService('sceneManager').GetRegisteredScene('default'), name=self.name, width=512, height=512, clearBackground=True, backgroundColor=(0, 0, 0, 0))
         self.container.transform.translationCurve = self.planet.model.translationCurve
         self.container.transform.translation = geo2.Vec3Scale(geo2.Vec3Normalize(self.point.GetAsXYZTuple()), self.planet.radius)
         self.container.transform.scaling = (1000000, 1000000, 1000000)

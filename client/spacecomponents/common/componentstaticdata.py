@@ -1,6 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\spacecomponents\common\componentstaticdata.py
-import fsdSchemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.binaryLoader as fsdBinaryLoader
 from ccpProfile import TimedFunction
 from componentConst import ALL_COMPONENTS
 

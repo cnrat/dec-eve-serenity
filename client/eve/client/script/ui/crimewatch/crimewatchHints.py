@@ -1,5 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\crimewatch\crimewatchHints.py
+from dogma.attributes.format import GetFormatAndValue
 import evetypes
 import uiprimitives
 import localization
@@ -364,7 +365,6 @@ class BoosterEntry(uiprimitives.Container):
         for eff in effects:
             if eff.modifierInfo:
                 modifyingAttributeID = yaml.safe_load(eff.modifierInfo)[0]['modifyingAttributeID']
-                nameOfChanged = cfg.dgmattribs.Get(modifyingAttributeID).displayName
                 effectAmount = dogmaLM.dogmaStaticMgr.GetTypeAttribute(self.booster.typeID, modifyingAttributeID)
                 if isNegative and effectAmount:
                     neurotoxinControlTypeID = 25538
@@ -372,7 +372,8 @@ class BoosterEntry(uiprimitives.Container):
                     neurotoxinControlSkill = sm.GetService('skills').GetSkill(neurotoxinControlTypeID)
                     effectModifier = dogmaLM.dogmaStaticMgr.GetSkillModifiedAttributePercentageValue(modifyingAttributeID, boosterAttributeModifier, neurotoxinControlTypeID, neurotoxinControlSkill)
                     effectAmount *= effectModifier
-                effectText = localization.GetByLabel('UI/Crimewatch/Timers/BoosterPenaltyWithValue', percentage=abs(effectAmount), penaltyName=nameOfChanged)
+                attributes = cfg.dgmattribs.Get(modifyingAttributeID)
+                effectText = localization.GetByLabel('UI/Crimewatch/Timers/BoosterPenaltyWithValue', value=GetFormatAndValue(attributes, abs(effectAmount)), penaltyName=attributes.displayName)
             else:
                 effectText = eff.displayName
             effectsTextList.append(effectText)

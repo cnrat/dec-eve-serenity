@@ -332,7 +332,6 @@ class JumpTransitionWormhole(object):
         self.translationFromParent = None
         self.mainSequenceFinished = False
         self.translationFromWormhole = 6000.0
-        self.activeCameraID = None
         return
 
     def SetScene(self, scene):
@@ -370,7 +369,6 @@ class JumpTransitionWormhole(object):
         self.itemID = wormholeItem.itemID
         if IsNewCameraActive():
             sceneMan = sm.GetService('sceneManager')
-            self.activeCameraID = sceneMan.GetActiveSpaceCamera().cameraID
             self.camera = sceneMan.SetPrimaryCamera(evecamera.CAM_JUMP)
         return
 
@@ -378,7 +376,7 @@ class JumpTransitionWormhole(object):
         blue.synchro.Sleep(500)
         if self.startCS is not None:
             self.startCS.Play()
-        blue.synchro.Sleep(1000)
+        blue.synchro.Sleep(3000)
         self.transition.ApplyDestinationScene()
         if self.midCS is not None:
             self.midCS.Play()
@@ -423,8 +421,8 @@ class JumpTransitionWormhole(object):
         if self.stopCS is not None:
             self.stopCS.Play()
         if IsNewCameraActive():
-            sm.GetService('sceneManager').SetPrimaryCamera(self.activeCameraID)
-            blue.synchro.SleepSim(2000)
+            blue.synchro.SleepSim(3000)
+            sm.GetService('sceneManager').ActivatePrimarySpaceCam()
         else:
             blue.synchro.SleepSim(500)
             camera = self.GetCamera()

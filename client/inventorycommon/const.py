@@ -430,6 +430,7 @@ groupEnergyNeutralizingBattery = 837
 groupEnergyTransferArray = 67
 groupEnergyWeapon = 53
 groupEnergyVampire = 68
+groupEntosisLink = 1313
 groupEntosisCommandNode = 1316
 groupExhumer = 543
 groupExpeditionFrigate = 1283
@@ -729,6 +730,7 @@ groupStructureAreaMissileLauncher = 1328
 groupStructureBumpingModule = 1331
 groupStructureDefenseBattery = 1330
 groupStructureDoomsdayWeapon = 1333
+groupStructureDisruptionBattery = 1719
 groupStructureECM = 1332
 groupStructureECMScript = 1549
 groupStructureEnergyNeutralizer = 1329
@@ -1576,6 +1578,7 @@ shipPackagedVolumesPerGroup = {groupAssaultShip: 2500.0,
  groupExhumer: 3750.0,
  groupExpeditionFrigate: 2500,
  groupForceReconShip: 10000.0,
+ groupForceAux: 1300000.0,
  groupFreighter: 1300000.0,
  groupFrigate: 2500.0,
  groupHeavyAssaultShip: 10000.0,
@@ -1866,6 +1869,7 @@ turretModuleGroups = [groupEnergyWeapon,
  groupStructureAreaMissileLauncher,
  groupStructureBumpingModule,
  groupStructureDefenseBattery,
+ groupStructureDisruptionBattery,
  groupStructureDoomsdayWeapon,
  groupStructureECM,
  groupStructureEnergyNeutralizer,

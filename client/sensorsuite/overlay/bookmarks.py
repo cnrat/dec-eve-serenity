@@ -93,6 +93,9 @@ class BookmarkBracket(SensorSuiteBracket):
     def GetMenu(self):
         return self.data.GetMenu()
 
+    def AlignTo(self):
+        sm.GetService('menu').AlignToBookmark(self.data.bookmark.bookmarkID)
+
 
 class CorpBookmarkSiteData(BookmarkSiteData):
     siteType = CORP_BOOKMARK

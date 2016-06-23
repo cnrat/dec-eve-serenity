@@ -4,7 +4,7 @@ from eve.client.script.ui.camera.cameraUtil import SetShipDirection, GetZoomDz
 from eve.client.script.ui.camera.baseCameraController import BaseCameraController
 import carbonui.const as uiconst
 import evecamera
-FOV_LEVELS = [1.3, 0.775, 0.25]
+FOV_LEVELS = [1.0, 0.625, 0.25]
 
 class ShipPOVCameraController(BaseCameraController):
     cameraID = evecamera.CAM_SHIPPOV
@@ -15,7 +15,9 @@ class ShipPOVCameraController(BaseCameraController):
         self.GetCamera().fov = FOV_LEVELS[self.fovLevel]
 
     def OnMouseMove(self, *args):
-        pass
+        if uicore.uilib.leftbtn:
+            k = 0.002 * self.GetCamera().fov
+            self.GetCamera().Rotate(k * uicore.uilib.dx, k * uicore.uilib.dy)
 
     def OnMouseWheel(self, *args):
         camera = self.GetCamera()
@@ -38,3 +40,13 @@ class ShipPOVCameraController(BaseCameraController):
         if uicore.uilib.rightbtn or uicore.uilib.mouseTravel > 6:
             return
         SetShipDirection(self.GetCamera())
+
+    def OnMouseDown(self, button, *args):
+        BaseCameraController.OnMouseDown(self, button, *args)
+        if button == 0:
+            uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEUP, self.OnGlobalRightMouseUp)
+
+    def OnGlobalRightMouseUp(self, obj, eventID, (vkey, flag)):
+        if vkey != 0:
+            return True
+        self.GetCamera().ResetRotate()

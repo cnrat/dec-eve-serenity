@@ -60,14 +60,28 @@ class MarketOrder(listentry.Generic):
         m.append(None)
         m += [(MenuLabel('UI/Commands/ShowInfo'), self.ShowInfo, (self.sr.node,))]
         stationID = self.sr.node.order.stationID
+        solarSystemID = self.sr.node.order.solarSystemID
         if stationID:
             stationInfo = sm.GetService('ui').GetStation(stationID)
             if stationInfo:
                 m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID, mapItem=None))]
+            elif solarSystemID:
+                invItem = self._GetStationInvItemInBallpark(stationID)
+                if invItem:
+                    m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=invItem.typeID, parentID=solarSystemID))]
+                else:
+                    m += [(MenuLabel('UI/Common/SolarSystem'), sm.GetService('menu').CelestialMenu(solarSystemID))]
         if self.sr.node.markAsMine:
             m.append((MenuLabel('UI/Market/Orders/ModifyOrder'), self.ModifyPrice, (self.sr.node,)))
             m.append((MenuLabel('UI/Market/Orders/CancelOrder'), self.CancelOffer, (self.sr.node,)))
         return m
+
+    def _GetStationInvItemInBallpark(self, stationID):
+        ballpark = sm.GetService('michelle').GetBallpark()
+        if not ballpark:
+            return None
+        else:
+            return ballpark.GetInvItem(stationID)
 
     def OnDblClick(self, *args):
         self.Buy(ignoreAdvanced=True)

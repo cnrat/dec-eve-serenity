@@ -176,10 +176,7 @@ class CtrlTabWindow(uicontrols.Window):
             if self.showOrHide:
                 uicore.cmd.CmdMinimizeAllWindows()
             else:
-                for w in self.currOpenWindows:
-                    if not w.InStack() and not getattr(w, 'isImplanted', False):
-                        uthread.new(w.Maximize)
-
+                uicore.cmd.CmdMaximizeAllWindows()
         else:
             win = uicontrols.Window.GetIfOpen(windowID=winIcon['name'])
             self.currOpenWindows.remove(win)

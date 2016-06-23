@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\attributes\format.py
 import math
+from dogma.attributes import datetime
 from eve.common.script.util.eveFormat import FmtDist2
 import evetypes
 from carbon.common.lib.const import SEC, HOUR
@@ -37,11 +38,13 @@ def FormatValue(value, unitID=None):
         return format.FmtDate(long(value * HOUR), 'll')
     elif unitID == dogmaConst.unitMoney:
         return format.FmtAmt(value)
+    elif unitID == dogmaConst.unitDatetime:
+        return format.FmtDate(datetime.float_as_time(value))
     if unitID in (dogmaConst.unitInverseAbsolutePercent, dogmaConst.unitInversedModifierPercent):
         value = float(round(1.0 - value, 6)) * 100
-    if unitID == dogmaConst.unitModifierPercent:
+    elif unitID == dogmaConst.unitModifierPercent:
         value = abs(value * 100 - 100) * (-1 if value < 1.0 else 1)
-    if unitID == dogmaConst.unitAbsolutePercent:
+    elif unitID == dogmaConst.unitAbsolutePercent:
         value *= 100
     if type(value) is str:
         value = eval(value)
@@ -93,6 +96,8 @@ def GetFormatAndValue(attributeType, value):
             value = '%s%s' % (attrUnit, value)
     elif attributeType.unitID == dogmaConst.unitGender:
         value = GetByLabel(GENDER_DICT.get(int(value)))
+    elif attributeType.unitID == dogmaConst.unitDatetime:
+        value = FormatValue(value, attributeType.unitID)
     else:
         value = GetByLabel('UI/InfoWindow/ValueAndUnit', value=FormatValue(value, attributeType.unitID), unit=attrUnit)
     return value

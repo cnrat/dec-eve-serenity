@@ -460,7 +460,7 @@ class BugReportingService(Service):
             if resp != 'OK':
                 eve.Message('CustomInfo', {'info': 'An error was encountered in sending the bug report to the server: <b>%s</b>' % resp})
                 return False
-            eve.Message('CustomInfo', {'info': 'Your bug report has been submitted. Thank you.<br><br><a href=shellexec:https://%s/mybugreports.asp>You can view your bug reports here</a>' % self.bugReportServer})
+            eve.Message('CustomInfo', {'info': 'Lolololol how you access dead code mate!?!?!?!!?'})
         else:
             txt = 'Server error in sending bug-report to the bug-reporting server. Response is %s' % response.read()
             log.LogException(txt)

@@ -92,8 +92,9 @@ class GlobalsGlob(object):
         return missile.followId
 
     def ShakeCamera(self, shakeMagnitude, explosionPosition):
-        camera = sm.GetService('sceneManager').GetActiveCamera()
-        camera.ShakeCamera(shakeMagnitude, explosionPosition, 'Missile')
+        camera = sm.GetService('sceneManager').GetActiveSpaceCamera()
+        if camera:
+            camera.ShakeCamera(shakeMagnitude, explosionPosition, 'Missile')
 
 
 _globalsGlob = GlobalsGlob()
@@ -449,7 +450,6 @@ class Missile(SpaceObject):
                 self.LogError('missile::LoadModel failed to get explosion ' + str(self.explosionPath))
                 self.explosionManager.Cancel(self.explosionPath, 1)
                 return
-            explosionBall = None
             if self.enabled:
                 explosionBall = self.globalsGlob.SpawnClientBall(explosionPosition)
                 actualModel.translationCurve = explosionBall
@@ -458,23 +458,6 @@ class Missile(SpaceObject):
                 scene = self.globalsGlob.GetScene()
                 if scene is not None:
                     scene.objects.append(actualModel)
-                    audio = audio2.AudEmitter('effect_source_%s' % str(id(self)))
-                    obs = trinity.TriObserverLocal()
-                    obs.front = (0.0, -1.0, 0.0)
-                    obs.observer = audio
-                    del actualModel.observers[:]
-                    actualModel.observers.append(obs)
-
-                    def AudioSetup(*args):
-                        for eachSet in actualModel.active.curveSets:
-                            for eachCurve in eachSet.curves:
-                                if eachCurve.__typename__ == 'TriEventCurve':
-                                    audio.SendEvent(eachCurve.GetKeyValue(0))
-                                    break
-
-                    loadedEventHandler = blue.BlueEventToPython()
-                    loadedEventHandler.handler = AudioSetup
-                    actualModel.loadedCallback = loadedEventHandler
                 shakeMagnitude = min(actualModel.boundingSphereRadius, 250)
                 shakeMagnitude = max(shakeMagnitude, 50)
                 self.globalsGlob.ShakeCamera(shakeMagnitude, explosionPosition)

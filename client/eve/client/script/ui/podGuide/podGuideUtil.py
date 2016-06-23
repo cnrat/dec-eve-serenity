@@ -1,7 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\podGuide\podGuideUtil.py
 from collections import OrderedDict, defaultdict
-import fsdSchemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.binaryLoader as fsdBinaryLoader
 
 def GetTerms():
     groupDict = defaultdict(set)

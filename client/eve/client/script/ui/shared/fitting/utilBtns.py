@@ -29,7 +29,7 @@ class FittingUtilBtn(Icon):
         return
 
     def OnClick(self, *args):
-        if self.isActive:
+        if self.isActive and self.clickFunc:
             self.clickFunc(*args)
 
     def OnMouseEnter(self, *args):

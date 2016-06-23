@@ -13,7 +13,7 @@ from ccpProfile import TimedFunction
 class CharacterDogmaItem(FittableDogmaItem):
 
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
-        super(CharacterDogmaItem, self).__init__(dogmaLocation, item, eveCfg, clientIDFunc)
+        FittableDogmaItem.__init__(self, dogmaLocation, item, eveCfg, clientIDFunc)
         self.fittedItems = {}
         self._activeShipID = None
         return
@@ -41,7 +41,7 @@ class CharacterDogmaItem(FittableDogmaItem):
 
     @TimedFunction('CharacterDogmaItem::Load')
     def Load(self, item, instanceRow):
-        super(CharacterDogmaItem, self).Load(item, instanceRow)
+        FittableDogmaItem.Load(self, item, instanceRow)
         attrs = self.attributes
         char = self.dogmaLocation.GetCharacter(item.itemID, flush=True)
         if IsDustCharacter(item.itemID):
@@ -103,7 +103,7 @@ class CharacterDogmaItem(FittableDogmaItem):
             self.dogmaLocation.LogError("UnregisterFittedItem::Tried to remove item from fittedItems but it wasn't there", strx(dogmaItem.itemID))
 
     def Unload(self):
-        super(CharacterDogmaItem, self).Unload()
+        FittableDogmaItem.Unload(self)
         itemID = self.itemID
         shipID = self.dogmaLocation.shipsByPilotID.get(self.itemID, None)
         if shipID is None:
@@ -130,6 +130,7 @@ class CharacterDogmaItem(FittableDogmaItem):
         initShipID = self.dogmaLocation.GetActiveShipID(self.itemID)
         if initShipID:
             self.dogmaLocation.OnCharacterEmbarkation(self.itemID, initShipID)
+        FittableDogmaItem.OnItemLoaded(self)
 
     def CanFitItem(self, dogmaItem, flagID):
         if flagID == invconst.flagBooster:
@@ -145,7 +146,7 @@ class CharacterDogmaItem(FittableDogmaItem):
         return self.fittedItems
 
     def GetPersistables(self):
-        ret = super(CharacterDogmaItem, self).GetPersistables()
+        ret = FittableDogmaItem.GetPersistables(self)
         ret.update(self.fittedItems.keys())
         return ret
 
@@ -155,7 +156,7 @@ class CharacterDogmaItem(FittableDogmaItem):
             for fittedItem in self.fittedItems.itervalues():
                 stackTraceCount += fittedItem.FlushEffects()
 
-            stackTraceCount += super(CharacterDogmaItem, self)._FlushEffects()
+            stackTraceCount += FittableDogmaItem._FlushEffects(self)
         return stackTraceCount
 
     def GetPilot(self):
@@ -198,7 +199,7 @@ class CharacterDogmaItem(FittableDogmaItem):
                     del self.dogmaLocation.pilotsByShipID[oldShipID]
                 self.dogmaLocation.shipsByPilotID[self.itemID] = newShipID
                 self.dogmaLocation.pilotsByShipID[newShipID] = self.itemID
-                super(CharacterDogmaItem, self).HandleLocationChange(newShipID)
+                FittableDogmaItem.HandleLocationChange(self, newShipID)
                 newShipItem = self.dogmaLocation.dogmaItems.get(newShipID, None)
                 if newShipItem:
                     newShipItem.RegisterPilot(self)

@@ -3,6 +3,14 @@
 import operator
 from collections import defaultdict
 import blue
+from characterskills.const import maxSkillLevel
+from characterskills.client.skill_training import ClientCharacterSkillInterface
+from characterskills.skill_accelerators import SkillAcceleratorBoosters
+from characterskills.skill_training import SkillTrainingTimeCalculator
+from characterskills.util import GetSkillPointsPerMinute, GetSPForLevelRaw, GetSkillLevelRaw
+from dogma.const import attributePrimaryAttribute, attributeSkillTimeConstant, attributeSecondaryAttribute
+from dogma.effects import IsBoosterSkillAccelerator
+from eveexceptions import UserError
 import evetypes
 from eve.client.script.ui.skilltrading.skillExtractorWindow import SkillExtractorWindow
 import service
@@ -10,7 +18,6 @@ from notifications.common.formatters.skillPoints import UnusedSkillPointsFormatt
 from notifications.common.notification import Notification
 import uthread
 import util
-import characterskills as charskills
 import carbonui.const as uiconst
 import localization
 import telemetry
@@ -98,6 +105,7 @@ class SkillsSvc(service.Service):
         self.boosters = None
         self.implants = None
         self.characterAttributes = None
+        self._skillAcceleratorBoosters = None
         self.recentLosses = []
         return
 
@@ -198,14 +206,14 @@ class SkillsSvc(service.Service):
 
     def SkillpointsCurrentLevel(self, skillTypeID):
         skill = self.GetSkill(skillTypeID)
-        return charskills.GetSPForLevelRaw(skill.skillRank, skill.skillLevel)
+        return GetSPForLevelRaw(skill.skillRank, skill.skillLevel)
 
     def SkillpointsNextLevel(self, skillTypeID):
         skill = self.GetSkill(skillTypeID)
-        if skill.skillLevel >= const.maxSkillLevel:
+        if skill.skillLevel >= maxSkillLevel:
             return None
         else:
-            return charskills.GetSPForLevelRaw(skill.skillRank, skill.skillLevel + 1)
+            return GetSPForLevelRaw(skill.skillRank, skill.skillLevel + 1)
 
     def HasSkill(self, skillTypeID):
         return skillTypeID in self.GetSkills()
@@ -252,7 +260,7 @@ class SkillsSvc(service.Service):
             currentSkillPoints = self.MySkillPoints(typeID) or 0
             timeConstant = self.godma.GetTypeAttribute2(typeID, const.attributeSkillTimeConstant)
             pointsBefore = currentSkillPoints - pointChange
-            oldLevel = charskills.GetSkillLevelRaw(pointsBefore, timeConstant)
+            oldLevel = GetSkillLevelRaw(pointsBefore, timeConstant)
             if self.MySkillLevel(typeID) > oldLevel:
                 skillChanges[typeID] = oldLevel
 
@@ -424,21 +432,21 @@ class SkillsSvc(service.Service):
             return tooltipText
 
     def GetSkillpointsPerMinute(self, skillTypeID):
-        primaryAttributeID = sm.GetService('godma').GetTypeAttribute(skillTypeID, const.attributePrimaryAttribute)
-        secondaryAttributeID = sm.GetService('godma').GetTypeAttribute(skillTypeID, const.attributeSecondaryAttribute)
+        primaryAttributeID = self.GetPrimarySkillAttribute(skillTypeID)
+        secondaryAttributeID = self.GetSecondarySkillAttribute(skillTypeID)
         playerPrimaryAttribute = self.GetCharacterAttribute(primaryAttributeID)
         playerSecondaryAttribute = self.GetCharacterAttribute(secondaryAttributeID)
-        return charskills.GetSkillPointsPerMinute(playerPrimaryAttribute, playerSecondaryAttribute)
+        return GetSkillPointsPerMinute(playerPrimaryAttribute, playerSecondaryAttribute)
 
     def GetRawTrainingTimeForSkillLevel(self, skillTypeID, skillLevel):
         skillTimeConstant = self.GetSkillRank(skillTypeID)
-        rawSkillPointsToTrain = charskills.GetSPForLevelRaw(skillTimeConstant, skillLevel)
+        rawSkillPointsToTrain = GetSPForLevelRaw(skillTimeConstant, skillLevel)
         trainingRate = self.GetSkillpointsPerMinute(skillTypeID)
         existingSP = 0
         priorLevel = skillLevel - 1
         skillInfo = self.GetSkills().get(skillTypeID, None)
         if skillInfo:
-            existingSP = charskills.GetSPForLevelRaw(skillTimeConstant, priorLevel)
+            existingSP = GetSPForLevelRaw(skillTimeConstant, priorLevel)
             if priorLevel >= 0 and priorLevel == skillInfo.skillLevel:
                 existingSP = sm.GetService('skillqueue').GetSkillPointsFromSkillObject(skillTypeID, skillInfo)
         skillPointsToTrain = rawSkillPointsToTrain - existingSP
@@ -454,7 +462,28 @@ class SkillsSvc(service.Service):
         return sum([ skillInfo.skillPoints for skillTypeID, skillInfo in self.GetSkills().iteritems() if groupID is None or evetypes.GetGroupID(skillTypeID) == groupID ])
 
     def GetSkillRank(self, skillTypeID):
-        return self.godma.GetTypeAttribute(skillTypeID, const.attributeSkillTimeConstant)
+        return self.godma.GetTypeAttribute(skillTypeID, attributeSkillTimeConstant)
+
+    def GetPrimarySkillAttribute(self, skillTypeID):
+        return self.godma.GetTypeAttribute(skillTypeID, attributePrimaryAttribute)
+
+    def GetSecondarySkillAttribute(self, skillTypeID):
+        return self.godma.GetTypeAttribute(skillTypeID, attributeSecondaryAttribute)
+
+    def GetSkillAcceleratorBoosters(self):
+        if self._skillAcceleratorBoosters is None:
+            self._skillAcceleratorBoosters = self._GetSkillAcceleratorBoosters()
+        return self._skillAcceleratorBoosters
+
+    def _GetSkillAcceleratorBoosters(self):
+        myGodmaItem = self.godma.GetItem(session.charid)
+        skillBoosters = SkillAcceleratorBoosters(self.godma.GetTypeAttribute2)
+        dogmaStaticMgr = sm.GetService('clientDogmaStaticSvc')
+        for booster in myGodmaItem.boosters:
+            if IsBoosterSkillAccelerator(dogmaStaticMgr, booster):
+                skillBoosters.add_booster(booster.expiryTime, booster.boosterTypeID)
+
+        return skillBoosters
 
     def Train(self, skillX):
         skill = sm.GetService('skillqueue').SkillInTraining()
@@ -548,7 +577,7 @@ class SkillsSvc(service.Service):
         skill = self.GetSkill(skillTypeID)
         if skill is None:
             raise UserError('CannotApplyFreePointsDoNotHaveSkill', {'skillName': evetypes.GetName(skillTypeID)})
-        spAtMaxLevel = charskills.GetSPForLevelRaw(skill.skillRank, 5)
+        spAtMaxLevel = GetSPForLevelRaw(skill.skillRank, 5)
         if skill.skillPoints + pointsToApply > spAtMaxLevel:
             pointsToApply = spAtMaxLevel - skill.skillPoints
         if pointsToApply > self.freeSkillPoints:
@@ -610,14 +639,12 @@ class SkillsSvc(service.Service):
         sm.ScatterEvent('OnSkillQueueRefreshed')
 
     def OnServerBoostersChanged(self, *args):
-        skillQueueSvc = sm.GetService('skillqueue')
-        currentAttributeBooster = skillQueueSvc.GetAttributeBooster()
         self.GetCharacterAttributes(True)
+        self._skillAcceleratorBoosters = None
         sm.ScatterEvent('OnBoosterUpdated')
         sm.GetService('charactersheet').OnUIRefresh()
-        newAttributeBooster = skillQueueSvc.GetAttributeBooster()
-        if newAttributeBooster != currentAttributeBooster and skillQueueSvc.GetQueue():
-            sm.ScatterEvent('OnSkillQueueRefreshed')
+        sm.ScatterEvent('OnSkillQueueRefreshed')
+        return
 
     def OnServerImplantsChanged(self, *args):
         skillQueueSvc = sm.GetService('skillqueue')
@@ -658,9 +685,6 @@ class SkillsSvc(service.Service):
     def ActivateSkillExtractor(self, item):
         if util.InSpace():
             raise UserError('SkillExtractorNotDockedInStation', {'extractor': const.typeSkillExtractor})
-        ship = sm.GetService('godma').GetItem(session.shipid)
-        if ship.groupID != const.groupCapsule:
-            raise UserError('CannotUseExtractorWhileAboardShip', {'extractor': const.typeSkillExtractor})
         skillPoints = self.GetSkillHandler().GetSkillPoints()
         freeSkillPoints = self.GetSkillHandler().GetFreeSkillPoints()
         if skillPoints + freeSkillPoints < const.SKILL_TRADING_MINIMUM_SP_TO_EXTRACT:
@@ -685,3 +709,6 @@ class SkillsSvc(service.Service):
         self.recentLosses.append(('RecentSkillLossDueToT3Ship', {'shipTypeID': (const.UE_TYPEID, shipTypeID),
           'skillPoints': skillPoints,
           'skillTypeID': (const.UE_TYPEID, skillTypeID)}))
+
+    def GetSkillTrainingTimeCalculator(self):
+        return SkillTrainingTimeCalculator(ClientCharacterSkillInterface(self))

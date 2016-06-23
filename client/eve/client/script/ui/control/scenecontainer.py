@@ -1,10 +1,11 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\control\scenecontainer.py
 import blue
+import math
 from carbonui.primitives.base import Base
 from carbonui.primitives.container import Container
 from carbonui.util.various_unsorted import GetWindowAbove
-from eve.client.script.ui.camera.cameraOld import CameraOld
+from eve.client.script.ui.camera.sceneContainerCamera import SceneContainerCamera
 import trinity
 import log
 import uicontrols
@@ -12,7 +13,6 @@ import carbonui.const as uiconst
 import bitmapjob
 import paperDoll
 import geo2
-import evegraphics.utils as gfxutils
 import locks
 
 class SceneContainer(Base):
@@ -33,16 +33,16 @@ class SceneContainer(Base):
         self.renderJob = None
         self.frontClip = 1.0
         self.backClip = 350000.0
-        self.fieldOfView = 1.0
+        self.fov = 1.0
         self.minPitch = -1.4
         self.maxPitch = 1.4
         self.scene = None
         self.offscreen = False
+        self.PrepareCamera()
         self._reloadLock = locks.Lock()
         Base.ApplyAttributes(self, attributes)
         self.minZoom = attributes.Get('minZoom', self.default_minZoom)
         self.maxZoom = attributes.Get('maxZoom', self.default_maxZoom)
-        self._zoom = 0.5
         return
 
     def SetParent(self, parent, idx=None):
@@ -52,7 +52,6 @@ class SceneContainer(Base):
             wnd.RegisterSceneContainer(self)
 
     def Startup(self, *args):
-        self.PrepareCamera()
         self.DisplayScene()
 
     def PrepareSpaceScene(self, maxPitch=1.4, scenePath=None, offscreen=False):
@@ -62,7 +61,7 @@ class SceneContainer(Base):
         self.scene = trinity.Load(scenePath)
         self.frontClip = 1.0
         self.backClip = 400000.0
-        self.fieldOfView = 1.0
+        self.fov = 1.0
         self.minPitch = -1.4
         self.maxPitch = maxPitch
         self.SetupCamera()
@@ -81,7 +80,7 @@ class SceneContainer(Base):
         self.scene = trinity.Load('res:/Graphics/Interior/characterCreation/Preview.red')
         self.frontClip = 0.1
         self.backClip = 10.0
-        self.fieldOfView = 0.3
+        self.fov = 0.3
         self.minPitch = -0.6
         self.maxPitch = 0.6
         self.SetupCamera()
@@ -89,16 +88,13 @@ class SceneContainer(Base):
         self.DisplayScene(addClearStep=True, addBitmapStep=True, addShadowStep=addShadowStep, backgroundImage=backgroundImage)
 
     def SetupCamera(self):
-        self.camera.frontClip = self.frontClip
-        self.camera.backClip = self.backClip
-        self.camera.fieldOfView = self.fieldOfView
-        self.camera.minPitch = self.minPitch
-        self.camera.maxPitch = self.maxPitch
+        self.camera.nearClip = self.frontClip
+        self.camera.farClip = self.backClip
+        self.camera.fov = self.fov
+        self.camera.SetZoomLinear(0.5)
 
     def PrepareCamera(self):
-        self.camera = CameraOld()
-        behavior = trinity.EveLocalPositionBehavior.centerBounds
-        self.cameraParent = self.camera.parent = trinity.EveLocalPositionCurve(behavior)
+        self.camera = SceneContainerCamera()
 
     def DisplaySpaceScene(self, blendMode=None):
         from trinity.sceneRenderJobSpaceEmbedded import CreateEmbeddedRenderJobSpace
@@ -106,8 +102,9 @@ class SceneContainer(Base):
         rj = self.renderJob
         rj.CreateBasicRenderSteps()
         self.CreateBracketCurveSet()
-        rj.SetActiveCamera(self.camera.GetTrinityCamera())
-        rj.SetCameraProjection(self.projection)
+        rj.SetActiveCamera(view=self.camera.viewMatrix, projection=self.camera.projectionMatrix)
+        rj.SetCameraProjection(self.camera.projectionMatrix)
+        rj.SetCameraView(self.camera.viewMatrix)
         rj.SetScene(self.scene)
         rj.SetViewport(self.viewport)
         if self.offscreen:
@@ -130,9 +127,8 @@ class SceneContainer(Base):
     def DisplayScene(self, addClearStep=False, addBitmapStep=False, addShadowStep=False, backgroundImage=None):
         self.renderJob = trinity.CreateRenderJob('SceneInScene')
         self.renderJob.SetViewport(self.viewport)
-        self.projection.PerspectiveFov(self.fieldOfView, self.viewport.GetAspectRatio(), self.frontClip, self.backClip)
-        self.renderJob.SetProjection(self.projection)
-        self.renderJob.SetView(None, self.camera.GetTrinityCamera(), None)
+        self.renderJob.SetProjection(self.camera.projectionMatrix)
+        self.renderJob.SetView(self.camera.viewMatrix)
         self.renderJob.Update(self.scene)
         if addShadowStep:
             paperDoll.SkinSpotLightShadows.CreateShadowStep(self.renderJob)
@@ -159,8 +155,6 @@ class SceneContainer(Base):
                 del self.scene.objects[:]
             self.scene.objects.append(model)
             self.scene.UpdateScene(blue.os.GetSimTime())
-            self.cameraParent.parent = model
-            self.camera.rotationOfInterest = geo2.QuaternionIdentity()
             return
 
     def ClearScene(self):
@@ -183,12 +177,9 @@ class SceneContainer(Base):
         self.viewport.y = t
         self.viewport.width = w
         self.viewport.height = h
-        self.UpdateProjection()
+        self.camera.UpdateViewportSize(w, h)
         if hasattr(self.renderJob, 'UpdateViewport'):
             self.renderJob.UpdateViewport(self.viewport)
-
-    def UpdateProjection(self):
-        self.projection.PerspectiveFov(self.fieldOfView, self.viewport.GetAspectRatio(), self.frontClip, self.backClip)
 
     def OnResize_(self, k, v):
         self.UpdateViewPort()
@@ -203,50 +194,57 @@ class SceneContainer(Base):
             self.clearStep = None
             self.viewport = None
             self.projection = None
-            self.camera = None
-            self.cameraParent = None
+            if self.camera:
+                self.camera.OnDeactivated()
+                self.camera = None
             self.scene = None
             if hasattr(self.renderJob, 'Disable'):
                 self.renderJob.Disable()
             self.renderJob = None
         return
 
-    def AnimEntry(self, yaw0=0.0, pitch0=0.0, yaw1=-0.5, pitch1=-0.5, duration=2.0):
-        uicore.animations.MorphScalar(self, 'zoom', (1.0 - self.zoom) / 2.0, self.zoom, duration=duration)
-        uicore.animations.MorphVector2(self, 'orbit', (yaw0, pitch0), (yaw1, pitch1), duration=duration)
+    def AnimEntry(self, yaw0=1.1 * math.pi, pitch0=0.0, yaw1=1.25 * math.pi, pitch1=-0.5, duration=2.0):
+        pitch0 = self._ConvertPitch(pitch0)
+        pitch1 = self._ConvertPitch(pitch1)
+        uicore.animations.MorphScalar(self, 'zoom', 1.0, self.zoom, duration=duration)
+        uicore.animations.MorphScalar(self.camera, 'yaw', yaw0, yaw1, duration=duration)
+        uicore.animations.MorphScalar(self.camera, 'pitch', pitch0, pitch1, duration=duration)
+
+    def _ConvertPitch(self, pitch):
+        return math.pi / 2 - pitch
 
     def GetOrbit(self):
         pass
 
-    def SetOrbit(self, yawPitch):
-        self.camera.SetOrbit(*yawPitch)
+    def SetOrbit(self, yaw, pitch):
+        self.camera.SetYaw(yaw)
+        self.camera.SetPitch(pitch)
 
     orbit = property(GetOrbit, SetOrbit)
 
     def OrbitParent(self, dx, dy):
         self.StopAnimations()
-        fov = self.camera.fieldOfView
-        cameraSpeed = 0.6
-        self.camera.OrbitParent(-dx * fov * cameraSpeed, dy * fov * cameraSpeed)
+        fov = self.camera.fov
+        cameraSpeed = 0.02
+        self.camera.Orbit(dx * fov * cameraSpeed, dy * fov * cameraSpeed)
 
     def GetZoom(self):
-        return self._zoom
+        if self.camera:
+            return self.camera.GetZoomLinear()
 
     def SetZoom(self, value):
-        self._zoom = value
-        self._zoom = max(0.0, min(self._zoom, 1.0))
-        self.camera.translationFromParent = self.minZoom + self._zoom * (self.maxZoom - self.minZoom)
+        if self.camera:
+            self.camera.SetZoomLinear(value)
 
     zoom = property(GetZoom, SetZoom)
 
     def SetMinMaxZoom(self, minZoom, maxZoom):
-        self.minZoom = minZoom
-        self.maxZoom = maxZoom
-        self.zoom = self.zoom
+        self.camera.minZoom = maxZoom
+        self.camera.maxZoom = minZoom
 
     def Zoom(self, dz):
         self.StopAnimations()
-        self.zoom += dz * max(self.zoom, 0.1)
+        self.camera.Zoom(dz)
 
 
 class SceneWindowTest(uicontrols.Window):
@@ -294,7 +292,7 @@ class SceneContainerBaseNavigation(Container):
         lib = uicore.uilib
         dx = lib.dx
         dy = lib.dy
-        fov = self.sr.sceneContainer.camera.fieldOfView
+        fov = self.sr.sceneContainer.camera.fov
         ctrl = lib.Key(uiconst.VK_CONTROL)
         isRotate = uicore.uilib.leftbtn and not uicore.uilib.rightbtn
         if isRotate:
@@ -326,12 +324,11 @@ class SceneContainerBrackets(Base):
         self.projection = trinity.TriProjection()
         self.frontClip = 1.0
         self.backClip = 350000.0
-        self.fieldOfView = 1.0
+        self.fov = 1.0
         self.minPitch = -3.0
         self.maxPitch = 3.4
         self.minZoom = 0.0
         self.maxZoom = 1.0
-        self._zoom = 0.5
         self.scene = trinity.EveSpaceScene()
         self.transform = trinity.EveRootTransform()
         self.scene.objects.append(self.transform)
@@ -347,15 +344,11 @@ class SceneContainerBrackets(Base):
             wnd.RegisterSceneContainer(self)
 
     def PrepareCamera(self):
-        behavior = trinity.EveLocalPositionBehavior.centerBounds
-        self.cameraParent = trinity.EveLocalPositionCurve(behavior)
-        self.camera = CameraOld()
-        self.camera.parent = self.cameraParent
+        self.camera = SceneContainerCamera()
         self.camera.frontClip = self.frontClip
         self.camera.backClip = self.backClip
-        self.camera.fieldOfView = self.fieldOfView
-        self.camera.minPitch = self.minPitch
-        self.camera.maxPitch = self.maxPitch
+        self.camera.fov = self.fov
+        self.camera.zoom = 0.7
 
     def GetTranslationsForSolarsystemIDs(self, solarSystemIDs):
         xAv = yAv = zAv = 0
@@ -401,12 +394,11 @@ class SceneContainerBrackets(Base):
     def DisplayScene(self):
         self.renderJob = trinity.CreateRenderJob()
         self.renderJob.SetViewport(self.viewport)
-        self.renderJob.SetView(None, self.camera.GetTrinityCamera(), None)
-        self.renderJob.SetProjection(self.projection)
+        self.renderJob.SetView(self.camera.viewMatrix)
+        self.renderJob.SetProjection(self.camera.projectionMatrix)
         self.renderJob.Update(self.scene)
         self.renderJob.RenderScene(self.scene)
         self.renderObject.renderJob = self.renderJob
-        return
 
     def CreateBracketCurveSet(self):
         self.bracketCurveSet = trinity.TriCurveSet()
@@ -427,15 +419,16 @@ class SceneContainerBrackets(Base):
         self.viewport.width = uicore.ScaleDpi(w)
         self.viewport.height = uicore.ScaleDpi(h)
         log.LogInfo('new viewport dimensions', self.viewport.x, self.viewport.y, self.viewport.width, self.viewport.height)
-        log.LogInfo('projection', self.fieldOfView, self.viewport.GetAspectRatio(), self.frontClip, self.backClip)
-        self.projection.PerspectiveFov(self.fieldOfView, self.viewport.GetAspectRatio(), self.frontClip, self.backClip)
+        log.LogInfo('projection', self.fov, self.viewport.GetAspectRatio(), self.frontClip, self.backClip)
+        self.camera.UpdateViewportSize(uicore.ScaleDpi(w), uicore.ScaleDpi(h))
 
     def _OnClose(self, *args):
         self.clearStep = None
         self.viewport = None
         self.projection = None
-        self.camera = None
-        self.cameraParent = None
+        if self.camera:
+            self.camera.OnDeactivated()
+            self.camera = None
         self.scene = None
         if hasattr(self.renderJob, 'Disable'):
             self.renderJob.Disable()
@@ -445,30 +438,29 @@ class SceneContainerBrackets(Base):
     def GetOrbit(self):
         pass
 
-    def SetOrbit(self, yawPitch):
-        self.camera.SetOrbit(*yawPitch)
+    def SetOrbit(self, yaw, pitch):
+        self.camera.SetYaw(yaw)
+        self.camera.SetPitch(pitch)
 
     orbit = property(GetOrbit, SetOrbit)
 
     def OrbitParent(self, dx, dy):
         self.StopAnimations()
-        fov = self.camera.fieldOfView
-        cameraSpeed = 0.6
-        self.camera.OrbitParent(-dx * fov * cameraSpeed, dy * fov * cameraSpeed)
+        fov = self.camera.fov
+        cameraSpeed = 0.01
+        self.camera.Orbit(dx * fov * cameraSpeed, dy * fov * cameraSpeed)
 
     def GetZoom(self):
-        return self._zoom
+        return self.camera.GetZoomLinear()
 
     def SetZoom(self, value):
-        self._zoom = value
-        self._zoom = max(0.0, min(self._zoom, 1.0))
-        self.camera.translationFromParent = self.minZoom + self._zoom * (self.maxZoom - self.minZoom)
+        self.camera.SetZoomLinear(value)
 
     zoom = property(GetZoom, SetZoom)
 
     def SetMinMaxZoom(self, minZoom, maxZoom):
-        self.minZoom = minZoom
-        self.maxZoom = maxZoom
+        self.camera.minZoom = maxZoom
+        self.camera.maxZoom = minZoom
 
     def Zoom(self, dz):
-        self.zoom += dz * max(self.zoom, 0.1) ** 0.5
+        self.camera.Zoom(dz)

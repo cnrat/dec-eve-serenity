@@ -306,17 +306,18 @@ class Attribute(AttributeInterface):
                 except AttributeError:
                     LogError('Attribute {} has no `ownerID` on its `item`, just: {}'.format(self, sorted(vars(self.item))))
 
-            if self.attribID in self.dogmaLM.attributeChangeCallbacksByAttributeID and not self.dogmaLM.IsIgnoringOwnerEvents(ownerID):
+            itemID = self.item.itemID
+            if self.ShoulCallbackAttributeChange(itemID, ownerID):
                 try:
                     oldValue = self.currentValue
                     newValue = self.GetValue()
-                    self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID](self.attribID, self.item.itemID, newValue, oldValue)
+                    self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID](self.attribID, itemID, newValue, oldValue)
                 except Exception:
                     LogException('Error broadcasting attribute change {}'.format(self.dogmaLM.attributeChangeCallbacksByAttributeID[self.attribID]))
 
             if dogma.IsClient():
                 return
-            if not self.dogmaLM.IsIgnoringOwnerEvents(ownerID):
+            if self.dogmaLM.ShouldMessageItemEvent(itemID):
                 try:
                     if self.attribID is not None:
                         self.dogmaLM.msgMgr.AddAttribute(self)
@@ -324,6 +325,13 @@ class Attribute(AttributeInterface):
                     LogException('Error broadcasting attribute change')
 
             return
+
+    def ShoulCallbackAttributeChange(self, itemID, ownerID):
+        if self.attribID not in self.dogmaLM.attributeChangeCallbacksByAttributeID:
+            return False
+        if not self.dogmaLM.ShouldMessageItemEvent(itemID, ownerID):
+            return False
+        return True
 
     def AddCallbackForChanges(self, func, params):
         if self._onChangeCallbacks is None:
@@ -365,7 +373,7 @@ class Attribute(AttributeInterface):
                 oldValue = newValue
 
             self.clientSideValue = newValue
-            if not self.dogmaLM.IsIgnoringOwnerEvents(self.item.ownerID):
+            if self.dogmaLM.ShouldMessageItemEvent(self.item.itemID):
                 return (clientID, ('OnModuleAttributeChange',
                   self.item.ownerID,
                   self.item.itemID,

@@ -5,7 +5,7 @@ import site
 site.addsitedir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from evetypes.storages import TypeStorage
 from shipskins.static import SkinStorage, SkinMaterialStorage
-import fsdSchemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.binaryLoader as fsdBinaryLoader
 _skins = None
 _materials = None
 _materialSets = None

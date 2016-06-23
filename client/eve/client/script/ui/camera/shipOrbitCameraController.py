@@ -16,20 +16,32 @@ class ShipOrbitCameraController(BaseCameraController):
             kZoom = 0.005
             self._Zoom(-CheckInvertZoom(uicore.uilib.dy), kZoom)
             if math.fabs(uicore.uilib.dx) > 1:
-                camera.Orbit(0.01 * uicore.uilib.dx, 0.0)
-                self.RecordOrbitForAchievements()
+                if not self.IsCameraRotated():
+                    camera.Orbit(0.01 * uicore.uilib.dx, 0.0)
+                    self.RecordOrbitForAchievements()
         elif uicore.uilib.leftbtn:
             camera.Orbit(kOrbit * uicore.uilib.dx, kOrbit * uicore.uilib.dy)
             self.RecordOrbitForAchievements()
+        elif uicore.uilib.rightbtn:
+            kRotate = 0.005 * camera.fov
+            camera.Rotate(kRotate * uicore.uilib.dx, kRotate * uicore.uilib.dy)
 
     def OnMouseDown(self, button, *args):
         ret = BaseCameraController.OnMouseDown(self, button, *args)
         self.GetCamera().OnMouseDown(button)
+        if button == 1:
+            uicore.event.RegisterForTriuiEvents(uiconst.UI_MOUSEUP, self.OnGlobalRightMouseUp)
         return ret
 
     def OnMouseUp(self, button, *args):
         BaseCameraController.OnMouseUp(self, button, *args)
-        self.GetCamera().OnMouseUp(button)
+        camera = self.GetCamera()
+        camera.OnMouseUp(button)
+
+    def OnGlobalRightMouseUp(self, obj, eventID, (vkey, flag)):
+        if vkey != 1:
+            return True
+        self.ResetRotate()
 
     def OnDblClick(self, *args):
         if uicore.uilib.rightbtn or uicore.uilib.mouseTravel > 6:
@@ -44,10 +56,16 @@ class ShipOrbitCameraController(BaseCameraController):
     def _Zoom(self, dz, k):
         camera = self.GetCamera()
         self.RecordZoomForAchievements(dz)
-        if uicore.uilib.Key(uiconst.VK_CONTROL):
-            camera.Zoom(0.35 * k * dz)
-            camera.FovZoom(-0.5 * k * dz)
-        elif uicore.uilib.Key(uiconst.VK_MENU):
+        if uicore.uilib.Key(uiconst.VK_MENU) or self.IsCameraRotated():
             camera.FovZoom(k * dz)
         elif camera.lookAtBall:
             camera.Zoom(k * dz)
+            self.ResetRotate()
+
+    def ResetRotate(self):
+        camera = self.GetCamera()
+        camera.ResetRotate()
+        camera.DisableManualFov()
+
+    def IsCameraRotated(self):
+        return uicore.uilib.rightbtn and self.GetCamera().IsRotated()

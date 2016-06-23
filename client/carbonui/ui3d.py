@@ -4,11 +4,12 @@ import trinity
 import geo2
 from carbonui.primitives.desktop import UIRoot
 
-class Container(UIRoot):
-    __guid__ = 'ui3d.Container'
+class InSceneContainer(UIRoot):
+    __guid__ = 'ui3d.InSceneContainer'
     TRACKTYPE_BALL = 1
     TRACKTYPE_TRANSFORM = 2
     default_trackType = TRACKTYPE_BALL
+    default_faceCamera = False
 
     def __init__(self, *args, **kwargs):
         trinity.device.RegisterResource(self)
@@ -18,6 +19,7 @@ class Container(UIRoot):
         self.initialized = False
         self.sceneManager = sm.GetService('sceneManager')
         self.name = kwargs['name']
+        self.faceCamera = kwargs.get('faceCamera', self.default_faceCamera)
         try:
             UIRoot.__init__(self, *args, **kwargs)
             self.Create3DRender()
@@ -47,6 +49,8 @@ class Container(UIRoot):
             self.transform = trinity.EveRootTransform()
         else:
             self.transform = trinity.EveTransform()
+        if self.faceCamera:
+            self.transform.modifier = 1
         self.transform.mesh = self.renderMesh
         self.sceneParent.append(self.transform)
         self.renderJob = trinity.CreateRenderJob()

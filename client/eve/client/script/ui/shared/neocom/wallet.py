@@ -1358,11 +1358,11 @@ class WalletContainer(uiprimitives.Container):
             for billTypeID, checked in self.automaticPaymentSettings[ownerID].iteritems():
                 if billTypeID == 'divisionID':
                     continue
-                bill_checked_settings.append((billTypeID, checked))
+                bill_checked_settings.append((billTypeID, checked, ownerID))
 
         bill_checked_settings = sorted(bill_checked_settings)
         scrolllist = []
-        for billTypeID, checked in bill_checked_settings:
+        for billTypeID, checked, ownerID in bill_checked_settings:
             data = util.KeyVal()
             data.label = cfg.billtypes.Get(billTypeID).billTypeName
             data.checked = checked

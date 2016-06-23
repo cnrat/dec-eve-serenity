@@ -5,7 +5,7 @@ import site
 import blue
 import devenv
 site.addsitedir(os.path.abspath(os.path.join(devenv.BRANCHROOT, 'packages')))
-import fsdSchemas.binaryLoader as binaryLoader
+import fsd.schemas.binaryLoader as binaryLoader
 
 def LoadFSDFromFile(osPath):
     return binaryLoader.LoadFSDDataInPython(osPath)

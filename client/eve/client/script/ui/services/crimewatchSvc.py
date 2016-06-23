@@ -196,7 +196,7 @@ class CrimewatchService(service.Service):
         boosterEffectsNegative = []
         boosterEffectsPositive = []
         if booster:
-            boosterEffects = staticMgr.passiveFilteredEffectsByType.get(booster.boosterTypeID, [])
+            boosterEffects = staticMgr.GetPassiveFilteredEffectsByType(booster.boosterTypeID)
             for effectID in boosterEffects:
                 eff = cfg.dgmeffects.Get(effectID)
                 chanceAttributeID = staticMgr.effects[effectID].fittingUsageChanceAttributeID

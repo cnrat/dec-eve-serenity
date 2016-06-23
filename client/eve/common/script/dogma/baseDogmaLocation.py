@@ -140,10 +140,9 @@ class BaseDogmaLocation(object):
             return itemKey
         elif itemKey in self.dogmaItems:
             return itemKey
+        elif itemKey in self.dogmaItems:
+            return itemKey
         else:
-            self.PreLoadItemActions(itemKey)
-            if itemKey in self.dogmaItems:
-                return itemKey
             self.EnterCriticalSection('LoadItem', itemKey)
             try:
                 try:
@@ -195,53 +194,45 @@ class BaseDogmaLocation(object):
         LogNotice('LoadItem completed for itemKey: {itemKey}, having dogmaItems entry {dogmaItem} and invItem {invItemDescription}'.format(**locals()))
         return
 
-    def PreLoadItemActions(self, itemKey):
-        pass
-
-    def PostLoadItemActions(self, itemKey):
-        pass
-
     def GetQuantityFromCache(self, locationID, flagID):
         return self.instanceFlagQuantityCache[locationID][flagID].quantity
 
-    @TimedFunction('BaseDogmaLocation::_LoadItem')
-    def _LoadItem(self, itemKey, instanceRow=None, invItem=None, newInstance=False):
-        self.LogInfo('BaseDogmaLocation::_LoadItem', itemKey)
+    @TimedFunction('BaseDogmaLocation::_InstantiateDogmaItem')
+    def _InstantiateDogmaItem(self, itemKey, invItem, instanceRow, newInstance):
+        self.LogInfo('BaseDogmaLocation::_InstantiateDogmaItem', itemKey)
         if isinstance(itemKey, tuple):
-            virtualInvItem = util.KeyVal()
-            virtualInvItem.itemID = itemKey
-            virtualInvItem.locationID, virtualInvItem.flagID, virtualInvItem.typeID = itemKey
-            virtualInvItem.groupID = evetypes.GetGroupID(virtualInvItem.typeID)
-            virtualInvItem.categoryID = evetypes.GetCategoryID(virtualInvItem.typeID)
-            virtualInvItem.ownerID = self.dogmaItems[virtualInvItem.locationID].ownerID
-            dogmaItem = DBLessDogmaItem(weakref.proxy(self), virtualInvItem, cfg, FindSessionClient)
-            dogmaItem.Load()
-            self.FitItemToLocation(virtualInvItem.locationID, itemKey, virtualInvItem.flagID)
-            locationID, flagID, typeID = itemKey
-            try:
-                quantity = self.GetQuantityFromCache(locationID, flagID)
-                dogmaItem.attributes[const.attributeQuantity].SetBaseValue(quantity)
-            except KeyError:
-                sys.exc_clear()
-
-            return dogmaItem
+            dogmaItemClass = DBLessDogmaItem
+            invItem = util.KeyVal()
+            invItem.itemID = itemKey
+            invItem.locationID, invItem.flagID, invItem.typeID = itemKey
+            invItem.groupID = evetypes.GetGroupID(invItem.typeID)
+            invItem.categoryID = evetypes.GetCategoryID(invItem.typeID)
+            invItem.ownerID = self.dogmaItems[invItem.locationID].ownerID
         else:
             if invItem is None:
                 invItem = self.GetItem(itemKey)
-            if invItem is None:
+            try:
+                typeID = invItem.typeID
+            except AttributeError:
                 raise RuntimeError('Dogma was unable to get invItem to load dogmaItem!')
-            if not self.IsItemWanted(invItem.typeID) or newInstance:
+
+            if not self.IsItemWanted(typeID) or newInstance:
                 instanceRow = self.IntroduceNewItem(invItem)
             else:
                 instanceRow = self.GetInstance(invItem)
-            self.LogInfo('BaseDogmaLocation::Actually Loading invItem', itemKey)
-            dogmaItem = self.GetClassForItem(invItem)(weakref.proxy(self), invItem, cfg, FindSessionClient)
-            dogmaItem.Load(invItem, instanceRow)
-            if invItem.flagID != const.flagPilot:
-                self.FitItemToLocation(invItem.locationID, itemKey, invItem.flagID)
-            dogmaItem.OnItemLoaded()
-            self.HandleDogmaLocationEffectsOnItem(dogmaItem)
-            return dogmaItem
+            dogmaItemClass = self.GetClassForItem(invItem)
+        dogmaItem = dogmaItemClass(weakref.proxy(self), invItem, cfg, FindSessionClient)
+        return (dogmaItem, invItem, instanceRow)
+
+    @TimedFunction('BaseDogmaLocation::_LoadItem')
+    def _LoadItem(self, itemKey, instanceRow=None, invItem=None, newInstance=False):
+        dogmaItem, invItem, instanceRow = self._InstantiateDogmaItem(itemKey, invItem, instanceRow, newInstance)
+        self.LogInfo('BaseDogmaLocation::Actually Loading dogma item', itemKey)
+        dogmaItem.Load(invItem, instanceRow)
+        if invItem.flagID != const.flagPilot:
+            self.FitItemToLocation(invItem.locationID, itemKey, invItem.flagID)
+        dogmaItem.OnItemLoaded()
+        return dogmaItem
 
     def GetDogmaItem(self, itemID):
         return self.dogmaItems[itemID]
@@ -442,7 +433,7 @@ class BaseDogmaLocation(object):
         targetID = shipID
         otherID = None
         aeff = dogmaItem.activeEffects
-        for effectID in self.dogmaStaticMgr.passiveFilteredEffectsByType.get(itemTypeID, []):
+        for effectID in self.dogmaStaticMgr.GetPassiveFilteredEffectsByType(itemTypeID):
             if effectID not in aeff:
                 if otherID is None and fittableNonSingleton:
                     otherID = self.GetSlotOther(shipID, dogmaItem.flagID)
@@ -813,7 +804,7 @@ class BaseDogmaLocation(object):
 
     @telemetry.ZONE_METHOD
     def StartPassiveEffects(self, itemID, typeID):
-        effectIDList = self.dogmaStaticMgr.passiveFilteredEffectsByType.get(typeID, [])
+        effectIDList = self.dogmaStaticMgr.GetPassiveFilteredEffectsByType(typeID)
         if not effectIDList:
             self.LogInfo('No effects to start for item %s of type %s' % (itemID, evetypes.GetName(typeID)))
             return
@@ -1653,33 +1644,6 @@ class BaseDogmaLocation(object):
         ret = '\n\n'.join([ 'Level %d:\n\n' % (level,) + '\n'.join(strings) for level, strings in levels ])
         return ret
 
-    @telemetry.ZONE_METHOD
-    def GetCharacterAttributeModifiers(self, itemID, attributeID):
-        if itemID not in self.dogmaItems:
-            return []
-        else:
-            modifierList = []
-            modifiers = self.dogmaItems[itemID].attributes[attributeID].incomingModifiers
-            if modifiers is None:
-                return modifierList
-            for operator, attribSet in enumerate(modifiers):
-                operator -= const.dgmOperatorOffset
-                for attrib in attribSet:
-                    modValue = attrib.GetValue()
-                    if modValue == 1.0 and operator in (const.dgmAssPostMul,
-                     const.dgmAssPreMul,
-                     const.dgmAssPostDiv,
-                     const.dgmAssPreDiv):
-                        continue
-                    if modValue == 0.0 and operator in (const.dgmAssPostPercent, const.dgmAssModAdd, const.dgmAssModSub):
-                        continue
-                    modifierList.append((attrib.invItem.itemID,
-                     attrib.invItem.typeID,
-                     operator,
-                     modValue))
-
-            return modifierList
-
     def EnterCriticalSection(self, k, v):
         if (k, v) not in self.crits:
             self.crits[k, v] = uthread.CriticalSection((k, v))
@@ -1765,6 +1729,9 @@ class BaseDogmaLocation(object):
 
     def IsIgnoringOwnerEvents(self, ownerID):
         return self.ignoredOwnerEvents.IsEventHappening(ownerID)
+
+    def ShouldMessageItemEvent(self, itemID, ownerID=None, locationID=None):
+        return False
 
     def SlotExists(self, shipID, flagID):
         attributeID = None

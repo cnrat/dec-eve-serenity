@@ -22,7 +22,8 @@ import numbers
 import iconrendering
 import iconrendering.photo as photo
 import iconrendering.camera_util as camera_util
-from iconrendering import BLUEPRINT_NONE, BLUEPRINT_NORMAL, BLUEPRINT_COPY, BLUEPRINT_RELIC, BLUEPRINT_DUST
+from evegraphics.fsd import graphicIDs
+from iconrendering import BLUEPRINT_NONE, BLUEPRINT_NORMAL, BLUEPRINT_COPY, BLUEPRINT_RELIC, BLUEPRINT_DUST, BLUEPRINT_SCENE_GFXID
 from eve.client.script.ui.shared.maps.map2D import Map2D
 from eve.client.script.environment.spaceObject.planet import Planet
 from pychartdir import DrawArea, Transparent
@@ -46,7 +47,6 @@ BLUEPRINT_COPY_OVERLAY_PATH = 'res:/UI/Texture/Icons/bpc_overlay.png'
 BLUEPRINT_RELIC_RESPATH = 'res:/UI/Texture/Icons/relic.png'
 BLUEPRINT_RELIC_OVERLAY_PATH = 'res:/UI/Texture/Icons/relic_overlay.png'
 BLUEPRINT_DUST_RESPATH = 'res:/UI/Texture/Icons/BPD.png'
-BLUEPRINT_SCENE = 'res:/dx9/scene/blueprint/original.red'
 DEFAULT_MARKETING_TEST_IMAGE_SERVER = 'http://cdn1.eveonline.com/marketing/InGameVirtualGoodsStore/TestServersImages/'
 
 def TypeIsRenderable(typeID, groupID, categoryID):
@@ -750,13 +750,6 @@ class EvePhoto(service.Service):
             self._RemovePathFromNotAvailList(outPath)
             return outPath
 
-    def GetScenePath(self, raceID):
-        scenePaths = {const.raceCaldari: 'res:/dx9/Scene/preview/ship_caldari.red',
-         const.raceMinmatar: 'res:/dx9/Scene/preview/ship_minmatar.red',
-         const.raceGallente: 'res:/dx9/Scene/preview/ship_gallente.red',
-         const.raceAmarr: 'res:/dx9/Scene/preview/ship_amarr.red'}
-        return scenePaths.get(raceID, 'res:/dx9/Scene/preview/ship_other.red')
-
     def RenderScene(self, typeID, graphicID, scenePath, objectPath, size, blueprint):
         cachePath = GetCachePath(typeID, graphicID, size, None, blueprint)
         outPath = blue.paths.ResolvePath(cachePath)
@@ -765,15 +758,15 @@ class EvePhoto(service.Service):
         if blueprint == BLUEPRINT_COPY:
             backgroundPath = BLUEPRINT_COPY_RESPATH
             overlayPath = BLUEPRINT_COPY_OVERLAY_PATH
-            scenePath = BLUEPRINT_SCENE
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         elif blueprint == BLUEPRINT_RELIC:
             backgroundPath = BLUEPRINT_RELIC_RESPATH
             overlayPath = BLUEPRINT_RELIC_OVERLAY_PATH
-            scenePath = BLUEPRINT_SCENE
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         elif blueprint == BLUEPRINT_NORMAL:
             backgroundPath = BLUEPRINT_RESPATH
             overlayPath = BLUEPRINT_OVERLAY_PATH
-            scenePath = BLUEPRINT_SCENE
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         elif blueprint == BLUEPRINT_DUST:
             backgroundPath = BLUEPRINT_DUST_RESPATH
         techPath = None

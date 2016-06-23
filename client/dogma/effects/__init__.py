@@ -150,7 +150,8 @@ OFFENSIVE_EWAR_TYPES = {const.effectEwTargetPaint: 'ewTargetPaint',
  const.effectStructureModuleEffectRemoteSensorDampener: 'ewRemoteSensorDamp',
  const.effectStructureModuleEffectECM: 'electronic',
  const.effectStructureModuleEffectWeaponDisruption: 'ewTrackingDisrupt',
- const.effectEnergyNeutralizerEntity: 'ewEnergyNeut',
+ const.effectEntityEnergyNeutralizerFalloff: 'ewEnergyNeut',
+ const.effectStarbaseEnergyNeutralizerFalloff: 'ewEnergyNeut',
  const.effectRemoteSensorDampEntity: 'ewRemoteSensorDamp',
  const.effectRemoteTargetPaintEntity: 'ewTargetPaint',
  const.effectRemoteWeaponDisruptEntity: 'ewTrackingDisrupt',
@@ -176,3 +177,16 @@ DEFENSIVE_EWAR_TYPES = {const.effectRemoteTracking: 'remoteTracking',
  const.effectRemoteShieldTransferEntity: 'remoteHullRepair'}
 ALL_EWAR_TYPES = OFFENSIVE_EWAR_TYPES.copy()
 ALL_EWAR_TYPES.update(DEFENSIVE_EWAR_TYPES)
+SKILL_ACCELERATOR_EFFECT_IDS = {const.effectAnalyticalMindIntelligenceBonusModAddIntelligenceLocationChar,
+ const.effectEmpathyCharismaBonusModAddCharismaLocationChar,
+ const.effectInstantRecallMemoryBonusModAddMemoryLocationChar,
+ const.effectIronWillWillpowerBonusModAddWillpowerLocationChar,
+ const.effectSpatialAwarenessPerceptionBonusModAddPerceptionLocationChar}
+
+def IsBoosterSkillAccelerator(dogmaStaticMgr, boosterRecord):
+    boosterEffectIds = dogmaStaticMgr.GetPassiveFilteredEffectsByType(boosterRecord.boosterTypeID)
+    for effect_id in SKILL_ACCELERATOR_EFFECT_IDS:
+        if effect_id in boosterEffectIds:
+            return True
+
+    return False

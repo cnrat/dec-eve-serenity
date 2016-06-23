@@ -1,48 +1,21 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\effects\util.py
-from dogma.effects import modifiers
 from dogma.effects.modifiereffect import ModifierEffect
-
-def _GetItemModifier(effectDict):
-    return modifiers.ItemModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'])
-
-
-def _GetLocationRequiredSkillModifier(effectDict):
-    return modifiers.LocationRequiredSkillModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['skillTypeID'])
-
-
-def _GetOwnerRequiredSkillModifier(effectDict):
-    return modifiers.OwnerRequiredSkillModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['skillTypeID'])
-
-
-def _GetLocationModifier(effectDict):
-    return modifiers.LocationModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'])
-
-
-def _GetLocationGroupModifier(effectDict):
-    return modifiers.LocationGroupModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['groupID'])
-
-
-def _GetGangItemModifier(effectDict):
-    return modifiers.GangItemModifier(effectDict['operator'], 'shipID', effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'])
-
-
-def _GetGangRequiredSkillModifier(effectDict):
-    return modifiers.GangRequiredSkillModifier(effectDict['operator'], 'shipID', effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['skillTypeID'])
-
-
-modifierGetterByType = {'ItemModifier': _GetItemModifier,
- 'LocationRequiredSkillModifier': _GetLocationRequiredSkillModifier,
- 'OwnerRequiredSkillModifier': _GetOwnerRequiredSkillModifier,
- 'LocationModifier': _GetLocationModifier,
- 'LocationGroupModifier': _GetLocationGroupModifier,
- 'GangItemModifier': _GetGangItemModifier,
- 'GangRequiredSkillModifier': _GetGangRequiredSkillModifier}
+import modifiers
+import sideeffect
 
 def CreateEffect(effectInfo, modifierInfo):
     mods = []
+    side_effects = []
     for effectDict in modifierInfo:
-        modifierType = effectDict['func']
-        mods.append(modifierGetterByType[modifierType](effectDict))
+        funcType = effectDict['func']
+        modifierClass = modifiers.GetModifierClassByTypeString(funcType)
+        sideeffectClass = sideeffect.GetSideEffectClassByTypeString(funcType)
+        if modifierClass is not None:
+            mods.append(modifierClass(effectDict))
+        elif sideeffectClass is not None:
+            side_effects.append(sideeffectClass(effectDict))
+        else:
+            raise RuntimeError("Can't create effect from modifierInfo. Unknown funcType type '%s'." % funcType)
 
-    return ModifierEffect(effectInfo, mods)
+    return ModifierEffect(effectInfo, mods, side_effects)

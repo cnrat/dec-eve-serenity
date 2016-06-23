@@ -154,11 +154,13 @@ class DeviceMgr(service.Service):
             self.SetToSafeMode()
         triapp = trinity.app
         triapp.title = uicore.triappargs['title']
+        triapp.minimumWidth = self.minimumSize['width']
+        triapp.minimumHeight = self.minimumSize['height']
+        triapp.width = triapp.minimumWidth
+        triapp.height = triapp.minimumHeight
         triapp.hideTitle = 1
         triapp.fullscreen = 0
         triapp.Create()
-        triapp.minimumWidth = self.minimumSize['width']
-        triapp.minimumHeight = self.minimumSize['height']
         dev = trinity.device
         while not dev.DoesD3DDeviceExist():
             try:

@@ -2,6 +2,7 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\characterskills\attribute.py
 import dogma.const
 import gametime
+from dogma.effects import IsBoosterSkillAccelerator
 ATTRIBUTEBONUS_BY_ATTRIBUTEID = {dogma.const.attributePerception: dogma.const.attributePerceptionBonus,
  dogma.const.attributeMemory: dogma.const.attributeMemoryBonus,
  dogma.const.attributeWillpower: dogma.const.attributeWillpowerBonus,
@@ -14,8 +15,7 @@ def IsBoosterExpiredThen(timeOffset, boosterExpiryTime):
 
 def FindAttributeBooster(dogmaIM, boosters):
     for b in boosters:
-        boosterness = dogmaIM.GetTypeAttribute2(b.typeID, dogma.const.attributeBoosterness)
-        if boosterness == 4.0:
+        if IsBoosterSkillAccelerator(dogmaIM.dogmaStaticMgr, b):
             return b
 
 

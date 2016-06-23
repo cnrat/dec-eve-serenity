@@ -90,14 +90,14 @@ class MarketUtils(service.Service):
         return
 
     def GetMarketRange(self):
-        if eve.session.stationid:
+        if session.stationid or session.structureid:
             r = settings.user.ui.Get('marketRangeFilterStation', const.rangeStation)
         else:
             r = settings.user.ui.Get('marketRangeFilterSpace', const.rangeRegion)
         return r
 
     def SetMarketRange(self, value):
-        if eve.session.stationid:
+        if eve.session.stationid or session.structureid:
             r = settings.user.ui.Set('marketRangeFilterStation', value)
         else:
             r = settings.user.ui.Set('marketRangeFilterSpace', value)

@@ -175,7 +175,8 @@ class FittingSlot(FittingSlotBase):
         return btns
 
     def GetChargesBtns(self):
-        btns = [UtilBtnData(localization.GetByLabel('UI/Fitting/RemoveCharge'), 'ui_38_16_200', self.controller.Unfit, 1, 0), UtilBtnData(localization.GetByLabel('UI/Fitting/ShowChargeInfo'), 'ui_38_16_208', self.ShowChargeInfo, 1, 0), UtilBtnData('', inventorycommon.typeHelpers.GetIconFile(self.controller.GetModuleTypeID()), None, 1, 0)]
+        moduleTypeID = self.controller.GetModuleTypeID()
+        btns = [UtilBtnData(localization.GetByLabel('UI/Fitting/RemoveCharge'), 'ui_38_16_200', self.controller.Unfit, 1, 0), UtilBtnData(localization.GetByLabel('UI/Fitting/ShowChargeInfo'), 'ui_38_16_208', self.ShowChargeInfo, 1, 0), UtilBtnData(evetypes.GetName(moduleTypeID), inventorycommon.typeHelpers.GetIconFile(moduleTypeID), None, 1, 0)]
         return btns
 
     def GetSubSystemBtns(self):

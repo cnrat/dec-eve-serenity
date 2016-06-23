@@ -7,6 +7,7 @@ FREE_ORBIT_DIST = 250
 LOOKAT_DIST = 50000
 
 class DebugCamera(TacticalCamera):
+    name = 'DebugCamera'
     cameraID = evecamera.CAM_DEBUG
     minFov = 0.01
     maxFov = 1.0

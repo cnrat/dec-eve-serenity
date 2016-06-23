@@ -4,7 +4,7 @@ import collections
 import inventorycommon.const as invconst
 import dogma.const as dogmaConst
 import evetypes
-from textImporting import GetLines, SplitAndStrip, GetValidNamesAndTypesDict
+from textImporting import GetLines, SplitAndStrip, GetValidNamesAndTypesDict, GetValidNamesAndTypesDictForGroups
 SHIP_FIRST_CHARACTER = '['
 SHIP_LAST_CHARACTER = ']'
 OFFLINE_INDICATOR = '/offline'
@@ -25,13 +25,14 @@ validCategoryIDs = [invconst.categoryShip,
  invconst.categoryModule,
  invconst.categorySubSystem,
  invconst.categoryCharge,
- invconst.groupIceProduct,
  invconst.categoryDrone]
+validGroupIDs = [invconst.groupIceProduct]
 
 class ImportFittingUtil(object):
 
     def __init__(self, dgmtypeeffectDict, clientDogmaStaticSvc):
         self.nameAndTypesDict = GetValidNamesAndTypesDict(validCategoryIDs)
+        self.nameAndTypesDict.update(GetValidNamesAndTypesDictForGroups(validGroupIDs))
         self.dgmtypeeffectDict = dgmtypeeffectDict
         self.clientDogmaStaticSvc = clientDogmaStaticSvc
 
@@ -151,7 +152,9 @@ class ImportFittingUtil(object):
                     cargoByType[chargeTypeID] += chargeAmount
             if not typeID:
                 continue
-            if categoryID in (invconst.categoryCharge, invconst.groupIceProduct):
+            if categoryID in (invconst.categoryCharge,):
+                cargoByType[typeID] += eachLine['numItems']
+            if evetypes.GetGroupID(typeID) == invconst.groupIceProduct:
                 cargoByType[typeID] += eachLine['numItems']
             if categoryID == invconst.categoryDrone:
                 dronesByType[typeID] += eachLine['numItems']

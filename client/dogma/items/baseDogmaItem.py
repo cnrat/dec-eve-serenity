@@ -13,7 +13,7 @@ class BaseDogmaItem(SlimDogmaItem):
 
     @TimedFunction('BaseDogmaItem::__init__')
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
-        super(BaseDogmaItem, self).__init__(dogmaLocation, item, clientIDFunc)
+        SlimDogmaItem.__init__(self, dogmaLocation, item, clientIDFunc)
         self.flagID = None
         self.isDirty = False
         self.fittingFlags = set()
@@ -104,14 +104,14 @@ class BaseDogmaItem(SlimDogmaItem):
         return effectID in self.activeEffects
 
     def Unload(self):
-        super(BaseDogmaItem, self).Unload()
+        SlimDogmaItem.Unload(self)
         self.dogmaLocation.LogInfo('BaseDogmaItem calling FlushEffects')
         stackTraceCount = self.FlushEffects()
         if stackTraceCount:
             log.LogTraceback('FlushEffectsFromItem %s stack traced %s times, this is to provide higher context' % (self.itemID, stackTraceCount))
 
     def OnItemLoaded(self):
-        pass
+        self.dogmaLocation.HandleDogmaLocationEffectsOnItem(self)
 
     def GetEnvironmentInfo(self):
         return KeyVal(itemID=self.GetItemID(), shipID=self.GetShipID(), charID=self.GetCharacterID(), otherID=self.GetOtherID(), targetID=self.GetTargetID(), effectID=self.GetEffectID(), structureID=self.GetStructureID())

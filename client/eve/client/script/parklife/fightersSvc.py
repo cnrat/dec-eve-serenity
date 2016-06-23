@@ -252,7 +252,11 @@ class FightersSvc(Service):
         return sm.RemoteSvc('fighterMgr').LoadFightersToTube(fighterID, tubeFlagID)
 
     def UnloadTubeToFighterBay(self, tubeFlagID):
-        return sm.RemoteSvc('fighterMgr').UnloadTubeToFighterBay(tubeFlagID)
+        fighterInTube = self.shipFighterState.GetFightersInTube(tubeFlagID)
+        if fighterInTube is not None:
+            return sm.RemoteSvc('fighterMgr').UnloadTubeToFighterBay(tubeFlagID)
+        else:
+            return
 
     def LaunchFightersFromTubes(self, tubeFlagIDs):
         tubeFlagIDs = [ tubeFlagID for tubeFlagID in tubeFlagIDs if self.shipFighterState.GetTubeStatus(tubeFlagID).statusID == TUBE_STATE_READY ]

@@ -214,9 +214,9 @@ class VgsOfferPreview(Container):
         else:
             self.previewContainer.PreviewType(typeID, scenePath='res:/dx9/scene/fitting/fitting.red')
         if IsApparel(typeID):
-            self.previewContainer.AnimEntry(-0.1, 0.0, 0.5, -0.2)
+            self.previewContainer.AnimEntry(-0.1 + math.pi, 0.0, 0.5 + math.pi, -0.2)
         else:
-            self.previewContainer.AnimEntry(0.3, 0.2, 0.6, -0.3)
+            self.previewContainer.AnimEntry(0.3 + math.pi, 0.2, 0.6 + math.pi, -0.3)
 
     def PrepareClose(self):
         uicore.animations.SpMaskIn(self.cover, duration=0.2, sleep=True)

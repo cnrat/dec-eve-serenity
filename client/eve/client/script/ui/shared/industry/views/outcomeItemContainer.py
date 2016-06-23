@@ -99,7 +99,7 @@ class OutcomeItemContainer(Container):
                 if newModel:
                     self.previewContFill.Show()
                     self.previewContFill.opacity = 1.0
-                    self.previewCont.AnimEntry(1.5, 0.0, 0.5, -0.3)
+                    self.previewCont.AnimEntry()
                     self.previewCont.sceneContainer.scene.sunDirection = (-0.5, -1.0, -1.0)
                 self.bg.Hide()
                 self.qtyLabel.top = 86

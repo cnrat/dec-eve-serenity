@@ -76,6 +76,7 @@ class FittingWindow2(Window):
             mainCont = Container(name='mainCont', parent=self.sr.main, top=-8)
             overlayWidth, overlayHeight, overlayAlignment = GetOverlayWidthHeightAndAlignment(self.controller)
             self.overlayCont = Container(name='overlayCont', parent=mainCont, align=overlayAlignment, width=overlayWidth, height=overlayHeight)
+            self.fighterAndDroneCont = None
             self.ConstructPanelExpanderBtn()
             self.ConstructInventoryIcons()
             self.ConstructPowerAndCpuLabels()
@@ -89,6 +90,7 @@ class FittingWindow2(Window):
             self.width = self.GetWindowWidth()
             self.SetFixedWidth(self.width)
             self.UpdateStats()
+        return
 
     def ConstructInventoryIcons(self):
         cargoDroneCont = ContainerAutoSize(name='cargoDroneCont', parent=self.overlayCont, align=uiconst.BOTTOMLEFT, width=110, left=const.defaultPadding, top=4)
@@ -98,12 +100,29 @@ class FittingWindow2(Window):
         else:
             cargoSlot = CargoCargoSlots(name='cargoSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
             SetFittingTooltipInfo(cargoSlot, 'CargoHold')
+        self.fighterAndDroneCont = Container(name='fighterAndDroneCont', parent=cargoDroneCont, align=uiconst.TOTOP, height=32)
+        self.ContructDroneAndFighterIcons()
+
+    def ContructDroneAndFighterIcons(self):
+        self.fighterAndDroneCont.Flush()
         if self.controller.HasFighterBay():
-            fighterSlot = CargoFighterSlots(name='fighterSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
-            SetFittingTooltipInfo(fighterSlot, 'FighterBay')
+            slot = CargoFighterSlots(name='fighterSlot', parent=self.fighterAndDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
+            SetFittingTooltipInfo(slot, 'FighterBay')
         else:
-            droneSlot = CargoDroneSlots(name='droneSlot', parent=cargoDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
-            SetFittingTooltipInfo(droneSlot, 'DroneBay')
+            slot = CargoDroneSlots(name='droneSlot', parent=self.fighterAndDroneCont, align=uiconst.TOTOP, height=32, controller=self.controller)
+            SetFittingTooltipInfo(slot, 'DroneBay')
+        self.fighterOrDroneSlot = slot
+
+    def ReloadDroneAndFighterIconsIfNeeded(self):
+        if self.fighterAndDroneCont is None:
+            return
+        elif self.controller.HasFighterBay() and isinstance(self.fighterOrDroneSlot, CargoFighterSlots):
+            return
+        elif not self.controller.HasFighterBay() and isinstance(self.fighterOrDroneSlot, CargoDroneSlots):
+            return
+        else:
+            self.ContructDroneAndFighterIcons()
+            return
 
     def IsRightPanelExpanded(self):
         return settings.user.ui.Get('fittingPanelRight', 1)
@@ -233,6 +252,7 @@ class FittingWindow2(Window):
         self.UpdateCPU()
         self.UpdatePower()
         self.UpdateCalibration()
+        self.ReloadDroneAndFighterIconsIfNeeded()
 
     def ConstructPowerAndCpuLabels(self):
         powerGridAndCpuCont = LayoutGrid(parent=self.overlayCont, columns=1, state=uiconst.UI_PICKCHILDREN, align=uiconst.BOTTOMRIGHT, top=10, left=10)

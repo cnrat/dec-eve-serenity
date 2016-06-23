@@ -51,6 +51,10 @@ class ItemModifier(BaseModifier):
         return dogmaLM.RemoveModifier
 
 
+def _GetItemModifier(effectDict):
+    return ItemModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'])
+
+
 class LocationModifier(ItemModifier):
 
     def _GetStartFunc(self, dogmaLM):
@@ -58,6 +62,10 @@ class LocationModifier(ItemModifier):
 
     def _GetStopFunc(self, dogmaLM):
         return dogmaLM.RemoveLocationModifier
+
+
+def _GetLocationModifier(effectDict):
+    return LocationModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'])
 
 
 class RequiredSkillModifier(BaseModifier):
@@ -84,6 +92,10 @@ class LocationRequiredSkillModifier(RequiredSkillModifier):
         return dogmaLM.RemoveLocationRequiredSkillModifier
 
 
+def _GetLocationRequiredSkillModifier(effectDict):
+    return LocationRequiredSkillModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['skillTypeID'])
+
+
 class OwnerRequiredSkillModifier(RequiredSkillModifier):
 
     def _GetStartFunc(self, dogmaLM):
@@ -97,6 +109,10 @@ class OwnerRequiredSkillModifier(RequiredSkillModifier):
 
     def IsCharModifier(self):
         return True
+
+
+def _GetOwnerRequiredSkillModifier(effectDict):
+    return OwnerRequiredSkillModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['skillTypeID'])
 
 
 class LocationGroupModifier(BaseModifier):
@@ -120,6 +136,10 @@ class LocationGroupModifier(BaseModifier):
         return dogmaLM.RemoveLocationGroupModifier
 
 
+def _GetLocationGroupModifier(effectDict):
+    return LocationGroupModifier(effectDict['operator'], effectDict['domain'], effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['groupID'])
+
+
 class GangItemModifier(ItemModifier):
 
     def _GetArgs(self, env, itemID):
@@ -134,6 +154,10 @@ class GangItemModifier(ItemModifier):
 
     def _GetStopFunc(self, dogmaLM):
         return dogmaLM.RemoveGangShipModifier
+
+
+def _GetGangItemModifier(effectDict):
+    return GangItemModifier(effectDict['operator'], 'shipID', effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'])
 
 
 class GangRequiredSkillModifier(RequiredSkillModifier):
@@ -151,3 +175,19 @@ class GangRequiredSkillModifier(RequiredSkillModifier):
 
     def _GetStopFunc(self, dogmaLM):
         return dogmaLM.RemoveGangRequiredSkillModifier
+
+
+def _GetGangRequiredSkillModifier(effectDict):
+    return GangRequiredSkillModifier(effectDict['operator'], 'shipID', effectDict['modifiedAttributeID'], effectDict['modifyingAttributeID'], effectDict['skillTypeID'])
+
+
+modifierGetterByType = {'ItemModifier': _GetItemModifier,
+ 'LocationRequiredSkillModifier': _GetLocationRequiredSkillModifier,
+ 'OwnerRequiredSkillModifier': _GetOwnerRequiredSkillModifier,
+ 'LocationModifier': _GetLocationModifier,
+ 'LocationGroupModifier': _GetLocationGroupModifier,
+ 'GangItemModifier': _GetGangItemModifier,
+ 'GangRequiredSkillModifier': _GetGangRequiredSkillModifier}
+
+def GetModifierClassByTypeString(modifierType):
+    return modifierGetterByType.get(modifierType)

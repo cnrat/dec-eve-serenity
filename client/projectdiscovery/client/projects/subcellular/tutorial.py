@@ -75,7 +75,7 @@ class Tutorial(uiprimitives.Container):
 
     def get_finished_task_count(self):
         count = 1
-        for x in range(0, self.playerState.tutorialLevel):
+        for x in range(0, self.level):
             count += self.levelList[x]['tasksToFinishLevel']
 
         return count
@@ -147,13 +147,14 @@ class Tutorial(uiprimitives.Container):
         if not self.loading:
             self.loading = True
             self.refresh_task_button.SetState(uiconst.UI_HIDDEN)
-            self.training_task_image.reset()
+            self.training_task_image.reset_image()
             self.training_category_selector.cascade_categories_out()
             self.training_category_selector.reset_categories()
             self.new_training_task()
             self.loading = False
 
     def new_training_task(self):
+        self.training_task_image.reset_image()
         self.selection = []
         self.hide_explanation_icon()
         if not self.levelDict:
@@ -306,7 +307,6 @@ class Tutorial(uiprimitives.Container):
     def on_training_result_closed(self):
         self.isSubmitting = False
         self.increment_level_if_needed()
-        self.training_task_image.reset()
         uthread.new(self.new_training_task)
         animations.FadeIn(self, duration=1)
         animations.FadeIn(self.main_button_container)

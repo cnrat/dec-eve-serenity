@@ -2,6 +2,7 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\fittingSvc.py
 import sys
 from collections import defaultdict
+from carbon.common.script.util.commonutils import StripTags
 from eve.client.script.ui.shared.fittingGhost.fittingSearchUtil import SearchFittingHelper
 from eve.client.script.ui.shared.fittingMgmtWindow import ViewFitting
 from eve.common.script.sys.eveCfg import GetActiveShip
@@ -253,7 +254,7 @@ class fittingSvc(service.Service):
         if fitting is None:
             raise UserError('FittingDoesNotExist')
         shipInv = self.invCache.GetInventoryFromId(util.GetActiveShip())
-        chargesByType, dronesByType, iceByType, itemTypes, modulesByFlag, rigsToFit = self.GetTypesToFit(fitting, shipInv)
+        chargesByType, dronesByType, iceByType, itemTypes, modulesByFlag, rigsToFit, subsystems = self.GetTypesToFit(fitting, shipInv)
         fitRigs = False
         if rigsToFit:
             if self.HasRigFitted():
@@ -269,6 +270,18 @@ class fittingSvc(service.Service):
                 quantityToTake = min(item.stacksize, qtyNeeded)
                 itemsToFit[item.typeID].add(item.itemID)
                 itemTypes[item.typeID] -= quantityToTake
+
+        if subsystems:
+            shipType = shipInv.GetItem().typeID
+            for flag, module in modulesByFlag.iteritems():
+                if const.flagSubSystemSlot0 <= flag <= const.flagSubSystemSlot7:
+                    moduleFitsShipType = int(sm.GetService('clientDogmaStaticSvc').GetTypeAttribute(module, const.attributeFitsToShipType))
+                    if shipType != moduleFitsShipType:
+                        raise UserError('CannotFitSubSystemNotShip', {'subSystemName': (const.UE_TYPEID, module),
+                         'validShipName': (const.UE_TYPEID, moduleFitsShipType),
+                         'shipName': (const.UE_TYPEID, shipType)})
+                    if module in itemTypes and itemTypes[module] > 0:
+                        raise UserError('CantUnfitSubSystems')
 
         failedToLoad = shipInv.FitFitting(util.GetActiveShip(), itemsToFit, session.stationid2 or session.structureid, modulesByFlag, dronesByType, chargesByType, iceByType, fitRigs)
         for typeID, qty in failedToLoad:
@@ -287,7 +300,9 @@ class fittingSvc(service.Service):
             text = localization.GetByLabel('UI/Fitting/MissingItems', types=text)
             eve.Message('CustomInfo', {'info': text}, modal=False)
         if settings.user.ui.Get('useFittingNameForShips', 0):
-            self.invCache.GetInventoryMgr().SetLabel(util.GetActiveShip(), fitting.get('name')[:20])
+            fittingName = StripTags(fitting.get('name'))
+            fittingName = fittingName[:20]
+            self.invCache.GetInventoryMgr().SetLabel(util.GetActiveShip(), fittingName)
         return
 
     def GetTypesToFit(self, fitting, shipInv):
@@ -297,7 +312,8 @@ class fittingSvc(service.Service):
          fittingObj.GetIceByType(),
          fittingObj.GetQuantityByType(),
          fittingObj.GetModulesByFlag(),
-         fittingObj.FittingHasRigs())
+         fittingObj.FittingHasRigs(),
+         fittingObj.FittingHasSubsystems())
 
     def HasRigFitted(self):
         shipInv = self.invCache.GetInventoryFromId(util.GetActiveShip(), locationID=session.stationid2)

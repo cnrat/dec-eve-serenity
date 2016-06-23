@@ -2,7 +2,7 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\datetimeutils\__init__.py
 import datetime
 import re
-import datetimeutils
+import time
 _NOT_SUPPLIED = object()
 FILETIME_NULL_DATE = datetime.datetime(1601, 1, 1, 0, 0, 0)
 ISODATE_REGEX = re.compile('^(?:(?P<year>[0]{0,3}[1-9]\\d{0,3})[- /.,\\\\](?P<month>1[012]|0?\\d)[- /.,\\\\](?P<day>3[01]|[012]?\\d))?(?:[ @Tt]{0,1}(?:(?P<hour>[2][0-3]|[01]?\\d)[ .:,](?P<minute>[012345]?\\d))?(?:[ .:,](?P<second>[012345]?\\d)(?:[ .:,](?P<millisecond>\\d{0,6}))?)?)?')
@@ -20,6 +20,12 @@ def datetime_to_filetime(dt):
         dt = datetime.datetime.combine(dt, datetime.time(0, 0, 0))
     delta = dt - FILETIME_NULL_DATE
     return 10 * ((delta.days * 86400 + delta.seconds) * 1000000 + delta.microseconds)
+
+
+def datetime_to_timestamp(dt):
+    if not isinstance(dt, datetime.datetime) and isinstance(dt, datetime.date):
+        dt = datetime.datetime.combine(dt, datetime.time(0, 0, 0))
+    return int(time.mktime(dt.timetuple()))
 
 
 def isostr_to_datetime(string):
@@ -178,3 +184,40 @@ def find_earliest_time_after_datetime(dt, time):
     if dt_with_time_replaced <= dt:
         dt_with_time_replaced += datetime.timedelta(days=1)
     return dt_with_time_replaced
+
+
+def dt_midnight(dt):
+    if isinstance(dt, datetime.datetime):
+        dt = dt.date()
+    if isinstance(dt, datetime.date):
+        return datetime.datetime.combine(dt, datetime.time())
+    return dt
+
+
+def dt_from_now(days=0, hours=0, minutes=0, seconds=0, weeks=0):
+    return datetime.datetime.now() + datetime.timedelta(days, hours, minutes, seconds, weeks)
+
+
+def dt_ago(days=0, hours=0, minutes=0, seconds=0, weeks=0):
+    return datetime.datetime.now() - datetime.timedelta(days, hours, minutes, seconds, weeks)
+
+
+def date_from_now(days=0, weeks=0):
+    return dt_midnight(dt_from_now(days, weeks))
+
+
+def date_ago(days=0, weeks=0):
+    return dt_midnight(dt_from_now(days, weeks))
+
+
+def str_to_relative_datetime(str_value):
+    str_value = str_value.strip().lower()
+    if str_value in ('now', 'today'):
+        return datetime.datetime.now()
+    elif str_value == 'yesterday':
+        return datetime.datetime.now() - datetime.timedelta(days=1)
+    elif str_value == 'tomorrow':
+        return datetime.datetime.now() + datetime.timedelta(days=1)
+    else:
+        return None
+        return None

@@ -7,6 +7,7 @@ import evecamera
 
 class DeathSceneCamera(BaseSpaceCamera):
     cameraID = evecamera.CAM_DEATHSCENE
+    name = 'DeathSceneCamera'
 
     def OnActivated(self, **kwargs):
         BaseSpaceCamera.OnActivated(self, **kwargs)

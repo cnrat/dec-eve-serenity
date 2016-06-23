@@ -548,6 +548,10 @@ class DirectionalScanResults(listentry.Generic):
     def GetDragData(self, *args):
         return self.sr.node.scroll.GetSelectedNodes(self.sr.node)
 
+    def OnClick(self, *args):
+        listentry.Generic.OnClick(self, *args)
+        uicore.cmd.ExecuteCombatCommand(self.sr.node.itemID, uiconst.UI_CLICK)
+
 
 class FilterOptionEntry(MapViewCheckbox):
 

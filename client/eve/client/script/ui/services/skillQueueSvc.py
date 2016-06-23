@@ -2,15 +2,17 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\skillQueueSvc.py
 from contextlib import contextmanager
 from carbonui.util.various_unsorted import GetAttrs
+from characterskills.queue import SKILLQUEUE_MAX_NUM_SKILLS, GetQueueEntry, GetSkillQueueTimeLength
+from characterskills.util import GetSkillLevelRaw, GetLevelProgress
+from eveexceptions import UserError
 import service
-import blue
 import form
-import characterskills as charskills
 import sys
 from textImporting.importSkillplan import ImportSkillPlan
 import uix
 import carbonui.const as uiconst
 import uiutil
+import gametime
 import localization
 import evetypes
 from util import KeyVal
@@ -30,7 +32,7 @@ class SkillQueueService(service.Service):
         self.cachedSkillQueue = None
         self.skillQueueCache = None
         self.skillplanImporter = None
-        self.maxSkillqueueTimeLength = charskills.GetSkillQueueTimeLength(session.userType)
+        self.maxSkillqueueTimeLength = GetSkillQueueTimeLength(session.userType)
         return
 
     def Run(self, memStream=None):
@@ -58,7 +60,7 @@ class SkillQueueService(service.Service):
                     if idx > 0:
                         startTime = self.skillQueue[idx - 1].trainingEndTime
                     currentSkill = self.skills.GetSkill(trainingSkill.trainingTypeID)
-                    queueEntry = charskills.GetQueueEntry(trainingSkill.trainingTypeID, trainingSkill.trainingToLevel, idx, currentSkill, queueWithTimestamps, lambda x, y: self.GetTimeForTraining(x, y, startTime), KeyVal, True)
+                    queueEntry = GetQueueEntry(trainingSkill.trainingTypeID, trainingSkill.trainingToLevel, idx, currentSkill, queueWithTimestamps, lambda x, y: self.GetTimeForTraining(x, y, startTime), KeyVal, True)
                     queueWithTimestamps.append(queueEntry)
 
                 self.skillQueue = queueWithTimestamps
@@ -98,7 +100,7 @@ class SkillQueueService(service.Service):
                     self.TrimQueue()
                     queueInfo = {idx:(x.trainingTypeID, x.trainingToLevel) for idx, x in enumerate(self.skillQueue)}
                     skillHandler = self.skills.GetSkillHandler()
-                    skillHandler.SaveNewQueue(queueInfo, activate)
+                    skillHandler.SaveNewQueue(queueInfo, activate=True)
                     self.cachedSkillQueue = None
                     sm.ScatterEvent('OnSkillQueueRefreshed')
                 except Exception as e:
@@ -173,15 +175,15 @@ class SkillQueueService(service.Service):
         if self.FindInQueue(skillTypeID, skillLevel) is not None:
             raise UserError('QueueSkillAlreadyPresent')
         skillQueueLength = len(self.skillQueue)
-        if skillQueueLength >= charskills.SKILLQUEUE_MAX_NUM_SKILLS:
-            raise UserError('QueueTooManySkills', {'num': charskills.SKILLQUEUE_MAX_NUM_SKILLS})
+        if skillQueueLength >= SKILLQUEUE_MAX_NUM_SKILLS:
+            raise UserError('QueueTooManySkills', {'num': SKILLQUEUE_MAX_NUM_SKILLS})
         newPos = position if position is not None and position >= 0 else skillQueueLength
         currentSkill = self.skills.GetSkill(skillTypeID)
         self.CheckCanInsertSkillAtPosition(skillTypeID, skillLevel, newPos)
         startTime = None
         if newPos != 0:
             startTime = self.skillQueue[newPos - 1].trainingEndTime
-        queueEntry = charskills.GetQueueEntry(skillTypeID, skillLevel, newPos, currentSkill, self.skillQueue, lambda x, y: self.GetTimeForTraining(x, y, startTime), KeyVal, self.SkillInTraining() is not None)
+        queueEntry = GetQueueEntry(skillTypeID, skillLevel, newPos, currentSkill, self.skillQueue, lambda x, y: self.GetTimeForTraining(x, y, startTime), KeyVal, self.SkillInTraining() is not None)
         if newPos == skillQueueLength:
             self.skillQueue.append(queueEntry)
         else:
@@ -248,8 +250,7 @@ class SkillQueueService(service.Service):
         if position is not None and position < 0:
             raise RuntimeError('Invalid queue position: ', position)
         trainingTime = 0
-        currentAttributes = self.GetPlayerAttributeDict()
-        booster = self.GetAttributeBooster()
+        skillBoosters = self.GetSkillAcceleratorBoosters()
         playerTheoreticalSkillPoints = {}
         skills = self.skills.GetSkills()
         currentIndex = 0
@@ -265,14 +266,14 @@ class SkillQueueService(service.Service):
             if queueSkillTypeID not in playerTheoreticalSkillPoints:
                 skill = self.skills.GetSkill(queueSkillTypeID)
                 playerTheoreticalSkillPoints[queueSkillTypeID] = self.GetSkillPointsFromSkillObject(queueSkillTypeID, skill)
-            addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, booster, currentAttributes)
+            addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, skillBoosters)
             trainingTime += addedTime
             playerTheoreticalSkillPoints[queueSkillTypeID] += addedSP
 
         return trainingTime
 
     def GetTrainingEndTimeOfQueue(self):
-        return blue.os.GetWallclockTime() + self.GetTrainingLengthOfQueue()
+        return gametime.GetWallclockTime() + self.GetTrainingLengthOfQueue()
 
     def GetTrainingLengthOfSkill(self, skillTypeID, skillLevel, position=None):
         if position is not None and (position < 0 or position > len(self.skillQueue)):
@@ -286,8 +287,7 @@ class SkillQueueService(service.Service):
                 targetIndex = len(self.skillQueue)
         playerTheoreticalSkillPoints = {}
         skills = self.skills.GetSkills()
-        currentAttributes = self.GetPlayerAttributeDict()
-        booster = self.GetAttributeBooster()
+        skillBoosters = self.GetSkillAcceleratorBoosters()
         for trainingSkill in self.skillQueue:
             queueSkillTypeID = trainingSkill.trainingTypeID
             queueSkillLevel = trainingSkill.trainingToLevel
@@ -296,48 +296,26 @@ class SkillQueueService(service.Service):
             elif queueSkillTypeID == skillTypeID and queueSkillLevel == skillLevel and currentIndex < targetIndex:
                 currentIndex += 1
                 continue
-            addedSP, addedTime, _ = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, booster, currentAttributes)
+            addedSP, addedTime, _ = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, skillBoosters)
             currentIndex += 1
             trainingTime += addedTime
             playerTheoreticalSkillPoints[queueSkillTypeID] += addedSP
 
-        addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(skillTypeID, skillLevel, skills, playerTheoreticalSkillPoints, trainingTime, booster, currentAttributes)
+        addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(skillTypeID, skillLevel, skills, playerTheoreticalSkillPoints, trainingTime, skillBoosters)
         trainingTime += addedTime
         return (long(trainingTime), long(addedTime), isAccelerated)
 
-    def GetTrainingParametersOfSkillInEnvironment(self, skillTypeID, skillLevel, existingSkillPoints=0, playerAttributeDict=None):
-        playerCurrentSP = existingSkillPoints
-        skillTimeConstant = self.godma.GetTypeAttribute(skillTypeID, const.attributeSkillTimeConstant)
-        primaryAttributeID = self.godma.GetTypeAttribute(skillTypeID, const.attributePrimaryAttribute)
-        secondaryAttributeID = self.godma.GetTypeAttribute(skillTypeID, const.attributeSecondaryAttribute)
-        if existingSkillPoints is None:
-            skill = self.skills.GetSkill(skillTypeID)
-            if skill is not None:
-                playerCurrentSP = skill.skillPoints
-            else:
-                playerCurrentSP = 0
-        if skillTimeConstant is None:
-            self.LogWarn('GetTrainingLengthOfSkillInEnvironment could not find skill type ID:', skillTypeID, 'via Godma')
-            return 0
+    def GetSkillPointsAndTimeNeededToTrain(self, skillTypeID, skillLevel, existingSkillPoints=0, trainingStartTime=None):
+        calculator = self.skills.GetSkillTrainingTimeCalculator()
+        if existingSkillPoints:
+            skillPointsToTrain, trainingTime = calculator.get_skill_points_and_time_to_train_given_existing_skill_points(skillTypeID, skillLevel, trainingStartTime, existingSkillPoints)
         else:
-            skillPointsToTrain = charskills.GetSPForLevelRaw(skillTimeConstant, skillLevel) - playerCurrentSP
-            if skillPointsToTrain <= 0:
-                return (0, 0)
-            attrDict = playerAttributeDict
-            if attrDict is None:
-                attrDict = self.GetPlayerAttributeDict()
-            playerPrimaryAttribute = attrDict[primaryAttributeID]
-            playerSecondaryAttribute = attrDict[secondaryAttributeID]
-            if playerPrimaryAttribute <= 0 or playerSecondaryAttribute <= 0:
-                raise RuntimeError('GetTrainingLengthOfSkillInEnvironment found a zero attribute value on character', session.charid, 'for attributes [', primaryAttributeID, secondaryAttributeID, ']')
-            trainingRate = charskills.GetSkillPointsPerMinute(playerPrimaryAttribute, playerSecondaryAttribute)
-            trainingTimeInMinutes = float(skillPointsToTrain) / float(trainingRate)
-            return (skillPointsToTrain, trainingTimeInMinutes * const.MIN)
+            skillPointsToTrain, trainingTime = calculator.get_skill_points_and_time_to_train(skillTypeID, skillLevel, trainingStartTime)
+        return (skillPointsToTrain, float(trainingTime))
 
     def TrimQueue(self):
         trainingTime = 0
-        currentAttributes = self.GetPlayerAttributeDict()
-        booster = self.GetAttributeBooster()
+        skillBoosters = self.GetSkillAcceleratorBoosters()
         playerTheoreticalSkillPoints = {}
         skills = self.skills.GetSkills()
         cutoffIndex = 0
@@ -345,7 +323,7 @@ class SkillQueueService(service.Service):
             queueSkillTypeID = trainingSkill.trainingTypeID
             queueSkillLevel = trainingSkill.trainingToLevel
             cutoffIndex += 1
-            addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, booster, currentAttributes)
+            addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, skillBoosters)
             trainingTime += addedTime
             playerTheoreticalSkillPoints[queueSkillTypeID] += addedSP
             if trainingTime > self.maxSkillqueueTimeLength:
@@ -358,45 +336,28 @@ class SkillQueueService(service.Service):
             eve.Message('skillQueueTrimmed', {'num': len(removedSkills)})
         return
 
-    def GetAttributeBooster(self):
-        myGodmaItem = sm.GetService('godma').GetItem(session.charid)
-        boosters = myGodmaItem.boosters
-        return charskills.FindAttributeBooster(self.godma, boosters)
+    def GetSkillAcceleratorBoosters(self):
+        return self.skills.GetSkillAcceleratorBoosters()
 
-    def GetAttributesWithoutCurrentBooster(self, booster):
-        currentAttributes = self.GetPlayerAttributeDict()
-        for attributeID, value in currentAttributes.iteritems():
-            newValue = charskills.GetBoosterlessValue(self.godma, booster.typeID, attributeID, value)
-            currentAttributes[attributeID] = newValue
-
-        return currentAttributes
-
-    def GetAddedSpAndAddedTimeForSkill(self, skillTypeID, skillLevel, skillSet, theoreticalSkillPointsDict, trainingTimeOffset, attributeBooster, currentAttributes=None):
-        if currentAttributes is None:
-            currentAttributes = self.GetPlayerAttributeDict()
-        isAccelerated = False
-        if attributeBooster:
-            if charskills.IsBoosterExpiredThen(long(trainingTimeOffset), attributeBooster.expiryTime):
-                currentAttributes = self.GetAttributesWithoutCurrentBooster(attributeBooster)
-            else:
-                isAccelerated = True
+    def GetAddedSpAndAddedTimeForSkill(self, skillTypeID, skillLevel, skillSet, theoreticalSkillPointsDict, trainingTimeOffset, skillBoosters):
+        skillStartTime = long(trainingTimeOffset) + gametime.GetWallclockTime()
+        isAccelerated = skillBoosters.is_any_booster_active_at_time(skillStartTime)
         if skillTypeID not in theoreticalSkillPointsDict:
             skillObj = skillSet.get(skillTypeID, None)
             theoreticalSkillPointsDict[skillTypeID] = self.GetSkillPointsFromSkillObject(skillTypeID, skillObj)
-        addedSP, addedTime = self.GetTrainingParametersOfSkillInEnvironment(skillTypeID, skillLevel, theoreticalSkillPointsDict[skillTypeID], currentAttributes)
+        addedSP, addedTime = self.GetSkillPointsAndTimeNeededToTrain(skillTypeID, skillLevel, theoreticalSkillPointsDict[skillTypeID], skillStartTime)
         return (addedSP, addedTime, isAccelerated)
 
     def GetAllTrainingLengths(self):
         trainingTime = 0
-        currentAttributes = self.GetPlayerAttributeDict()
-        booster = self.GetAttributeBooster()
+        skillBoosters = self.GetSkillAcceleratorBoosters()
         resultsDict = {}
         playerTheoreticalSkillPoints = {}
         skills = self.skills.GetSkills()
         for trainingSkill in self.skillQueue:
             queueSkillTypeID = trainingSkill.trainingTypeID
             queueSkillLevel = trainingSkill.trainingToLevel
-            addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, booster, currentAttributes)
+            addedSP, addedTime, isAccelerated = self.GetAddedSpAndAddedTimeForSkill(queueSkillTypeID, queueSkillLevel, skills, playerTheoreticalSkillPoints, trainingTime, skillBoosters)
             trainingTime += addedTime
             playerTheoreticalSkillPoints[queueSkillTypeID] += addedSP
             resultsDict[queueSkillTypeID, queueSkillLevel] = (trainingTime, addedTime, isAccelerated)
@@ -433,8 +394,8 @@ class SkillQueueService(service.Service):
             currentPoints = skillSvc.MySkillPoints(typeID)
             totalPoints = currentPoints + points
             rank = skillSvc.GetSkillRank(typeID)
-            level = charskills.GetSkillLevelRaw(totalPoints, rank)
-            progress = charskills.GetLevelProgress(totalPoints, rank)
+            level = GetSkillLevelRaw(totalPoints, rank)
+            progress = GetLevelProgress(totalPoints, rank)
             levelBySkillTypeID[typeID] = (level, progress)
 
         return levelBySkillTypeID
@@ -487,14 +448,19 @@ class SkillQueueService(service.Service):
             trainingSkill = self.SkillInTraining(skillTypeID)
             serverQueue = self.GetServerQueue()
             if trainingSkill and len(serverQueue):
-                trainingRecord = serverQueue[0]
-                spHi = trainingRecord.trainingDestinationSP
-                spm = self.skills.GetSkillpointsPerMinute(skillInfo.typeID)
-                ETA = trainingRecord.trainingEndTime
-                time = ETA - blue.os.GetWallclockTime()
-                secs = time / 10000000L
-                totalSkillPoints = spHi - secs / 60.0 * spm
+                skillPointsTrained = self.GetEstimatedSkillPointsTrained(skillTypeID)
+                totalSkillPoints = max(skillPointsTrained, totalSkillPoints)
             return totalSkillPoints
+
+    def GetEstimatedSkillPointsTrained(self, skillTypeID):
+        startTime = self.GetStartTimeOfQueue()
+        currentTime = gametime.GetWallclockTime()
+        if startTime is None:
+            startTime = currentTime
+        trainingCalculator = self.skills.GetSkillTrainingTimeCalculator()
+        with trainingCalculator.specific_current_time_context(startTime):
+            skillPointsTrained = trainingCalculator.get_skill_points_trained_at_sample_time(skillTypeID, startTime, currentTime)
+        return skillPointsTrained
 
     def OnServerSkillsChanged(self, skillInfos):
         self.PrimeCache()
@@ -564,8 +530,8 @@ class SkillQueueService(service.Service):
 
     def AddSkillToEnd(self, skillTypeID, current, nextLevel=None):
         queueLength = self.GetNumberOfSkillsInQueue()
-        if queueLength >= charskills.SKILLQUEUE_MAX_NUM_SKILLS:
-            raise UserError('QueueTooManySkills', {'num': charskills.SKILLQUEUE_MAX_NUM_SKILLS})
+        if queueLength >= SKILLQUEUE_MAX_NUM_SKILLS:
+            raise UserError('QueueTooManySkills', {'num': SKILLQUEUE_MAX_NUM_SKILLS})
         totalTime = self.GetTrainingLengthOfQueue()
         if totalTime > self.maxSkillqueueTimeLength:
             raise UserError('QueueTooLong')
@@ -693,21 +659,21 @@ class SkillQueueService(service.Service):
 
     def GetTimeForTraining(self, skillTypeID, toLevel, trainingStartTime=0):
         currentTraining = self.SkillInTraining(skillTypeID)
-        skillDict = {}
+        currentSkillPointsDict = {}
+        currentTime = gametime.GetWallclockTime()
         if currentTraining:
             trainingEndTime = self.GetEndOfTraining(skillTypeID)
-            timeForTraining = trainingEndTime - blue.os.GetWallclockTime()
+            timeForTraining = trainingEndTime - currentTime
         else:
             timeOffset = 0
             if trainingStartTime:
-                timeOffset = trainingStartTime - blue.os.GetWallclockTime()
+                timeOffset = trainingStartTime - currentTime
             skill = self.skills.GetSkill(skillTypeID)
             attributes = self.GetPlayerAttributeDict()
-            booster = self.GetAttributeBooster()
-            if booster and charskills.IsBoosterExpiredThen(timeOffset, booster.expiryTime):
-                attributes = self.GetAttributesWithoutCurrentBooster(booster)
-            skillDict[skillTypeID] = self.GetSkillPointsFromSkillObject(skillTypeID, skill)
-            _, timeForTraining = self.GetTrainingParametersOfSkillInEnvironment(skillTypeID, toLevel, skillDict[skillTypeID], attributes)
+            skillBoosters = self.GetSkillAcceleratorBoosters()
+            skillBoosters.apply_expired_attributes_at_time_offset(attributes, timeOffset)
+            currentSkillPointsDict[skillTypeID] = self.GetSkillPointsFromSkillObject(skillTypeID, skill)
+            _, timeForTraining = self.GetSkillPointsAndTimeNeededToTrain(skillTypeID, toLevel, currentSkillPointsDict[skillTypeID], trainingStartTime or currentTime)
         return long(timeForTraining)
 
     def GetEndOfTraining(self, skillTypeID):
@@ -718,8 +684,13 @@ class SkillQueueService(service.Service):
             return skillQueue[0].trainingEndTime
             return None
 
-    def GetStartOfTraining(self, skillTypeID):
-        pass
+    def GetStartTimeOfQueue(self):
+        skillQueue = self.GetServerQueue()
+        if not skillQueue:
+            return None
+        else:
+            return skillQueue[0].trainingStartTime
+            return None
 
     def IsMoveAllowed(self, draggedNode, checkedIdx):
         queue = self.GetQueue()

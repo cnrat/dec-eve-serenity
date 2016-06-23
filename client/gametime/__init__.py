@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\gametime\__init__.py
 from carbon.common.lib.const import SEC, MIN, DAY, MSEC
+EPOCH_BLUE_TIME = 116444736000000000L
 
 class BlueTimeImplementation(object):
 

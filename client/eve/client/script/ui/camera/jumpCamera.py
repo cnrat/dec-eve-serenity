@@ -4,6 +4,7 @@ from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 import evecamera
 
 class JumpCamera(BaseSpaceCamera):
+    name = 'JumpCamera'
     cameraID = evecamera.CAM_JUMP
     default_fov = 1.0
 
@@ -17,3 +18,6 @@ class JumpCamera(BaseSpaceCamera):
 
     def IsLocked(self):
         return True
+
+    def Track(self, itemID):
+        pass

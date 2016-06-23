@@ -11,7 +11,7 @@ class LocalizationYamlFileExporter(localizationExporter.LocalizationExporterBase
 
     @classmethod
     def ExportWithProjectSettingsToZipFileObject(cls, projectID, fileObject, exportFileName, getSubmittedOnly=True, bsdBranchID=None):
-        from fsdCommon.fsdYamlExtensions import FsdYamlDumper
+        from fsd.common.fsdYamlExtensions import FsdYamlDumper
         if not exportFileName:
             exportFileName = 'localization-'
         localizationFiles = cls._GetFileContents(projectID, getSubmittedOnly, bsdBranchID)
@@ -27,7 +27,7 @@ class LocalizationYamlFileExporter(localizationExporter.LocalizationExporterBase
 
     @classmethod
     def ExportWithProjectSettings(cls, projectID, exportLocation, exportFileName, getSubmittedOnly=True, **kwargs):
-        from fsdCommon.fsdYamlExtensions import FsdYamlDumper
+        from fsd.common.fsdYamlExtensions import FsdYamlDumper
         if not exportLocation or not exportFileName:
             raise LocalizationExporterError('Filepath strings are incomplete. exportLocation, exportFileName: %s, %s.' % (exportLocation, exportFileName))
         localizationFiles = cls._GetFileContents(projectID, getSubmittedOnly)

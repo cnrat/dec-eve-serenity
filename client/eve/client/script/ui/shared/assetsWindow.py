@@ -471,10 +471,14 @@ class AssetsWindow(uicontrols.Window):
         return data
 
     def GetLocationDragData(self, node):
+        solarSystemID, stationTypeID = self.GetStationSolarSystemIDAndTypeID(node)
         stationInfo = sm.StartService('ui').GetStation(node.itemID)
         if stationInfo:
             node['typeID'] = stationInfo.stationTypeID
             node['genericDisplayLabel'] = cfg.stations.Get(node.itemID).stationName
+        elif stationTypeID:
+            node['typeID'] = stationTypeID
+            node['genericDisplayLabel'] = cfg.evelocations.Get(node.itemID).name
         return [node]
 
     def GetContainerSubContent(self, nodedata, *args):
@@ -638,6 +642,20 @@ class AssetsWindow(uicontrols.Window):
 
     def GetMenuLocationMenu(self, node):
         locationID = node.location.locationID
+        solarSystemID, stationTypeID = self.GetStationSolarSystemIDAndTypeID(node)
+        menu = sm.StartService('menu').CelestialMenu(node.location.locationID, typeID=stationTypeID, parentID=solarSystemID)
+        if not util.IsStation(locationID):
+            if session.structureid != locationID:
+                if util.IsWormholeSystem(solarSystemID):
+                    label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSpace')
+                else:
+                    label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSafety')
+                menu.append((label, self.MoveItemsInStructureToAssetSafety, (solarSystemID, locationID)))
+        return menu
+
+    def GetStationSolarSystemIDAndTypeID(self, node):
+        locationID = node.location.locationID
+        solarSystemID = stationTypeID = None
         if util.IsStation(locationID):
             stationInfo = sm.StartService('ui').GetStation(locationID)
             stationTypeID = stationInfo.stationTypeID
@@ -650,15 +668,7 @@ class AssetsWindow(uicontrols.Window):
                     solarSystemID = station.solarSystemID
                     break
 
-        menu = sm.StartService('menu').CelestialMenu(node.location.locationID, typeID=stationTypeID, parentID=solarSystemID)
-        if not util.IsStation(locationID):
-            if session.structureid != locationID:
-                if util.IsWormholeSystem(solarSystemID):
-                    label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSpace')
-                else:
-                    label = MenuLabel('UI/Inventory/AssetSafety/MoveItemsToSafety')
-                menu.append((label, self.MoveItemsInStructureToAssetSafety, (solarSystemID, locationID)))
-        return menu
+        return (solarSystemID, stationTypeID)
 
     def MoveItemsInStructureToAssetSafety(self, solarSystemID, structureID):
         sm.GetService('assetSafety').MoveItemsInStructureToAssetSafetyForCharacter(solarSystemID, structureID)

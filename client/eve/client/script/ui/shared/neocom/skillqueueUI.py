@@ -16,7 +16,8 @@ from carbonui.primitives.vectorlinetrace import VectorLineTrace
 from carbonui.util.color import Color
 from carbonui.util.stringManip import IntToRoman
 from carbonui.util.various_unsorted import GetClipboardData
-import characterskills as charskills
+from characterskills.queue import GetSkillQueueTimeLength, HasShortSkillqueue, IsTrialRestricted
+from characterskills.util import GetSPForLevelRaw
 from eve.client.script.ui.control import entries as listentry
 from eve.client.script.ui.control.buttons import Button, ButtonIcon
 from eve.client.script.ui.control.checkbox import Checkbox
@@ -32,7 +33,10 @@ from eve.client.script.ui.shared.monetization.events import LogMultiPilotTrainin
 from eve.client.script.ui.shared.monetization.multiTrainingOverlay import MultiTrainingOverlay
 from eve.client.script.ui.shared.monetization.trialPopup import ORIGIN_CHARACTERSHEET
 from eve.client.script.ui.shared.neocom.skillinfo import BaseSkillEntry
+from eve.common.lib.appConst import defaultPadding
+from eveexceptions import UserError
 import evetypes
+import gametime
 import localization
 import log
 import math
@@ -88,7 +92,7 @@ class SkillQueue(Window):
         self.queueLastApplied = []
         self.isSaving = False
         self.isApplying = False
-        self.maxSkillqueueLength = charskills.GetSkillQueueTimeLength(session.userType)
+        self.maxSkillqueueLength = GetSkillQueueTimeLength(session.userType)
         self.minWidth = 360
         self.SetMinSize([self.minWidth, 350])
         self.expanded = 0
@@ -131,12 +135,12 @@ class SkillQueue(Window):
     def ConstructLayout(self):
         self.overlay = MultiTrainingOverlay(parent=self.GetMainArea(), padding=(-2, 0, -2, 2))
         self.sr.leftOuterPar = DragResizeCont(name='leftOuterPar', parent=self.sr.main, align=uiconst.TOLEFT_PROP, settingsID='skillQueue', minSize=0.4, maxSize=0.6)
-        self.sr.main.padLeft = self.sr.main.padRight = const.defaultPadding
+        self.sr.main.padLeft = self.sr.main.padRight = defaultPadding
         self.sr.rightOuterPar = Container(name='rightOuterPar', parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         self.sr.leftFooterPar = Container(parent=self.sr.leftOuterPar, align=uiconst.TOBOTTOM, height=26)
         self.sr.rightFooterPar = Container(parent=self.sr.rightOuterPar, align=uiconst.TOBOTTOM, height=26)
         self.sr.leftHeader = Container(name='leftHeader', parent=self.sr.leftOuterPar, align=uiconst.TOTOP, height=62, top=0, clipChildren=1)
-        self.sr.leftScroll = Scroll(parent=self.sr.leftOuterPar, padTop=const.defaultPadding, padBottom=const.defaultPadding)
+        self.sr.leftScroll = Scroll(parent=self.sr.leftOuterPar, padTop=defaultPadding, padBottom=defaultPadding)
         self.sr.leftScroll.SelectAll = self.DoNothing
         self.sr.leftScroll.sr.content.OnDropData = self.DoRemove
         self.sr.leftScroll.sr.content.AddSkillToQueue = self.AddSkillToQueue
@@ -153,38 +157,38 @@ class SkillQueue(Window):
         self.sr.rightHeader._OnSizeChange_NoBlock = self.OnRightHeaderSizeChanged
         self.sr.sqFinishesText = EveLabelSmall(parent=self.sr.rightHeader, state=uiconst.UI_DISABLED, align=uiconst.BOTTOMLEFT)
         self.sr.sqTimeText = EveLabelSmall(parent=self.sr.rightHeader, state=uiconst.UI_DISABLED, align=uiconst.BOTTOMRIGHT)
-        self.sr.rightScroll = Scroll(parent=self.sr.rightOuterPar, padTop=const.defaultPadding, padBottom=const.defaultPadding)
+        self.sr.rightScroll = Scroll(parent=self.sr.rightOuterPar, padTop=defaultPadding, padBottom=defaultPadding)
         self.sr.rightScroll.sr.content.OnDropData = self.DoDropData
         self.sr.rightScroll.sr.content.OnDragEnter = self.OnContentDragEnter
         self.sr.rightScroll.sr.content.OnDragExit = self.OnContentDragExit
         self.sr.rightScroll.sr.content.RemoveSkillFromQueue = self.RemoveSkillFromQueue
         comboOptions = [(localization.GetByLabel('UI/SkillQueue/MySkills'), FILTER_ALL), (localization.GetByLabel('UI/SkillQueue/MyPartiallyTrainedSkills'), FILTER_PARTIAL), (localization.GetByLabel('UI/SkillQueue/ExcludeFullyTrainedSkills'), FILTER_EXCLUDELVL5)]
         self.sr.skillCombo = Combo(label='', parent=self.sr.leftHeader, options=comboOptions, name='', align=uiconst.TOPLEFT, pos=(2, 22, 0, 0), callback=self.OnComboChange, width=200)
-        if charskills.HasShortSkillqueue(session.userType):
+        if HasShortSkillqueue(session.userType):
             self.sr.leftHeader.height = 82
             fitsChecked = settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT)
             cb = Checkbox(text=localization.GetByLabel('UI/SkillQueue/FitInQueueTimeframe'), parent=self.sr.leftHeader, configName='skillqueue_fitsinqueue', retval=None, checked=fitsChecked, callback=self.OnCheckboxChange, align=uiconst.TOPLEFT, pos=(0,
-             self.sr.skillCombo.top + self.sr.skillCombo.height + const.defaultPadding,
+             self.sr.skillCombo.top + self.sr.skillCombo.height + defaultPadding,
              400,
              0))
             self.sr.fitsCheckbox = cb
             top = cb.top + cb.height
         else:
-            top = self.sr.skillCombo.top + self.sr.skillCombo.height + const.defaultPadding
+            top = self.sr.skillCombo.top + self.sr.skillCombo.height + defaultPadding
         self.quickFilter = QuickFilterEdit(parent=self.sr.leftHeader, pos=(2,
          top,
          200,
          0))
         self.quickFilter.ReloadFunction = self.ReloadSkills
-        applyBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueueApplyBtn', label=localization.GetByLabel('UI/Commands/Apply'), pos=(const.defaultPadding,
+        applyBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueueApplyBtn', label=localization.GetByLabel('UI/Commands/Apply'), pos=(defaultPadding,
          3,
          0,
-         0), func=self.ApplySkillQueue, args=(True,))
+         0), func=self.ApplySkillQueueIfNotActive, args=[])
         self.sr.pauseBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueuePauseBtn', label=localization.GetByLabel('UI/Commands/Pause'), pos=(applyBtn.left + applyBtn.width + 2,
          3,
          0,
          0), func=self.PauseTraining)
-        removeBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueueRemoveBtn', label=localization.GetByLabel('UI/Commands/Remove'), pos=(const.defaultPadding,
+        removeBtn = Button(parent=self.sr.rightFooterPar, name='trainingQueueRemoveBtn', label=localization.GetByLabel('UI/Commands/Remove'), pos=(defaultPadding,
          3,
          0,
          0), align=uiconst.TOPRIGHT, func=self.RemoveSkillFromQueue)
@@ -241,6 +245,9 @@ class SkillQueue(Window):
         settings.user.ui.Set('skillqueue_skillsExpanded', 1)
         self.sr.leftOuterPar.state = uiconst.UI_PICKCHILDREN
         self.sr.rightExpander.state = uiconst.UI_HIDDEN
+
+    def ApplySkillQueueIfNotActive(self, *args):
+        self.ApplySkillQueue(activate=not self.IsTraining())
 
     def ApplySkillQueue(self, activate=True):
         beginNewTransaction = True
@@ -319,7 +326,7 @@ class SkillQueue(Window):
         timeLeftInQueue = max(0, self.maxSkillqueueLength - queueLength)
         queue = self.skillQueueSvc.GetQueue()
         skillsInQueue = [ skill.trainingTypeID for skill in queue ]
-        fitsChecked = charskills.HasShortSkillqueue(session.userType) and settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT)
+        fitsChecked = HasShortSkillqueue(session.userType) and settings.user.ui.Get('skillqueue_fitsinqueue', FITSINQUEUE_DEFAULT)
         partialChecked = settings.user.ui.Get('skillqueue_comboFilter', FILTER_ALL) == FILTER_PARTIAL
         excludeLvl5 = settings.user.ui.Get('skillqueue_comboFilter', FILTER_ALL) == FILTER_EXCLUDELVL5
         for group, skills, untrained, intraining, inqueue, points in groups:
@@ -467,7 +474,6 @@ class SkillQueue(Window):
     @telemetry.ZONE_METHOD
     def SetTime(self):
         timeEnd = self.skillQueueSvc.GetTrainingEndTimeOfQueue()
-        originalTimeEnd = timeEnd
         inTraining = self.skillQueueSvc.SkillInTraining()
         if inTraining and self.skillQueueSvc.FindInQueue(inTraining.typeID, inTraining.skillLevel + 1) > 0:
             fullTrainingTime = self.skillQueueSvc.GetTrainingLengthOfSkill(inTraining.typeID, inTraining.skillLevel + 1)
@@ -485,7 +491,6 @@ class SkillQueue(Window):
         timeLeft = timeEnd - blue.os.GetWallclockTime()
         if timeLeft < 0:
             timeLeftText = ''
-            currentTime = blue.os.GetWallclockTime()
             currentQueue = [ x for x in self.sr.rightScroll.GetNodes() if x.__guid__ == 'listentry.SkillQueueSkillEntry' ]
             if len(currentQueue):
                 log.LogTraceback('Negative value in SetTime in skillqueue')
@@ -719,7 +724,7 @@ class SkillQueue(Window):
                 idx = len(self.sr.rightScroll.GetNodes()) - 1
             self.sr.rightScroll.AddEntries(idx, [entry])
         except UserError as e:
-            if e.msg == 'QueueTooLong' and charskills.IsTrialRestricted(session.userType):
+            if e.msg == 'QueueTooLong' and IsTrialRestricted(session.userType):
                 sys.exc_clear()
                 uicore.cmd.OpenTrialUpsell(origin=ORIGIN_CHARACTERSHEET, reason='skillqueue', message=localization.GetByLabel('UI/TrialUpsell/SkillQueueBody'))
             else:
@@ -885,7 +890,7 @@ class SkillQueue(Window):
     def ChangeTimesOnEntriesInSkillList(self, nodeList=None):
         queue = self.skillQueueSvc.GetQueue()
         skills = self.skills.GetSkills()
-        currentAttributes = self.skillQueueSvc.GetPlayerAttributeDict()
+        skillBoosters = self.skillQueueSvc.GetSkillAcceleratorBoosters()
         if nodeList is None:
             nodeList = self.sr.leftScroll.GetNodes()
         for entry in nodeList:
@@ -897,12 +902,12 @@ class SkillQueue(Window):
             entry.trainToLevel = nextLevel - 1
             if nextLevel and nextLevel <= 5:
                 if nextLevel > 1:
-                    previousLevelEndSP = charskills.GetSPForLevelRaw(skill.skillRank, nextLevel - 1)
+                    previousLevelEndSP = GetSPForLevelRaw(skill.skillRank, nextLevel - 1)
                     previousLevelEndSP = max(previousLevelEndSP, skill.skillPoints)
                     theoreticalSP = {skillTypeID: previousLevelEndSP}
                 else:
                     theoreticalSP = {}
-                _, trainingTime, _ = self.skillQueueSvc.GetAddedSpAndAddedTimeForSkill(skillTypeID, nextLevel, skills, theoreticalSP, 0, None, currentAttributes)
+                _, trainingTime, _ = self.skillQueueSvc.GetAddedSpAndAddedTimeForSkill(skillTypeID, nextLevel, skills, theoreticalSP, 0, skillBoosters)
             else:
                 trainingTime = 0
             self.ChangeTimeOnSingleEntry(entry, trainingTime, False)
@@ -934,6 +939,7 @@ class SkillQueue(Window):
         self.LoadQueue()
         self.ReloadSkills()
         self.queueLastApplied = self.skillQueueSvc.GetServerQueue()
+        self.skillQueueSvc.PrimeCache(force=True)
         if self.skillQueueSvc.SkillInTraining() is None:
             self.GrayButton(self.sr.pauseBtn, gray=1)
         else:
@@ -1047,18 +1053,18 @@ class SkillQueue(Window):
     def ApplySkillPoints(self, *args):
         if self.isApplying:
             return
-        else:
-            self.isApplying = True
-            try:
-                isTraining = self.skillQueueSvc.SkillInTraining() is not None
-                self.SaveChanges(activate=isTraining)
-                self.skillQueueSvc.ApplyFreeSkillPointsToQueue()
-                self.skillQueueSvc.BeginTransaction()
-                sm.GetService('audio').SendUIEvent('st_allocate_skillpoints_play')
-            finally:
-                self.isApplying = False
+        self.isApplying = True
+        try:
+            isTraining = self.IsTraining()
+            self.SaveChanges(activate=isTraining)
+            self.skillQueueSvc.ApplyFreeSkillPointsToQueue()
+            self.skillQueueSvc.BeginTransaction()
+            sm.GetService('audio').SendUIEvent('st_allocate_skillpoints_play')
+        finally:
+            self.isApplying = False
 
-            return
+    def IsTraining(self):
+        return self.skillQueueSvc.SkillInTraining() is not None
 
 
 class SkillQueueSkillEntry(BaseSkillEntry):
@@ -1125,7 +1131,7 @@ class SkillQueueSkillEntry(BaseSkillEntry):
                 else:
                     self.UpdateHalfTrained()
         self.AdjustTimerContWidth()
-        self.sr.levelParent.width = self.sr.levels.width + const.defaultPadding
+        self.sr.levelParent.width = self.sr.levels.width + defaultPadding
         self.FillBoxes(data.skill.skillLevel, data.trainToLevel)
         self.sr.posIndicatorNo.state = uiconst.UI_HIDDEN
         self.sr.posIndicatorYes.state = uiconst.UI_HIDDEN
@@ -1218,10 +1224,7 @@ class SkillQueueSkillEntry(BaseSkillEntry):
             skill = self.rec
             timeLeft = self.endOfTraining - blue.os.GetWallclockTime()
             if self.inQueue == 0:
-                secs = timeLeft / 10000000L
-                spsNextLevel = self.skills.SkillpointsNextLevel(skill.typeID)
-                spm = self.skills.GetSkillpointsPerMinute(skill.typeID)
-                currentPoints = min(spsNextLevel - secs / 60.0 * spm, spsNextLevel)
+                currentPoints = self.skillQueueSvc.GetEstimatedSkillPointsTrained(skill.typeID)
                 self.OnSkillpointChange(currentPoints)
             else:
                 self.SetTimeLeft(timeLeft)

@@ -254,7 +254,10 @@ class MarkerBase(object):
 
     def ClickMarker(self, zoomTo):
         self.clickTimer = None
-        self.markerHandler.OnMarkerSelected(self, zoomTo)
+        if uicore.cmd.IsSomeCombatCommandLoaded():
+            uicore.cmd.ExecuteCombatCommand(self.itemID, uiconst.UI_CLICK)
+        else:
+            self.markerHandler.OnMarkerSelected(self, zoomTo)
         return
 
     def OnMouseDown(self, *args):

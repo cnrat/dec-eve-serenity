@@ -264,12 +264,12 @@ class MarketQuote(Service):
     def GetStationAsks(self):
         if session.stationid is None and session.structureid is None:
             raise AttributeError('Must be in station')
-        return self.GetMarketProxy().GetStationAsks()
+        return marketutil.ConvertTuplesToBestByOrders(self.GetMarketProxy().GetStationAsks())
 
     def GetSystemAsks(self):
         if session.solarsystemid2 is None:
             raise AttributeError('Must be in a solarsystem')
-        return self.GetMarketProxy().GetSystemAsks()
+        return marketutil.ConvertTuplesToBestByOrders(self.GetMarketProxy().GetSystemAsks())
 
     def GetPriceHistory(self, typeID):
         old = self.GetMarketProxy().GetOldPriceHistory(typeID)

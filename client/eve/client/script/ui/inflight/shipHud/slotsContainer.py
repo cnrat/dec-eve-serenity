@@ -177,7 +177,7 @@ class SlotsContainer(Container):
             module = self.GetModule(masterID)
             if module is None:
                 continue
-            module.SetDamage(damage / module.sr.moduleInfo.hp)
+            module.SetDamage(damage / module.moduleinfo.hp)
 
         return
 
@@ -597,7 +597,7 @@ class SlotsContainer(Container):
     def OnReloadAmmo(self):
         modulesByCharge = {}
         for module in self.modulesByID.itervalues():
-            if not cfg.IsChargeCompatible(module.sr.moduleInfo):
+            if not cfg.IsChargeCompatible(module.moduleinfo):
                 continue
             chargeTypeID, chargeQuantity, roomForReload = module.GetChargeReloadInfo()
             if chargeTypeID in modulesByCharge:
@@ -608,7 +608,7 @@ class SlotsContainer(Container):
         dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         for chargeTypeID, modules in modulesByCharge.iteritems():
             ammoList = {}
-            for typeID, ammoInfo in dogmaLocation.GetMatchingAmmo(session.shipid, modules[0].sr.moduleInfo.itemID).iteritems():
+            for typeID, ammoInfo in dogmaLocation.GetMatchingAmmo(session.shipid, modules[0].moduleinfo.itemID).iteritems():
                 if typeID != chargeTypeID:
                     continue
                 for item in ammoInfo.singletons:
@@ -656,7 +656,7 @@ class SlotsContainer(Container):
     def ChangeOpacityForRange(self, currentRange, *args):
         curveSet = None
         for module in self.modulesByID.itervalues():
-            maxRange, falloffDist, bombRadius = sm.GetService('tactical').FindMaxRange(module.sr.moduleInfo, module.charge)
+            maxRange, falloffDist, bombRadius = sm.GetService('tactical').FindMaxRange(module.moduleinfo, module.charge)
             if maxRange == 0:
                 continue
             animationDuration = GetTiDiAdjustedAnimationTime(normalDuation=0.1, minTiDiValue=0.1, minValue=0.01)
@@ -756,10 +756,10 @@ class SlotsContainer(Container):
                 continue
             if getattr(slot.sr, 'module', None) is not None:
                 moduleType = slot.sr.module.GetModuleType()
-                isGroupable = slot.sr.module.sr.moduleInfo.groupID in const.dgmGroupableGroupIDs
+                isGroupable = slot.sr.module.moduleinfo.groupID in const.dgmGroupableGroupIDs
                 if isGroupable:
                     slot.linkDragging = 1
-                    if slot.sr.module.sr.moduleInfo.itemID == itemID:
+                    if slot.sr.module.moduleinfo.itemID == itemID:
                         slot.sr.module.icon.SetAlpha(0.2)
                         continue
                     elif moduleType and moduleType[0] == typeID:

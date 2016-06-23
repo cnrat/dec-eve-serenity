@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buySellMultiBase.py
 import math
+from carbon.common.script.util.linkUtil import GetShowInfoLink
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
@@ -36,6 +37,7 @@ class SellBuyItemsWindow(Window):
     numbersGridTop = 6
     showTaxAndBrokersFee = True
     dropLabelPath = 'UI/Market/Marketbase/DropItemsToAdd'
+    cannotBeTradeLabelPath = 'UI/Market/MarketQuote/CannotBeSold'
 
     def ApplyAttributes(self, attributes):
         Window.ApplyAttributes(self, attributes)
@@ -241,7 +243,7 @@ class SellBuyItemsWindow(Window):
             eve.Message('CustomNotify', {'notify': hintText})
 
     def GetErrorHints(self):
-        hintTextList = self.BuildHintTextList(self.cannotTradeItemList, 'UI/Market/MarketQuote/CannotBeSold')
+        hintTextList = self.BuildHintTextList(self.cannotTradeItemList, self.cannotBeTradeLabelPath)
         return hintTextList
 
     def BuildHintTextList(self, itemList, labelPath):
@@ -250,7 +252,9 @@ class SellBuyItemsWindow(Window):
             text = '<b>%s</b>' % GetByLabel(labelPath)
             hintTextList.append(text)
             for item in itemList:
-                hintTextList.append(evetypes.GetName(item.typeID))
+                typeName = evetypes.GetName(item.typeID)
+                typeLink = GetShowInfoLink(item.typeID, typeName)
+                hintTextList.append(typeLink)
 
         return hintTextList
 

@@ -447,11 +447,14 @@ class CorpUIHome(uiprimitives.Container):
             for row in self.sr.offices:
                 jumps = sm.GetService('clientPathfinderService').GetJumpCountFromCurrent(row.solarSystemID)
                 locationName = cfg.evelocations.Get(row.locationID).locationName
-                subcontent.append((locationName.lower(), listentry.Get('CorpOfficeEntry', {'label': localization.GetByLabel('UI/Corporations/CorpUIHome/StationAndJumps', station=row.locationID, jumpCount=jumps, jumps=jumps),
-                  'office': row,
-                  'GetMenu': self.GetMenuForCorpOffice,
-                  'typeID': row.typeID,
-                  'itemID': row.locationID})))
+                label = localization.GetByLabel('UI/Corporations/CorpUIHome/StationAndJumps', station=row.locationID, jumpCount=jumps, jumps=jumps)
+                data = {'label': label,
+                 'office': row,
+                 'GetMenu': self.GetMenuForCorpOffice,
+                 'typeID': row.typeID,
+                 'itemID': row.locationID,
+                 'sublevel': 1}
+                subcontent.append((locationName.lower(), listentry.Get('CorpOfficeEntry', data)))
 
         if not len(subcontent):
             subcontent.append(listentry.Get('Generic', {'label': localization.GetByLabel('UI/Corporations/CorpUIHome/CorpHasNoOffices')}))
@@ -476,8 +479,8 @@ class CorpUIHome(uiprimitives.Container):
             sm.GetService('structureOffices').UnrentOffice(stationID)
 
     def GetMenu(self, entry):
-        office = entry.sr.node.office
-        return sm.GetService('menu').CelestialMenu(office.locationID, typeID=office.typeID)
+        station = entry.sr.node.station
+        return sm.GetService('menu').CelestialMenu(station.stationID, typeID=station.typeID)
 
     def ShowMyCorporationsStations(self, scrolllist):
         sm.GetService('corpui').ShowLoad()
@@ -507,7 +510,8 @@ class CorpUIHome(uiprimitives.Container):
                  'station': row,
                  'GetMenu': self.GetMenu,
                  'typeID': row.typeID,
-                 'itemID': row.stationID}))
+                 'itemID': row.stationID,
+                 'sublevel': 1}))
 
         if not len(subcontent):
             subcontent.append(listentry.Get('Generic', {'label': localization.GetByLabel('UI/Corporations/CorpUIHome/CorpHasNoStations')}))

@@ -12,12 +12,12 @@ class LocationDogmaItem(BaseDogmaItem):
 
     @TimedFunction('LocationDogmaItem::__init__')
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
-        super(LocationDogmaItem, self).__init__(dogmaLocation, item, eveCfg, clientIDFunc)
+        BaseDogmaItem.__init__(self, dogmaLocation, item, eveCfg, clientIDFunc)
         self.fittedItems = {}
         self.subLocations = {}
 
     def Unload(self):
-        super(LocationDogmaItem, self).Unload()
+        BaseDogmaItem.Unload(self)
         self.dogmaLocation.LogInfo('LocationDogmaItem unloading subLocations')
         for itemKey in self.subLocations.values():
             self.dogmaLocation.UnloadItem(itemKey)
@@ -38,6 +38,7 @@ class LocationDogmaItem(BaseDogmaItem):
     def OnItemLoaded(self):
         self.dogmaLocation.LoadItemsInLocation(self.itemID)
         self.dogmaLocation.LoadSublocations(self.itemID)
+        BaseDogmaItem.OnItemLoaded(self)
 
     def ValidFittingFlag(self, flagID):
         if invconst.flagLoSlot0 <= flagID <= invconst.flagHiSlot7:
@@ -96,7 +97,7 @@ class LocationDogmaItem(BaseDogmaItem):
         return self.fittedItems
 
     def GetPersistables(self):
-        ret = super(LocationDogmaItem, self).GetPersistables()
+        ret = BaseDogmaItem.GetPersistables(self)
         ret.update(self.fittedItems.keys())
         return ret
 
@@ -112,7 +113,7 @@ class LocationDogmaItem(BaseDogmaItem):
                 log.LogException(channel='svc.dogmaIM')
                 sys.exc_clear()
 
-        stackTraceCount += super(LocationDogmaItem, self)._FlushEffects()
+        stackTraceCount += BaseDogmaItem._FlushEffects(self)
         return stackTraceCount
 
     def GetCharacterID(self):

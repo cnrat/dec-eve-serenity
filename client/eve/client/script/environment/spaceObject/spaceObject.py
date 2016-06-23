@@ -5,6 +5,7 @@ import math
 import types
 import blue
 import geo2
+from signals.signal import Signal
 import trinity
 import decometaclass
 import carbon.common.script.util.mathCommon as mathCommon
@@ -55,6 +56,7 @@ class SpaceObject(decometaclass.WrapBlueClass('destiny.ClientBall')):
         self._audioEntity = None
         self.logger = logging.getLogger('spaceObject.' + self.__class__.__name__)
         self.modelLoadedEvent = locks.Event()
+        self.modelLoadSignal = Signal()
         self.explosionModel = None
         self.typeID = None
         self.typeData = {}
@@ -206,10 +208,14 @@ class SpaceObject(decometaclass.WrapBlueClass('destiny.ClientBall')):
         if self.model is not None:
             self.LogInfo('SpaceObject - NotifyModelLoaded')
             self.modelLoadedEvent.set()
+            self.modelLoadSignal()
             self.sm.GetService('FxSequencer').NotifyModelLoaded(self.id)
         else:
             self.LogWarn('SpaceObject - NotifyModelLoaded called without a model present, no notification was done')
         return
+
+    def RegisterForModelLoad(self, func):
+        self.modelLoadSignal.connect(func)
 
     def LoadModel(self, fileName=None, loadedModel=None):
         self.model = self._SetupModelAndAddToScene(fileName, loadedModel)
@@ -539,7 +545,7 @@ class SpaceObject(decometaclass.WrapBlueClass('destiny.ClientBall')):
                     if not gfx:
                         self.LogError('Failed to load explosion: ', explosionURL, ' - using default')
                         gfx = trinity.Load('res:/Model/Effect3/Explosion/entityExplode_large.red')
-                    if isinstance(gfx, trinity.EveEffectRoot):
+                    if isinstance(gfx, trinity.EveEffectRoot2):
                         msg = 'ExplosionManager circumvented, explosion not managed for %s. (Class:%s, Type:%s)'
                         self.LogWarn(msg % (explosionURL, self.__class__.__name__, self.typeID))
                         gfx.Start()

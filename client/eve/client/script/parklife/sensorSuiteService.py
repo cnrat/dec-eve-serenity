@@ -55,7 +55,7 @@ class SensorSuiteService(service.Service):
      'OnSignalTrackerStructureUpdate',
      'OnUpdateWindowPosition',
      'OnReleaseBallpark',
-     'DoBallClear',
+     'OnBallparkSetState',
      'OnWarpStarted',
      'OnWarpFinished',
      'OnSystemScanDone',
@@ -97,9 +97,15 @@ class SensorSuiteService(service.Service):
         return self.systemReadyTime and not self.sensorSweepActive
 
     def IsSolarSystemReady(self):
-        isSolarSystemAvailable = session.solarsystemid is not None
-        isSolarSystemReadyTimeSet = self.systemReadyTime is not None
-        return isSolarSystemAvailable and isSolarSystemReadyTimeSet
+        if session.solarsystemid is None:
+            return False
+        bp = self.michelle.GetBallpark()
+        if bp is None:
+            return False
+        elif not bp.ego:
+            return False
+        else:
+            return True
 
     def NotifySweepStartedIfRequired(self, handler, messageName):
         if messageName is overlayConst.MESSAGE_ON_SENSOR_OVERLAY_SWEEP_STARTED and self.sweepStartedData is not None:
@@ -151,7 +157,7 @@ class SensorSuiteService(service.Service):
 
     def OnEnterSpace(self):
         self.Reset()
-        if session.solarsystemid:
+        if session.solarsystemid and session.structureid is None:
             self.Initialize()
             self._SetOverlayActive(settings.char.ui.Get(SENSOR_SUITE_ENABLED, True))
             self.LogInfo('Entered new system', session.solarsystemid)
@@ -166,16 +172,19 @@ class SensorSuiteService(service.Service):
             for siteType in (BOOKMARK, CORP_BOOKMARK, MISSION):
                 self.siteController.GetSiteHandler(siteType).LoadSites(session.solarsystemid)
 
-        if InSpace() and session.structureid is not None and self.michelle.GetBallpark():
-            self._InitiateSensorSweep()
+            if self.michelle.GetBallpark().ego:
+                self._InitiateSensorSweep()
         return
 
     def OnReleaseBallpark(self):
         self.LogInfo('OnReleaseBallpark')
         self.Reset()
 
-    def DoBallClear(self, _):
-        self._InitiateSensorSweep()
+    def OnBallparkSetState(self):
+        self.LogInfo('OnBallparkSetState')
+        if session.solarsystemid and session.structureid is None:
+            self._InitiateSensorSweep()
+        return
 
     def _InitiateSensorSweep(self):
         self.LogInfo('Ballpark is ready so we start the sweep timer')
@@ -263,7 +272,6 @@ class SensorSuiteService(service.Service):
         sitesOrdered = []
         pi2 = math.pi * 2
         for siteData in self.GetVisibleSites():
-            self.LogInfo('checking site', siteData.siteID)
             if IsSiteInstantlyAccessible(siteData):
                 sitesOrdered.append((0, siteData))
                 continue

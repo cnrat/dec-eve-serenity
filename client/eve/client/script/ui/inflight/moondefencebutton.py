@@ -33,6 +33,7 @@ class DefenceStructureButton(uiprimitives.Container):
     __loadingcharges__ = []
     __chargesizecache__ = {}
     isDragObject = True
+    moduleinfo = None
 
     def _OnClose(self):
         if self.invCookie:
@@ -110,7 +111,7 @@ class DefenceStructureButton(uiprimitives.Container):
         if not len(self.__cgattrs__):
             self.__cgattrs__.extend([ a.attributeID for a in cfg.dgmattribs if cgre.match(a.attributeName) is not None ])
         self.sr.typeID = moduleinfo.typeID
-        self.sr.moduleInfo = moduleinfo
+        self.moduleinfo = moduleinfo
         self.locationFlag = moduleinfo.flagID
         self.sr.sourceID = moduleinfo.itemID
         self.id = moduleinfo.itemID
@@ -262,7 +263,7 @@ class DefenceStructureButton(uiprimitives.Container):
         return
 
     def SetCharge(self, charge):
-        self.sr.sourceIcon.LoadIconByTypeID(self.sr.moduleInfo.typeID, ignoreSize=True)
+        self.sr.sourceIcon.LoadIconByTypeID(self.moduleinfo.typeID, ignoreSize=True)
         self.sr.sourceIcon.SetSize(48, 48)
         self.sr.sourceIcon.state = uiconst.UI_DISABLED
         if charge and charge.stacksize > 0:
@@ -277,7 +278,7 @@ class DefenceStructureButton(uiprimitives.Container):
             self.sr.chargeIcon.state = uiconst.UI_HIDDEN
             self.sr.qtylabel.parent.state = uiconst.UI_HIDDEN
             self.quantity = 0
-            self.sr.sourceID = self.sr.moduleInfo.itemID
+            self.sr.sourceID = self.moduleinfo.itemID
             self.charge = None
         self.CheckOnline()
         return
@@ -358,8 +359,8 @@ class DefenceStructureButton(uiprimitives.Container):
         else:
             self.ShowOnline()
             return
-        for key in self.sr.moduleInfo.effects.keys():
-            effect = self.sr.moduleInfo.effects[key]
+        for key in self.moduleinfo.effects.keys():
+            effect = self.moduleinfo.effects[key]
             if effect.effectName == 'online':
                 if effect.isActive:
                     self.ShowOnline()
@@ -375,8 +376,8 @@ class DefenceStructureButton(uiprimitives.Container):
     def _ChangeOnline(self, on):
         if not on and eve.Message('PutOffline', {}, uiconst.YESNO) != uiconst.ID_YES:
             return
-        for key in self.sr.moduleInfo.effects.keys():
-            effect = self.sr.moduleInfo.effects[key]
+        for key in self.moduleinfo.effects.keys():
+            effect = self.moduleinfo.effects[key]
             if effect.effectName == 'online':
                 if on:
                     effect.Activate()
@@ -412,11 +413,11 @@ class DefenceStructureButton(uiprimitives.Container):
         return effect.isDefault and effect.effectName != 'online' and effect.effectCategory in (const.dgmEffActivation, const.dgmEffTarget)
 
     def GetDefaultEffect(self):
-        if self.sr.moduleInfo is None or sm.GetService('godma').GetItem(self.sr.sourceID) is None:
+        if self.moduleinfo is None or sm.GetService('godma').GetItem(self.sr.sourceID) is None:
             return
         else:
-            for key in self.sr.moduleInfo.effects.iterkeys():
-                effect = self.sr.moduleInfo.effects[key]
+            for key in self.moduleinfo.effects.iterkeys():
+                effect = self.moduleinfo.effects[key]
                 if self.IsEffectActivatible(effect):
                     return effect
 
@@ -438,7 +439,7 @@ class DefenceStructureButton(uiprimitives.Container):
             self.HideGauge('target')
             self.waitingForActiveTarget = 0
         elif self.def_effect is None:
-            log.LogWarn('No default Effect available for this moduletypeID:', self.sr.moduleInfo.typeID)
+            log.LogWarn('No default Effect available for this moduletypeID:', self.moduleinfo.typeID)
         elif not self.online:
             eve.Message('ClickOffllineModule')
         elif self.def_effect.isActive:
@@ -465,17 +466,17 @@ class DefenceStructureButton(uiprimitives.Container):
             fakeNode = uix.GetItemData(self.charge, 'icons')
             fakeNode.isCharge = 1
         else:
-            fakeNode = uix.GetItemData(self.sr.moduleInfo, 'icons')
+            fakeNode = uix.GetItemData(self.moduleinfo, 'icons')
             fakeNode.isCharge = 0
         fakeNode.__guid__ = 'xtriui.ShipUIModule'
-        fakeNode.slotFlag = self.sr.moduleInfo.flagID
+        fakeNode.slotFlag = self.moduleinfo.flagID
         uicore.layer.shipui.StartSwapMode()
         return [fakeNode]
 
     def OnDropData(self, dragObj, nodes):
         return
         log.LogInfo('Module.OnDropData', self.sr.sourceID)
-        flag1 = self.sr.moduleInfo.flagID
+        flag1 = self.moduleinfo.flagID
         flag2 = None
         for node in nodes:
             if node.Get('__guid__', None) == 'xtriui.ShipUIModule':
@@ -514,14 +515,14 @@ class DefenceStructureButton(uiprimitives.Container):
         uthread.pool('ShipMobuleButton::MouseEnter', self.MouseEnter)
 
     def MouseEnter(self, *args):
-        if self.destroyed or sm.GetService('godma').GetItem(self.sr.moduleInfo.itemID) is None:
+        if self.destroyed or sm.GetService('godma').GetItem(self.moduleinfo.itemID) is None:
             return
         else:
             log.LogInfo('Module.OnMouseEnter', self.sr.sourceID)
             eve.Message('NeocomButtonEnter')
             self.ShowAccuracy()
             self.sr.accuracyTimer = base.AutoTimer(1000, self.ShowAccuracy)
-            uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', sm.GetService('tactical').UpdateTargetingRanges, self.sr.moduleInfo)
+            uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', sm.GetService('tactical').UpdateTargetingRanges, self.moduleinfo)
             return
 
     def OnMouseExit(self, *args):
@@ -559,7 +560,7 @@ class DefenceStructureButton(uiprimitives.Container):
                 statusList.append(localization.GetByLabel('UI/Inflight/WaitingForActiveTarget'))
             if statusList:
                 infoList.append(localization.GetByLabel('UI/Inflight/StatusLabel', statusList=localization.formatters.FormatGenericList(statusList)))
-            if cfg.IsChargeCompatible(self.sr.moduleInfo):
+            if cfg.IsChargeCompatible(self.moduleinfo):
                 if self.charge and self.charge.typeID:
                     infoList.append(localization.GetByLabel('UI/Inflight/ChargeQuantity', quantity=self.quantity, typeID=self.charge.typeID))
                 else:
@@ -576,7 +577,7 @@ class DefenceStructureButton(uiprimitives.Container):
             if t:
                 slimItem = sm.GetService('michelle').GetBallpark().GetInvItem(t)
                 infoList.append(localization.GetByLabel('UI/Inflight/TargetLabel', itemName=uix.GetSlimItemName(slimItem)))
-            pos = uicore.layer.shipui.GetPosFromFlag(self.sr.moduleInfo.itemID)
+            pos = uicore.layer.shipui.GetPosFromFlag(self.moduleinfo.itemID)
             if pos:
                 slotno = pos[1] + 1
                 cmd = uicore.cmd
@@ -643,8 +644,8 @@ class DefenceStructureButton(uiprimitives.Container):
                 self.waitingForActiveTarget = 1
                 return
         if self.sr.Get('moduleinfo'):
-            for key in self.sr.moduleInfo.effects.iterkeys():
-                checkeffect = self.sr.moduleInfo.effects[key]
+            for key in self.moduleinfo.effects.iterkeys():
+                checkeffect = self.moduleinfo.effects[key]
                 if checkeffect.effectName == 'online':
                     if not checkeffect.isActive:
                         self._ChangeOnline(1)

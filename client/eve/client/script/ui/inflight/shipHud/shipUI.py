@@ -3,14 +3,12 @@
 from carbonui.control.layer import LayerCore
 from carbonui.primitives.container import Container
 from carbonui.primitives.containerAutoSize import ContainerAutoSize
-from carbonui.primitives.frame import Frame
 from carbonui.primitives.line import Line
 from carbonui.primitives.sprite import Sprite
 from carbonui.util.color import Color
 from eve.client.script.parklife import states
 from eve.client.script.ui.control.buttons import ButtonIcon
 from eve.client.script.ui.control.eveLabel import *
-from eve.client.script.ui.control.themeColored import SpriteThemeColored
 from eve.client.script.ui.control.utilMenu import UtilMenu
 from eve.client.script.ui.inflight.radialMenuScanner import RadialMenuScanner
 from eve.client.script.ui.inflight.shipAlert import ShipAlertContainer
@@ -33,17 +31,13 @@ from eve.client.script.ui.inflight.squadrons.squadronsUI import SquadronsUI
 from eve.client.script.ui.inflight.stanceButtons import StanceButtons
 from eve.client.script.ui.services.menuSvcExtras import movementFunctions
 from eve.client.script.ui.util.uix import GetSlimItemName
-from eve.client.script.ui.view.viewStateConst import ViewState
 from eve.client.script.util.settings import IsShipHudTopAligned, SetShipHudTopAligned
 from eve.common.script.sys.eveCfg import IsControllingStructure
 from gametime import GetDurationInClient
 from localization import GetByLabel
 from sensorsuite.overlay.sitecompass import Compass
 import blue
-import evecamera
-import math
 import telemetry
-import service
 import uthread
 SLOTS_CONTAINER_LEFT = SHIP_UI_WIDTH / 2.0 + 78
 SLOTS_CONTAINER_TOP = -1
@@ -71,9 +65,6 @@ class ShipUI(LayerCore):
      'DoBallsRemove',
      'OnSetCameraOffset',
      'ProcessShipEffect',
-     'OnActiveCameraChanged',
-     'ProcessPOVCameraOrientation',
-     'OnViewStateChanged',
      'OnStateChange']
 
     def ApplyAttributes(self, attributes):
@@ -84,34 +75,6 @@ class ShipUI(LayerCore):
         self.controller.on_new_itemID.connect(self.OnShipChanged)
         self.ResetSelf()
         return
-
-    def ConstructCrosshairSprite(self):
-        self.crosshairCont = Container(parent=self, align=uiconst.CENTER, width=500, height=500, state=uiconst.UI_HIDDEN)
-        SpriteThemeColored(parent=self.crosshairCont, align=uiconst.TOALL, texturePath='res:/UI/Texture/Classes/Camera/crosshair.png', colorType=uiconst.COLORTYPE_UIHILIGHT)
-        self.crosshairPitchSprite = SpriteThemeColored(parent=self.crosshairCont, align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/Classes/Camera/pitch.png', width=500, height=500, colorType=uiconst.COLORTYPE_UIHILIGHT)
-        self.crosshairRotationSprite = SpriteThemeColored(parent=self.crosshairCont, align=uiconst.TOPLEFT, texturePath='res:/UI/Texture/Classes/Camera/rotate.png', width=500, height=500, colorType=uiconst.COLORTYPE_UIHILIGHT)
-        self.crosshairRotationSprite.useTransform = True
-        self.UpdatePOVCrosshairState()
-
-    def ProcessPOVCameraOrientation(self, pitch, roll):
-        self.crosshairRotationSprite.rotation = roll + math.pi / 2
-        prop = -(pitch - math.pi) / math.pi - 0.5
-        self.crosshairPitchSprite.top = 465 * prop
-
-    def OnActiveCameraChanged(self, cameraID):
-        self.UpdatePOVCrosshairState()
-
-    def OnViewStateChanged(self, oldState, newState):
-        self.UpdatePOVCrosshairState()
-
-    def UpdatePOVCrosshairState(self):
-        isSpaceView = sm.GetService('viewState').IsViewActive(ViewState.Space)
-        camera = sm.GetService('sceneManager').GetActiveCamera()
-        if isSpaceView and camera and camera.cameraID == evecamera.CAM_SHIPPOV:
-            self.crosshairCont.state = uiconst.UI_DISABLED
-            uicore.animations.FadeTo(self.crosshairCont, 0.0, 1.0, duration=0.6)
-        else:
-            self.crosshairCont.Hide()
 
     def OnSetCameraOffset(self, cameraOffset):
         self.UpdatePosition()
@@ -191,7 +154,6 @@ class ShipUI(LayerCore):
             settings.char.ui.Set('fightersDetachedPosition', (left, top))
         self.AlignFighters()
         self.sr.shipAlertContainer.UpdatePosition()
-        self.crosshairCont.left = baseOffset
 
     def MakeFighterHudBinding(self):
         cs = uicore.uilib.bracketCurveSet
@@ -232,12 +194,14 @@ class ShipUI(LayerCore):
         currentX, currentY = uicore.uilib.x, self.hudContainer.left
         if x != currentX or y != currentY:
             return
-        if movementFunctions.IsSelectedForNavigation(session.shipid):
-            self.DeselectShip()
+        if uicore.uilib.Key(uiconst.VK_CONTROL):
+            if movementFunctions.IsSelectedForNavigation(session.shipid):
+                self.DeselectShip()
+            else:
+                self.SelectShip()
         else:
             self.SelectShip()
-            if not uicore.uilib.Key(uiconst.VK_CONTROL):
-                self.fighterCont.ClearSelection()
+            self.fighterCont.ClearSelection()
 
     def SelectShip(self):
         movementFunctions.SelectForNavigation(session.shipid)
@@ -348,7 +312,6 @@ class ShipUI(LayerCore):
         self.moduleToggleBtn = ButtonIcon(name='moduleToggleBtn', parent=self.moduleToggleCont, align=uiconst.TOPLEFT, width=24, height=24, iconSize=24, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/toggleModules_Up.png', downTexture='res:/UI/Texture/classes/ShipUI/Fighters/toggleModules_Down.png', hoverTexture='res:/UI/Texture/classes/ShipUI/Fighters/toggleModules_Over.png', func=self.OnToggleHudModules)
         self.moduleToggleBtn.display = False
         self.DrawFighters()
-        self.ConstructCrosshairSprite()
         self.hudContainer.state = uiconst.UI_PICKCHILDREN
         self.UpdatePosition()
         self.shipuiReady = True
@@ -453,12 +416,12 @@ class ShipUI(LayerCore):
             self._ShowStancePanel()
 
     def _ShowStancePanel(self):
-        uicore.animations.MorphScalar(self.slotsContainer, 'left', SLOTS_CONTAINER_LEFT, SLOTS_CONTAINER_LEFT + 44, duration=0.3)
-        uicore.animations.FadeIn(self.stanceButtons, duration=0.3)
+        self.slotsContainer.left = SLOTS_CONTAINER_LEFT + 44
+        self.stanceButtons.Show()
 
     def _HideStancePanel(self):
-        uicore.animations.FadeOut(self.stanceButtons, duration=0.3)
-        uicore.animations.MorphScalar(self.slotsContainer, 'left', endVal=SLOTS_CONTAINER_LEFT, duration=0.3)
+        self.slotsContainer.left = SLOTS_CONTAINER_LEFT
+        self.stanceButtons.Hide()
 
     def GetHUDOptionMenu(self, menuParent):
         showPassive = settings.user.ui.Get('showPassiveModules', 1)
@@ -932,6 +895,7 @@ class ShipUI(LayerCore):
         if self.logoffTimer is not None:
             self.logoffTimer.Close()
         self.logoffTimer = SafeLogoffTimer(parent=uicore.layer.abovemain, logoffTime=safeLogoffTime)
+        self.logoffTimer.left = sm.GetService('window').GetCameraLeftOffset(self.logoffTimer.width, self.logoffTimer.align, self.logoffTimer.left)
         return
 
     def OnSafeLogoffActivated(self):

@@ -475,6 +475,8 @@ class InflightLayer(uicls.LayerCore):
 
     def OnMouseExit(self, *args):
         self.positionalControl.OnSceneMouseExit()
+        if self.cameraController:
+            self.cameraController.OnMouseExit()
 
     def OnMouseMove(self, *args):
         if uicore.IsDragging():

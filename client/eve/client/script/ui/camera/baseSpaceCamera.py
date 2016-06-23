@@ -19,6 +19,7 @@ BOBBING_SPEED = 0.5
 
 class BaseSpaceCamera(Camera):
     isBobbingCamera = False
+    name = 'BaseSpaceCamera'
     minZoom = 700000
     __notifyevents__ = Camera.__notifyevents__[:] + ['OnSpecialFX',
      'DoBallsRemove',

@@ -33,6 +33,7 @@ import telemetry
 import bracketUtils
 import invCont
 import uix
+from eve.common.script.sys.eveCfg import InStructure
 from spacecomponents.common.componentConst import CARGO_BAY
 from spacecomponents.common.helper import HasCargoBayComponent
 from eve.client.script.ui.control.historyBuffer import HistoryBuffer
@@ -866,7 +867,7 @@ class Inventory(uicontrols.Window):
                 if session.stationid and item.categoryID == const.categoryShip:
                     if session.charid in (item.ownerID, change.get(const.ixOwnerID, None)):
                         self.RefreshTree()
-                elif session.solarsystemid and item.groupID in CONTAINERGROUPS:
+                elif session.solarsystemid and item.groupID in CONTAINERGROUPS and not InStructure():
                     ownerIDs = (item.ownerID, change.get(const.ixOwnerID, None))
                     if ownerIDs[0] == ownerIDs[1] == session.corpid:
                         return

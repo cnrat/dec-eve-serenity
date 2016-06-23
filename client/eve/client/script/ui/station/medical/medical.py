@@ -255,7 +255,7 @@ class MedicalWindow(Window):
         uthread.new(self.Reload)
 
     def OnSessionChanged(self, isRemote, sess, change):
-        if 'stationid2' in change:
+        if 'stationid2' in change or 'structureid' in change:
             self.Close()
 
     def OnSkillsChanged(self, skillInfos):

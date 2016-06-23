@@ -32,6 +32,7 @@ class CameraTool(Window):
         self.zoomLabel = StateCont(parent=stateCont, align=uiconst.TOLEFT, text='ZOOM', padRight=2)
         self.fovZoomLabel = StateCont(parent=stateCont, align=uiconst.TOLEFT, text='FOVZOOM', padRight=2)
         self.panLabel = StateCont(parent=stateCont, align=uiconst.TOLEFT, text='PAN', padRight=2)
+        self.rotateLabel = StateCont(parent=stateCont, align=uiconst.TOLEFT, text='ROTATE', padRight=2)
         uthread.new(self.Update)
         return
 
@@ -60,6 +61,7 @@ class CameraTool(Window):
                     self.fovZoomLabel.SetActive(cam.fovTarget is not None)
                     self.panLabel.SetActive(cam.panTarget is not None)
                     self.orbitLabel.SetActive(cam.orbitTarget is not None)
+                    self.rotateLabel.SetActive(cam.rotateUpdateThread is not None)
                 except:
                     raise
 

@@ -2,6 +2,8 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\projectdiscovery\client\projects\subcellular\taskimages.py
 import logging
 import math
+import os
+import blue
 import carbonui.const as uiconst
 import localization
 import uicontrols
@@ -32,10 +34,12 @@ class TaskImage(uiprimitives.Container):
         self.photo_service = sm.GetService('photo')
         self.audio_service = sm.GetService('audio')
         self.is_zoom_fixed = False
+        self.cacheID = None
         self.setup_layout()
         self.oldTranslationTop = self.expandTopContainer.translation
         self.oldTranslationBottom = self.expandBottomContainer.translation
         self.resize_to_scale(attributes.get('starting_scale'))
+        return
 
     def setup_layout(self):
         self.transmitting_container = uiprimitives.Container(name='transmitting_container', parent=self, align=uiconst.CENTER, width=self.width, height=70, top=-15, opacity=0, state=uiconst.UI_DISABLED)
@@ -102,6 +106,10 @@ class TaskImage(uiprimitives.Container):
     def _get_processing_percentage_max_text_width(self):
         max_percentage_text = str(FmtAmt(100)) + '%'
         return uicore.font.GetTextWidth(max_percentage_text, self.processing_percentage.fontsize, self.processing_percentage.letterspace, self.processing_percentage.uppercase)
+
+    @on_event('OnWindowClosed')
+    def on_window_closed(self, wndID, wndCaption, wndGUID):
+        self.delete_previous_image()
 
     @on_event('OnProjectDiscoveryResized')
     def resize_to_scale(self, scale):
@@ -199,10 +207,19 @@ class TaskImage(uiprimitives.Container):
         self.hide_error_message()
         self.show_loading_wheel()
         self.stop_loop_sound_and_play_load_sound()
-        self.image_sprite.texture = self.photo_service.GetTextureFromURL(self.image_url, dontcache=1)[0]
+        self.image_sprite.texture = self.photo_service.GetTextureFromURL(self.image_url, dontcache=1, ignoreCache=1)[0]
+        self.cacheID = self.image_sprite.texturePath.split('/')[-1:][0][:-5]
         self.zoom_image_sprite.texture = self.image_sprite.texture
         self.mini_map_image_sprite.texture = self.image_sprite.texture
         self.check_if_image_loaded()
+
+    def delete_previous_image(self):
+        if self.cacheID:
+            file_path = '%sBrowser/Img/%s.%s' % (blue.paths.ResolvePath(u'cache:/'), self.cacheID, 'jpeg')
+            try:
+                os.remove(file_path)
+            except WindowsError:
+                pass
 
     def check_if_image_loaded(self):
         if self.image_sprite.texture.resPath == NONE_PATH or not self.image_sprite or not self.image_sprite.texture:
@@ -260,16 +277,16 @@ class TaskImage(uiprimitives.Container):
     @on_event(const.Events.NewTask)
     def on_new_task(self, task):
         self.image_url = task['assets']['url']
-        self.reset()
         self.load_image()
         self.toggle_all_channels()
         self.image_sprite.SetAlpha(1)
         self.is_zoom_fixed = False
 
-    def reset(self):
+    def reset_image(self):
         if hasattr(self, 'image_sprite'):
             self.hide_error_message()
             self.remove_all_textures()
+            self.delete_previous_image()
             self.hide_minimap_frames()
             self.image_frame.SetRGB(1, 1, 1, 0.5)
             self.show_loading_wheel()

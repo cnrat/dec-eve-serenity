@@ -36,7 +36,7 @@ class SceneManager(service.Service):
      'GetIncarnaRenderJob': [],
      'EnableIncarnaRendering': []}
     __startupdependencies__ = ['settings', 'device']
-    __notifyevents__ = ['OnGraphicSettingsChanged', 'OnSessionChanged']
+    __notifyevents__ = ['OnGraphicSettingsChanged', 'OnSessionChanged', 'OnCameraLookAt']
 
     def Run(self, ms):
         service.Service.Run(self, ms)
@@ -278,6 +278,21 @@ class SceneManager(service.Service):
         self.UpdateBracketProjectionCamera()
         return
 
+    def OnCameraLookAt(self, isEgo, itemID):
+        scene = self.GetRegisteredScene('default')
+        if scene is None:
+            return
+        else:
+            if scene.dustfield is not None:
+                scene.dustfield.display = isEgo
+            if scene.cloudfieldConstraint is not None:
+                scene.cloudfieldConstraint.applyMovement = isEgo
+                if isEgo:
+                    scene.cloudfield.particleEmitters[0].rate = 400
+                else:
+                    scene.cloudfield.particleEmitters[0].rate = 0
+            return
+
     def UpdateSceneCameraReferences(self, camera):
         scene = self.GetRegisteredScene('default')
         if not scene:
@@ -493,9 +508,14 @@ class SceneManager(service.Service):
             else:
                 camera = self.registeredCameras.get(key, None)
             self.SetActiveScene(scene, key)
-            if camera:
+            isCurrCamLocked = self.IsCurrCameraLocked()
+            if camera and not isCurrCamLocked:
                 self._SetActiveCamera(camera)
         return
+
+    def IsCurrCameraLocked(self):
+        camera = self.GetActivePrimaryCamera()
+        return camera and hasattr(camera, 'IsLocked') and camera.IsLocked()
 
     def GetActiveScene(self):
         if self.secondaryJob is not None:

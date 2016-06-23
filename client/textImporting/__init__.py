@@ -6,6 +6,10 @@ def GetValidNamesAndTypesDict(validCategoryIDs):
     return {evetypes.GetName(typeID).lower():typeID for typeID in evetypes.GetTypeIDsByCategories(validCategoryIDs)}
 
 
+def GetValidNamesAndTypesDictForGroups(validGroupIDs):
+    return {evetypes.GetName(typeID).lower():typeID for typeID in evetypes.GetTypeIDsByGroups(validGroupIDs)}
+
+
 def GetLines(text, wordsToRemove=None):
     textWithBr = text.replace('\n', '<br>').replace('\r\n', '<br>')
     if wordsToRemove:

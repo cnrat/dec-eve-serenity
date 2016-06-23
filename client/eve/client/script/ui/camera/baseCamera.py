@@ -2,6 +2,7 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\baseCamera.py
 import math
 from eve.client.script.ui.camera.cameraUtil import GetBall, GetBallPosition, GetDurationByDistance, IsNanVector3, IsInfVector3, GetCameraInertiaMultiplier
+import evecamera
 from logmodule import LogException
 import trinity
 import geo2
@@ -13,13 +14,14 @@ K_ZOOMPOWER = 9
 class Camera(object):
     __typename__ = None
     __notifyevents__ = ['OnSetDevice']
-    name = 'util.Camera'
+    name = 'Camera'
     default_fov = 1.0
     default_nearClip = 6.0
     default_farClip = 10000000.0
     default_eyePosition = (0, 500, 1000)
     default_atPosition = (0, 0, 0)
     default_upDirection = (0, 1, 0)
+    default_isActive = False
     maxFov = 1.5
     minFov = 0.2
     kZoomSpeed = 10.0
@@ -29,7 +31,9 @@ class Camera(object):
     kFovSpeed = 10.0
     kFovStopDist = 0.001
     kOrbitSpeed = 5.0
+    kRotateSpeed = 5.0
     kOrbitStopAngle = 0.0001
+    kRotateStopDist = 0.0001
     kMinPitch = 0.05
     kMaxPitch = math.pi - kMinPitch
     kPanSpeed = 5.0
@@ -49,6 +53,9 @@ class Camera(object):
         self.zoomUpdateThread = None
         self.orbitTarget = None
         self.orbitUpdateThread = None
+        self.rotateTarget = None
+        self._rotateOffset = (0.0, 0.0)
+        self.rotateUpdateThread = None
         self.fovTarget = None
         self.fovUpdateThread = None
         self._fovOffset = 0.0
@@ -59,7 +66,7 @@ class Camera(object):
         self._eyeTransitOffset = None
         self._effectOffset = None
         self.centerOffset = None
-        self.isActive = False
+        self.isActive = self.default_isActive
         self._transitDoneTime = None
         self.viewMatrix = trinity.TriView()
         self.projectionMatrix = trinity.TriProjection()
@@ -86,6 +93,19 @@ class Camera(object):
     def Update(self):
         self._UpdateTransitOffset()
         self._UpdateEffectOffset()
+        self._UpdateRotateOffset()
+
+    def _UpdateRotateOffset(self):
+        if self._rotateOffset != (0.0, 0.0):
+            yaw, pitch = self._rotateOffset
+            rotMat = geo2.MatrixRotationAxis(self.upDirection, -yaw)
+            eyeAtVec = geo2.Vec3Subtract(self._atPosition, self._eyePosition)
+            vec = geo2.Vec3Transform(eyeAtVec, rotMat)
+            axis = geo2.Vec3Normalize(geo2.Vec3Cross(vec, self.upDirection))
+            rotMat = geo2.MatrixRotationAxis(axis, -pitch)
+            vec = geo2.Vec3Transform(vec, rotMat)
+            offset = geo2.Vec3Subtract(vec, eyeAtVec)
+            self._AddToAtOffset(offset)
 
     def _UpdateTransitOffset(self):
         if self._atTransitOffset:
@@ -117,7 +137,7 @@ class Camera(object):
         return
 
     def UpdateProjection(self):
-        aspectRatio = uicore.uilib.desktop.width / float(uicore.uilib.desktop.height)
+        aspectRatio = self.GetAspectRatio()
         fov = self._fov - self._fovOffset
         if fov <= 0.0:
             fov = 1.0
@@ -127,6 +147,9 @@ class Camera(object):
             self._UpdateProjectionOffset(aspectRatio, fov)
         else:
             self._UpdateProjectionFov(aspectRatio, fov)
+
+    def GetAspectRatio(self):
+        return uicore.uilib.desktop.width / float(uicore.uilib.desktop.height)
 
     def _UpdateProjectionFov(self, aspectRatio, fov):
         if aspectRatio > 1.6:
@@ -163,7 +186,7 @@ class Camera(object):
 
     def _AddToEyeOffset(self, offset):
         if IsInfVector3(offset) or IsNanVector3(offset):
-            LogException('Camera: Attempting to assign an invalid eyeOffset value: %s, %s' % (repr(offset), self))
+            raise ValueError('Camera: Attempting to assign an invalid eyeOffset value: %s, %s' % (repr(offset), self))
         if not self._eyeOffset:
             self._eyeOffset = offset
         else:
@@ -171,7 +194,7 @@ class Camera(object):
 
     def _AddToAtOffset(self, offset):
         if IsInfVector3(offset) or IsNanVector3(offset):
-            LogException('Camera: Attempting to assign an invalid atOffset value: %s, %s' % (repr(offset), self))
+            raise ValueError('Camera: Attempting to assign an invalid atOffset value: %s, %s' % (repr(offset), self))
         if not self._atOffset:
             self._atOffset = offset
         else:
@@ -186,7 +209,7 @@ class Camera(object):
 
     def _AddToEyeAndAtOffset(self, offset):
         if IsInfVector3(offset) or IsNanVector3(offset):
-            LogException('Camera: Attempting to assign an invalid eyeAndAtOffset value: %s, %s' % (repr(offset), self))
+            raise ValueError('Camera: Attempting to assign an invalid eyeAndAtOffset value: %s, %s' % (repr(offset), self))
         if not self._eyeAndAtOffset:
             self._eyeAndAtOffset = offset
         else:
@@ -222,13 +245,31 @@ class Camera(object):
         x, _, z = self.GetLookAtDirection()
         return -(math.atan2(z, x) + math.pi / 2)
 
+    def SetYaw(self, yaw):
+        rotMat = geo2.MatrixRotationY(yaw - math.pi)
+        eyePos = geo2.Vec3Subtract(self._eyePosition, self._atPosition)
+        x = math.sqrt(eyePos[0] ** 2 + eyePos[2] ** 2)
+        vec = (0, eyePos[1], x)
+        self._eyePosition = geo2.Vec3Add(geo2.Vec3Transform(vec, rotMat), self._atPosition)
+
+    yaw = property(GetYaw, SetYaw)
+
     def GetPitch(self):
         x, y, z = self.GetLookAtDirection()
-        return math.atan2(math.sqrt(z ** 2 + x ** 2), -y) + math.pi / 2
+        return math.atan2(math.sqrt(z ** 2 + x ** 2), -y)
+
+    def SetPitch(self, pitch):
+        pitch = max(self.kMinPitch, min(pitch, self.kMaxPitch))
+        axis = geo2.Vec3Cross(self.GetLookAtDirection(), self.upDirection)
+        rotMat = geo2.MatrixRotationAxis(axis, pitch)
+        vec = (0, self.GetZoomDistance(), 0)
+        self._eyePosition = geo2.Vec3Subtract(self._atPosition, geo2.Vec3Transform(vec, rotMat))
+
+    pitch = property(GetPitch, SetPitch)
 
     def GetRotationQuat(self):
         yaw = self.GetYaw()
-        pitch = self.GetPitch()
+        pitch = self.GetPitch() + math.pi / 2
         return geo2.QuaternionRotationSetYawPitchRoll(yaw, pitch, 0.0)
 
     def GetLookAtDirection(self):
@@ -273,6 +314,8 @@ class Camera(object):
             while True:
                 if self.panTarget is None:
                     break
+                if self._IsPanTargetOutOfBounds():
+                    return
                 distLeft = geo2.Vec3LengthD(self.panTarget)
                 if distLeft == 0:
                     break
@@ -293,6 +336,11 @@ class Camera(object):
             self.panTarget = None
 
         return
+
+    def _IsPanTargetOutOfBounds(self):
+        if geo2.Vec3Length(self.eyePosition) > 0.99 * evecamera.LOOKATRANGE_MAX_NEW:
+            return geo2.Vec3Dot(self.atPosition, self.panTarget) > 0.0
+        return False
 
     def IsZoomedOutCompletely(self):
         zoomValue = self.GetZoomValue()
@@ -377,6 +425,15 @@ class Camera(object):
 
     zoom = property(GetZoom, SetZoom)
 
+    def SetZoomLinear(self, zoomProp):
+        zoomProp = max(0.0, min(zoomProp, 1.0))
+        distance = self.maxZoom + zoomProp * (self.minZoom - self.maxZoom)
+        zoomVec = geo2.Vec3Scale(self.GetLookAtDirection(), distance)
+        self.SetEyePosition(geo2.Vec3Add(self.GetZoomToPoint(), zoomVec))
+
+    def GetZoomLinear(self):
+        return self.GetZoomProportionLinear()
+
     def GetZoomToPoint(self):
         if self._atTransitOffset:
             return geo2.Vec3Add(self._atPosition, self._atTransitOffset)
@@ -444,6 +501,7 @@ class Camera(object):
         self.zoomTarget = None
         self.panTarget = None
         self.orbitTarget = None
+        self.rotateTarget = None
         self.fovTarget = None
         return
 
@@ -456,17 +514,23 @@ class Camera(object):
         return dist
 
     def GetZoomProportion(self):
-        zoomProp = self.GetZoomProportionUnfiltered()
-        return self._ClampZoomProp(zoomProp)
-
-    def GetZoomProportionUnfiltered(self):
         zoomDist = max(self.maxZoom, self.GetZoomDistance())
         zoomProp = self.GetZoomProportionByZoomDistance(zoomDist)
-        return zoomProp
+        return self._ClampZoomProp(zoomProp)
+
+    def GetZoomProportionLinear(self):
+        zoomDist = max(self.maxZoom, self.GetZoomDistance())
+        zoomProp = self.GetZoomProportionByZoomDistanceLinear(zoomDist)
+        return self._ClampZoomProp(zoomProp)
 
     def GetZoomProportionByZoomDistance(self, zoomDist):
-        zoomProp = (zoomDist - self.maxZoom) / (self.minZoom - self.maxZoom)
+        zoomProp = self.GetZoomProportionByZoomDistanceLinear(zoomDist)
+        zoomProp = max(0.0, zoomProp)
         return zoomProp ** (1.0 / K_ZOOMPOWER)
+
+    def GetZoomProportionByZoomDistanceLinear(self, zoomDist):
+        zoomProp = (zoomDist - self.maxZoom) / (self.minZoom - self.maxZoom)
+        return zoomProp
 
     def SetMaxZoom(self, value):
         if value >= self.minZoom:
@@ -535,6 +599,69 @@ class Camera(object):
             self.SetEyePosition(geo2.Vec3Transform(self._eyePosition, rotPitch))
         return pitchRemaining
 
+    def Rotate(self, dx=0, dy=0):
+        if self.IsInTransit():
+            return
+        if not self.rotateTarget:
+            self.rotateTarget = (0.0, 0.0)
+        self.StopOrbitUpdate()
+        x = dx + self.rotateTarget[0]
+        x = self._ClampRotateX(x)
+        if gfxsettings.Get(gfxsettings.UI_CAMERA_INVERT_Y):
+            dy *= -1
+        y = dy + self.rotateTarget[1]
+        y = self._ClampRotateY(y)
+        self._SetRotateTarget(x, y)
+
+    def _ClampRotateX(self, x):
+        x = max(-math.pi, min(x, math.pi))
+        return x
+
+    def _ClampRotateY(self, y):
+        yMax = min(math.pi - self.kMinPitch - self.GetPitch(), 0.3 * math.pi)
+        yMin = max(-(self.GetPitch() - self.kMinPitch), -0.3 * math.pi)
+        y = max(yMin, min(y, yMax))
+        return y
+
+    def StopOrbitUpdate(self):
+        self.orbitTarget = None
+        return
+
+    def _SetRotateTarget(self, x, y):
+        self.rotateTarget = (x, y)
+        if not self.rotateUpdateThread:
+            self.rotateUpdateThread = uthread.new(self.RotateUpdateThread)
+
+    def ResetRotate(self):
+        self._SetRotateTarget(0.0, 0.0)
+
+    def IsRotated(self):
+        return self.rotateTarget not in (None, (0.0, 0.0))
+
+    def RotateUpdateThread(self):
+        try:
+            while True:
+                if self.rotateTarget is None:
+                    break
+                distLeft = geo2.Vec2Length(geo2.Vec2Subtract(self.rotateTarget, self._rotateOffset))
+                if not distLeft:
+                    break
+                moveProp = self._GetRotateSpeed() / blue.os.fps
+                if math.fabs(distLeft) < self.kRotateStopDist:
+                    moveProp *= self.kRotateStopDist / math.fabs(distLeft)
+                moveProp = min(moveProp, 1.0)
+                self._rotateOffset = geo2.Lerp(self._rotateOffset, self.rotateTarget, moveProp)
+                blue.synchro.Yield()
+
+        finally:
+            self.rotateUpdateThread = None
+
+        return
+
+    def _GetRotateSpeed(self):
+        multiplier = GetCameraInertiaMultiplier()
+        return self.kRotateSpeed * multiplier
+
     def _GetOrbitSpeed(self):
         multiplier = GetCameraInertiaMultiplier()
         speed = self.kOrbitSpeed * multiplier / blue.os.fps
@@ -570,16 +697,6 @@ class Camera(object):
 
     def GetActiveThreads(self):
         return (self.panTarget, self.orbitTarget, self.zoomTarget)
-
-    def Rotate(self, x=0, y=0):
-        xAxis = self.GetXAxis()
-        yAxis = self.GetYAxis()
-        self.atPosition = geo2.Subtract(self._atPosition, self._eyePosition)
-        rotY = geo2.MatrixRotationAxis(xAxis, y)
-        self.atPosition = geo2.Vec3Transform(self._atPosition, rotY)
-        rotX = geo2.MatrixRotationAxis(yAxis, x)
-        self.atPosition = geo2.Vec3Transform(self._atPosition, rotX)
-        self.atPosition = geo2.Add(self._atPosition, self.eyePosition)
 
     def GetDistanceFromLookAt(self):
         return geo2.Vec3Distance(self.eyePosition, self.atPosition)
@@ -625,6 +742,7 @@ class Camera(object):
         self.OnTransitEnd()
         self.panTarget = None
         self.orbitTarget = None
+        self.rotateTarget = None
         self.zoomTarget = None
         self.fovTarget = None
         return
@@ -689,11 +807,9 @@ class Camera(object):
 
     def SetEyePosition(self, value):
         if IsNanVector3(value) or IsInfVector3(value):
-            LogException('Attempting to assign an invalid eyePosition value: %s, %s' % (repr(value), self))
-            self.ResetCameraPosition()
+            raise ValueError('Attempting to assign an invalid eyePosition value: %s, %s' % (repr(value), self))
         elif value == self._atPosition:
-            LogException('Camera: Setting eyePosition to same value as atPosition: %s, %s' % (repr(value), self))
-            self.ResetCameraPosition()
+            raise ValueError('Camera: Setting eyePosition to same value as atPosition: %s, %s' % (repr(value), self))
         else:
             self._eyePosition = value
 
@@ -704,11 +820,9 @@ class Camera(object):
 
     def SetAtPosition(self, value):
         if IsNanVector3(value) or IsInfVector3(value):
-            LogException('Attempting to assign an invalid atPosition value: %s, %s' % (repr(value), self))
-            self.ResetCameraPosition()
+            raise ValueError('Attempting to assign an invalid atPosition value: %s, %s' % (repr(value), self))
         elif value == self._eyePosition:
-            LogException('Camera: Setting atPosition to same value as eyePosition: %s, %s' % (repr(value), self))
-            self.ResetCameraPosition()
+            raise ValueError('Camera: Setting atPosition to same value as eyePosition: %s, %s' % (repr(value), self))
         else:
             self._atPosition = value
 

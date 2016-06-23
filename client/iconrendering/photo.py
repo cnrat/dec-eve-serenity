@@ -320,16 +320,9 @@ def FitTurret(ship, slot, turretPath, turretFaction):
     return turretSet
 
 
-def RenderTurret(outPath, turretPath, turretFaction, size=128, bgColor=None, transparent=False, usePreviewScene=True, postProcessingQuality=2, supersampleQuality=2):
-    if usePreviewScene:
-        scene = blue.resMan.LoadObject('res:/dx9/scene/fitting/previewTurrets.red')
-        model = blue.resMan.LoadObject('res:/dx9/model/ship/IconPreview/PreviewTurretShip.red')
-    else:
-        scene = blue.resMan.LoadObject('res:/dx9/Scene/preview/ship_other.red')
-        scene.sunDirection = (-0.5, -0.5, 0.6)
-        scene.sunDiffuseColor = (2.0, 2.0, 2.0)
-        scene.ambientColor = (0.0, 0.0, 0.0)
-        model = blue.resMan.LoadObject('res:/dx9/model/ship/IconPreview/PhotoServiceTurretShip.red')
+def RenderTurret(outPath, turretPath, turretFaction, size=128, bgColor=None, transparent=False, postProcessingQuality=2, supersampleQuality=2):
+    scene = blue.resMan.LoadObject('res:/dx9/scene/fitting/previewTurrets.red')
+    model = blue.resMan.LoadObject('res:/dx9/model/ship/IconPreview/PreviewTurretShip.red')
     turretSet = FitTurret(model, 1, turretPath, turretFaction)
     blue.resMan.Wait()
     scene.objects.append(model)

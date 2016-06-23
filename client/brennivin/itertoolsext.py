@@ -17,7 +17,10 @@ class Bundle(dict):
         dict.__init__(self, (seq or ()), **kwargs)
 
     def __getattr__(self, item):
-        return self[item]
+        try:
+            return self[item]
+        except KeyError:
+            raise AttributeError(item)
 
     def __str__(self):
         clsn = self.__class__.__name__

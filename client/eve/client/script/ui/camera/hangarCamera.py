@@ -1,6 +1,5 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\hangarCamera.py
-import geo2
 import math
 import evecamera
 from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
@@ -8,6 +7,7 @@ from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 class HangarCamera(BaseSpaceCamera):
     cameraID = evecamera.CAM_HANGAR
     isBobbingCamera = True
+    name = 'HangarCamera'
 
     def __init__(self):
         BaseSpaceCamera.__init__(self)

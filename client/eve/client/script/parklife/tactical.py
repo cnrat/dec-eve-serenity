@@ -1320,8 +1320,9 @@ class TacticalSvc(service.Service):
 
     def GetInBayDroneDamageTracker(self):
         dogmaLM = sm.GetService('godma').GetDogmaLM()
+        clientDogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
         if self.inBayDroneDamageTracker is None:
-            self.inBayDroneDamageTracker = InBayDroneDamageTracker(dogmaLM)
+            self.inBayDroneDamageTracker = InBayDroneDamageTracker(dogmaLM, clientDogmaLM)
         else:
             self.inBayDroneDamageTracker.SetDogmaLM(dogmaLM)
         return self.inBayDroneDamageTracker

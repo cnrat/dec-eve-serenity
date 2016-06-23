@@ -15,7 +15,7 @@ from evecamera.utils import GetARZoomMultiplier
 import uthread
 
 def IsNewCameraActive():
-    return IsDockedInStructure() or betaOptions.BetaFeatureEnabled(betaOptions.BETA_NEWCAM_SETTING_KEY)
+    return True
 
 
 def SetNewCameraActive():
@@ -280,8 +280,11 @@ class PositionAnimatorDetached(object):
         return geo2.Vec3Add(self.camera._eyePosition, self.positionDiff)
 
     def _SetBall(self, ball, animate, duration):
+        self.positionDiff = (0, 0, 0)
+        self.ballPosLast = None
         self.ball = ball
         self.Update()
+        return
 
     def SetAbstractBall(self, animate=True, duration=0.6):
         bp = self._GetBallpark()
@@ -324,7 +327,10 @@ class PositionAnimatorAttached(object):
         if not self.ball:
             return (0, 0, 0)
         atPosLast = self.atPosition
-        self.atPosition = GetBallPosition(self.ball)
+        if self.GetItemID() == self.camera.ego:
+            self.atPosition = (0, 0, 0)
+        else:
+            self.atPosition = GetBallPosition(self.ball)
         self.atPositionDiff = geo2.Vec3SubtractD(self.atPosition, atPosLast)
 
     def GetEyePosition(self):

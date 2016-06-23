@@ -37,7 +37,8 @@ class AbilityIcon(Container):
         self.buttonDisabled = False
         self.shipFighterState = GetShipFighterState()
         self.crimewatchSvc = sm.GetService('crimewatchSvc')
-        self.stateLabel = EveLabelSmall(parent=self, align=uiconst.CENTER)
+        self.innerCont = Container(name='innerCont', parent=self, align=uiconst.TOBOTTOM, height=self.height)
+        self.stateLabel = EveLabelSmall(parent=self.innerCont, align=uiconst.CENTER)
         self.controller = attributes.controller
         self.slotID = self.controller.slotID
         self.fighterID = attributes.fighterID
@@ -45,10 +46,10 @@ class AbilityIcon(Container):
         ability = self.GetAbilityInfo()
         self.abilityNameID = ability.displayNameID
         iconID = ability.iconID
-        self.abilityIcon = Icon(parent=self, align=uiconst.CENTER, width=32, height=32, icon=iconID, state=uiconst.UI_DISABLED)
-        self.hilite = Sprite(parent=self, name='hilite', width=44, height=44, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotHilite.png', blendMode=trinity.TR2_SBM_ADDX2)
+        self.abilityIcon = Icon(parent=self.innerCont, align=uiconst.CENTER, width=32, height=32, icon=iconID, state=uiconst.UI_DISABLED)
+        self.hilite = Sprite(parent=self.innerCont, name='hilite', width=44, height=44, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotHilite.png', blendMode=trinity.TR2_SBM_ADDX2)
         self.hilite.display = False
-        bgSprite = Sprite(parent=self, align=uiconst.CENTER, width=64, height=64, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/slotFighterAbility.png', state=uiconst.UI_DISABLED)
+        bgSprite = Sprite(parent=self.innerCont, align=uiconst.CENTER, width=64, height=64, texturePath='res:/UI/Texture/classes/ShipUI/Fighters/slotFighterAbility.png', state=uiconst.UI_DISABLED)
         self.abilityIcon.SetSize(32, 32)
         self.DrawQtyCont()
         self.DrawTimer()
@@ -91,23 +92,23 @@ class AbilityIcon(Container):
         self.safetyGlow.display = False
 
     def DrawSafetyGlow(self):
-        self.safetyGlow = Sprite(parent=self, name='safetyGlow', width=64, height=64, padding=2, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=crimewatchConst.Colors.Yellow.GetRGBA())
+        self.safetyGlow = Sprite(parent=self.innerCont, name='safetyGlow', width=64, height=64, padding=2, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=crimewatchConst.Colors.Yellow.GetRGBA())
         self.safetyGlow.display = False
 
     def DrawTimer(self):
-        self.glow = Sprite(parent=self, name='glow', width=64, height=64, padding=2, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=GLOWCOLOR)
+        self.glow = Sprite(parent=self.innerCont, name='glow', width=64, height=64, padding=2, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=GLOWCOLOR)
         self.glow.display = False
-        self.busy = Sprite(parent=self, name='busy', width=64, height=64, padding=2, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=BUSYCOLOR)
+        self.busy = Sprite(parent=self.innerCont, name='busy', width=64, height=64, padding=2, align=uiconst.CENTER, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotGlow.png', color=BUSYCOLOR)
         self.busy.display = False
-        self.ramps = ShipModuleButtonRamps(parent=self, idx=0, top=-8)
+        self.ramps = ShipModuleButtonRamps(parent=self.innerCont, idx=0, top=-8)
         self.ramps.display = False
 
     def DrawCoolDownTimer(self):
-        self.coolDownRamps = ShipModuleReactivationTimer(parent=self, name='coolDown', idx=-1)
+        self.coolDownRamps = ShipModuleReactivationTimer(parent=self.innerCont, name='coolDown', idx=-1)
         self.coolDownRamps.display = False
 
     def DrawQtyCont(self):
-        self.quantityParent = Container(parent=self, name='quantityParent', pos=(16, 6, 24, 10), align=uiconst.BOTTOMRIGHT, state=uiconst.UI_DISABLED, idx=0)
+        self.quantityParent = Container(parent=self.innerCont, name='quantityParent', pos=(16, 6, 24, 10), align=uiconst.BOTTOMRIGHT, state=uiconst.UI_DISABLED, idx=0)
         self.chargeCountLabel = Label(text='', parent=self.quantityParent, fontsize=9, letterspace=1, left=3, width=30, state=uiconst.UI_DISABLED)
         underlay = Sprite(parent=self.quantityParent, align=uiconst.TOALL, state=uiconst.UI_DISABLED, texturePath='res:/UI/Texture/classes/ShipUI/slotQuantityUnderlay.png', color=(0, 0, 0, 1))
 
@@ -244,11 +245,9 @@ class AbilityIcon(Container):
     def OnMouseDown(self, *args):
         if self.buttonDisabled:
             return
-        for texture in self.children:
-            texture.top += 2
+        self.innerCont.top = 2
 
     def OnMouseUp(self, *args):
         if self.buttonDisabled:
             return
-        for texture in self.children:
-            texture.top -= 2
+        self.innerCont.top = 0

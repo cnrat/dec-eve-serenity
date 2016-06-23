@@ -5,7 +5,7 @@ from abTestCore.common.cohorts import CohortGroup, Cohort
 class CohortLoader:
 
     def _LoadRawData(self):
-        import fsdSchemas.binaryLoader as fsdBinaryLoader
+        import fsd.schemas.binaryLoader as fsdBinaryLoader
         return fsdBinaryLoader.LoadFSDDataForCFG('res:/staticdata/cohorts.static')
 
     def GetCohortGroupDictWithCohorts(self):

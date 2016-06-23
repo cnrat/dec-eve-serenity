@@ -8,6 +8,7 @@ from scriber import htmlutils
 from scriber import utils
 from scriber import widgets
 from scriber import ff
+from scriber.widgets import inputfields
 
 def date(date_obj, str_format='%Y-%m-%d'):
     return datetime_filter(date_obj, str_format)
@@ -27,6 +28,24 @@ def dt_micro(temporal_object):
 
 def dt(temporal_object):
     return datetime_filter(temporal_object)
+
+
+def s2hms(seconds):
+    if not isinstance(seconds, (int, long, float)):
+        return seconds
+    s = seconds % 60
+    m = seconds / 60
+    h = m / 60
+    m %= 60
+    return '%02d:%02d:%02d' % (h, m, s)
+
+
+def s2ms(seconds):
+    if not isinstance(seconds, (int, long, float)):
+        return seconds
+    s = seconds % 60
+    m = seconds / 60
+    return '%02d:%02d' % (m, s)
 
 
 @utils.filter_name('datetime')
@@ -262,17 +281,19 @@ def jsontable(data, dom_id=None, dom_classes='+', dom_style=None, recursive=True
         return listtable([data], dom_id, dom_classes, dom_style, recursive, **kwargs)
 
 
-def listtable(data_list, dom_id=None, dom_classes='+', dom_style=None, recursive=True, **kwargs):
+def listtable(data_list, dom_id=None, dom_classes='+', dom_style=None, recursive=True, html_safe=False, **kwargs):
     if recursive:
         if not isinstance(recursive, bool):
             recursive -= 1
         parsed_list = []
         for i, line in enumerate(data_list):
             if isinstance(line, dict):
-                parsed_list.append(dicttable(line, dom_id, dom_classes, dom_style, recursive, **kwargs))
+                parsed_list.append(dicttable(line, dom_id, dom_classes, dom_style, recursive, html_safe, **kwargs))
             elif isinstance(line, (list, tuple)):
-                parsed_list.append(listtable(line, dom_id, dom_classes, dom_style, recursive, **kwargs))
+                parsed_list.append(listtable(line, dom_id, dom_classes, dom_style, recursive, html_safe, **kwargs))
             else:
+                if not html_safe:
+                    line = ('%s' % line).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                 parsed_list.append(line)
 
     else:
@@ -280,17 +301,19 @@ def listtable(data_list, dom_id=None, dom_classes='+', dom_style=None, recursive
     return qtable(parsed_list, dom_id, dom_classes, dom_style, False, **kwargs)
 
 
-def dicttable(data_dict, dom_id=None, dom_classes='+', dom_style=None, recursive=True, **kwargs):
+def dicttable(data_dict, dom_id=None, dom_classes='+', dom_style=None, recursive=True, html_safe=False, **kwargs):
     if recursive:
         if not isinstance(recursive, bool):
             recursive -= 1
         parsed_dict = {}
         for k, val in data_dict.iteritems():
             if isinstance(val, dict):
-                parsed_dict[k] = dicttable(val, dom_id, dom_classes, dom_style, recursive, **kwargs)
+                parsed_dict[k] = dicttable(val, dom_id, dom_classes, dom_style, recursive, html_safe, **kwargs)
             elif isinstance(val, (list, tuple)):
-                parsed_dict[k] = listtable(val, dom_id, dom_classes, dom_style, recursive, **kwargs)
+                parsed_dict[k] = listtable(val, dom_id, dom_classes, dom_style, recursive, html_safe, **kwargs)
             else:
+                if not html_safe:
+                    val = ('%s' % val).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                 parsed_dict[k] = val
 
     else:
@@ -386,3 +409,52 @@ def stdtext(value, word_caps=True, acronym_length=3):
         return ' '.join(buff).capitalize()
     else:
         return ' '.join(buff)
+
+
+def inp_date(value, name, dom_id=None, end_date=None, start_date=None):
+    if end_date and isinstance(end_date, (str, unicode)):
+        try_parse = datetimeutils.str_to_relative_datetime(end_date)
+        if try_parse:
+            end_date = try_parse
+        else:
+            end_date = datetimeutils.any_to_datetime(end_date)
+    if start_date and isinstance(start_date, (str, unicode)):
+        try_parse = datetimeutils.str_to_relative_datetime(start_date)
+        if try_parse:
+            start_date = try_parse
+        else:
+            start_date = datetimeutils.any_to_datetime(start_date)
+    return inputfields.DateInputField.get(name, value, dom_id, end_date, start_date).render()
+
+
+def inp_daterange(value, name, dom_id=None, end_date=None, start_date=None):
+    if end_date and isinstance(end_date, (str, unicode)):
+        try_parse = datetimeutils.str_to_relative_datetime(end_date)
+        if try_parse:
+            end_date = try_parse
+        else:
+            end_date = datetimeutils.any_to_datetime(end_date)
+    if start_date and isinstance(start_date, (str, unicode)):
+        try_parse = datetimeutils.str_to_relative_datetime(start_date)
+        if try_parse:
+            start_date = try_parse
+        else:
+            start_date = datetimeutils.any_to_datetime(start_date)
+    return inputfields.DateRangeInputField.get(name, value, dom_id, end_date, start_date).render()
+
+
+def dt_mod(value, d=0, s=0, m=0, h=0, w=0):
+    value = datetimeutils.any_to_datetime(value)
+    if isinstance(value, (datetime.date, datetime.datetime)):
+        return value + datetime.timedelta(days=d, seconds=s, minutes=m, hours=h, weeks=w)
+    return value
+
+
+def dt_rel(value):
+    if isinstance(value, (str, unicode)):
+        try_parse = datetimeutils.str_to_relative_datetime(value)
+        if not try_parse:
+            try_parse = datetimeutils.any_to_datetime(value)
+    else:
+        try_parse = datetimeutils.any_to_datetime(value)
+    return try_parse

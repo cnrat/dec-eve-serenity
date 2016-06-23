@@ -183,9 +183,7 @@ from eve.client.script.ui.control.browser.browserHostManager import BrowserHostM
 from eve.client.script.ui.eveCommands import EveCommandService as eveCmd
 from eve.client.script.ui.eveUIProcs import EveUIProcSvc as eveUIProcSvc
 from eve.client.script.ui.extras.cider import CiderService as cider
-from eve.client.script.ui.extras.lightfxsvc import LightFx as lightFx
 from eve.client.script.ui.extras.tourneyBanUI import TourneyBanUISvc as tourneyBanUI
-from eve.client.script.ui.extras.xfire import XFire as xfire
 from eve.client.script.ui.hacking.hackingUISvc import HackingSvc as hackingUI
 from eve.client.script.ui.inflight.visualEffect import VisualEffectSvc as visualEffect
 from eve.client.script.ui.maingame.eveNavigationService import EveNavigationService as eveNavigation

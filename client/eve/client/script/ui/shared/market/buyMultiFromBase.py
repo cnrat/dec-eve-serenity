@@ -42,6 +42,7 @@ class MultiBuy(SellBuyItemsWindow):
     orderCap = 'MultiBuyOrderCap'
     tradeOnConfirm = False
     dropLabelPath = 'UI/Market/Marketbase/DropItemsToAddToBuy'
+    cannotBeTradeLabelPath = 'UI/Market/MarketQuote/CannotBeBought'
     corpCheckboxTop = 0
     numbersGridTop = 1
     showTaxAndBrokersFee = False
@@ -71,6 +72,7 @@ class MultiBuy(SellBuyItemsWindow):
         self.preItems = self.GetKeyValsForWantedTypes(attributes.get('wantToBuy'))
         self.reloadingItemsCounter = 0
         self.verifyMultiplierTimer = None
+        self.expiredOrders = {}
         return
 
     def GetKeyValsForWantedTypes(self, wantToBuy):
@@ -174,6 +176,7 @@ class MultiBuy(SellBuyItemsWindow):
         orderIDs = {order.orderID for order in ordersCreated}
         self.activeOrders.update(orderIDs)
         self.CreateNewBuyOrder(failedItems)
+        self.VerifyExpiredOrders()
 
     def ContinueAfterWarning(self, buyItemList):
         highItems = []
@@ -430,22 +433,39 @@ class MultiBuy(SellBuyItemsWindow):
     def OnOwnOrdersChanged(self, orders, reason, isCorp):
         if reason != 'Expiry':
             return
-        failedItems = []
+        orderIDs = set()
         for eachOrder in orders:
-            if eachOrder.orderID not in self.activeOrders:
+            self.expiredOrders[eachOrder.orderID] = eachOrder
+            orderIDs.add(eachOrder.orderID)
+
+        self._ProccessExpiredOrders(orderIDs)
+
+    def _ProccessExpiredOrders(self, orderIDs):
+        failedItems = []
+        for eachOrderID in orderIDs:
+            if eachOrderID not in self.activeOrders:
                 continue
-            if eachOrder.volRemaining != 0:
+            eachOrder = self.expiredOrders.get(eachOrderID, None)
+            if eachOrder and eachOrder.volRemaining != 0:
                 failedBuyInfo = KeyVal(typeID=eachOrder.typeID, qty=eachOrder.volRemaining)
                 failedItems.append(failedBuyInfo)
-            self.activeOrders.discard(eachOrder.orderID)
+            self.activeOrders.discard(eachOrderID)
 
         if failedItems:
             self.AddPreItems(failedItems)
         if not failedItems and not self.AreStillItemsInWindow():
             self.Close()
             return
-        if self.orderDisabled and not self.activeOrders:
-            self.ChangeOrderUIState(disable=False)
+        else:
+            if self.orderDisabled and not self.activeOrders:
+                self.ChangeOrderUIState(disable=False)
+            return
+
+    def VerifyExpiredOrders(self):
+        expiredOrders = set(self.expiredOrders.keys())
+        expiredOrdersNotProcessed = self.activeOrders.intersection(expiredOrders)
+        if expiredOrdersNotProcessed:
+            self._ProccessExpiredOrders(expiredOrdersNotProcessed)
 
     def AreStillItemsInWindow(self):
         if self.activeOrders:
@@ -503,3 +523,9 @@ class MultiBuy(SellBuyItemsWindow):
     def Close(self, *args, **kwds):
         self.verifyMultiplierTimer = None
         return SellBuyItemsWindow.Close(self, *args, **kwds)
+
+    def DisplayErrorHints(self):
+        hintTextList = self.GetErrorHints()
+        if hintTextList:
+            hintText = '<br>'.join(hintTextList)
+            eve.Message('CustomInfo', {'info': hintText})

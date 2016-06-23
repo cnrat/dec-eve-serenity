@@ -3,8 +3,7 @@
 import math
 from collections import deque
 import blue
-from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
-import evecamera
+from eve.client.script.ui.shared.systemMenu import betaOptions
 import trinity
 import geo2
 import telemetry
@@ -187,7 +186,6 @@ class ExplosionManager(object):
             if callback is not None:
                 callback(model)
             model.Stop()
-            model.loadedCallback = None
             pool.Push(model)
             pool.DecRef(1)
         return
@@ -256,10 +254,7 @@ def GetLodLevel(position, radius):
     cam = sm.GetService('sceneManager').GetActiveSpaceCamera()
     if cam is None:
         return 1
-    if IsNewCameraActive():
-        distance = geo2.Vec3Distance(cam.eyePosition, position)
-    else:
-        distance = geo2.Vec3Length(geo2.Vec3Subtract((cam.pos.x, cam.pos.y, cam.pos.z), position))
+    distance = geo2.Vec3Distance(cam.eyePosition, position)
     vp = trinity.device.viewport
     aspectRatio = vp.GetAspectRatio()
     fov = cam.fov / camutils.GetARZoomMultiplier(aspectRatio)

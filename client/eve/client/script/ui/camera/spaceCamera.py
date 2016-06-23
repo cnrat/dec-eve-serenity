@@ -255,7 +255,7 @@ class SpaceCamera(CameraBase):
             cache = itemIdIsMyShip
             item.LookAtMe()
             if itemIdIsMyShip is False:
-                sm.ScatterEvent('OnLookAtOther', itemID)
+                sm.ScatterEvent('OnCameraLookAt', False, itemID)
             trackableItem = self._GetTrackableCurve(itemID)
             if not smooth:
                 self.animationController.Schedule(camutils.SetTranslationCurve(trackableItem))
@@ -310,7 +310,7 @@ class SpaceCamera(CameraBase):
         return self.cameraInterest
 
     def ResetCamera(self, *args):
-        sm.ScatterEvent('OnLookAtMyShip', session.shipid)
+        sm.ScatterEvent('OnCameraLookAt', True, session.shipid)
         self.LookAt(session.shipid, resetCamera=True)
 
     def GetLookAtItemID(self):

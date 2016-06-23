@@ -53,9 +53,6 @@ class BaseLink(BaseLinkCore):
         elif URL.startswith('cmd:/'):
             sm.GetService('slash').SlashCmd(URL[4:])
             return True
-        elif URL.startswith('evebrowser:'):
-            uicore.cmd.OpenBrowser(URL[11:])
-            return True
         elif URL.startswith('evemail:'):
             self.EveMail(URL[8:])
             return True
@@ -179,9 +176,6 @@ class BaseLink(BaseLinkCore):
         dragContainer.width = label.textwidth
         dragContainer.height = label.textheight
         return (2, label.textheight)
-
-    def CanOpenBrowser(self, *args):
-        return getattr(eve.session, 'charid', None)
 
     def GetLinkMenu(self, parent, url):
         m = []
@@ -349,8 +343,7 @@ class BaseLink(BaseLinkCore):
          'evemail:',
          'evemailto:',
          'note:',
-         'contract:',
-         'evebrowser:']
+         'contract:']
 
     def UrlHandlerDelegate(self, parent, funcName, args, newTab=False):
         handler = getattr(self, 'URLHandler', None)
@@ -364,7 +357,9 @@ class BaseLink(BaseLinkCore):
         if not args.startswith('http'):
             self.ClickGameLinks(parent, args)
         else:
-            uicore.cmd.OpenBrowser(args, newTab=newTab)
+            response = eve.Message('ExternalLinkWarning', {'url': args}, uiconst.OKCANCEL, suppress=uiconst.ID_OK) == uiconst.ID_OK
+            if response:
+                blue.os.ShellExecute(args)
         return
 
     def GetFromCluster(self, parent, url):

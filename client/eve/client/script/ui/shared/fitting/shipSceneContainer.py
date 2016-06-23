@@ -58,14 +58,14 @@ class ShipSceneContainer(SceneContainer):
                     self.scene.objects.append(grid)
                 camera = self.camera
                 rad = newModel.GetBoundingSphereRadius()
-                minZoom = rad + camera.frontClip
-                alpha = camera.fieldOfView / 2.0
+                minZoom = rad + camera.nearClip
+                alpha = camera.fov / 2.0
                 maxZoom = min(self.backClip - rad, rad * (1 / math.tan(alpha)) * 2)
                 oldZoomDistance = self.minZoom + (self.maxZoom - self.minZoom) * self.zoom
                 defaultZoom = minZoom / (maxZoom - minZoom)
                 self.SetMinMaxZoom(minZoom, maxZoom)
                 if animate or oldZoomDistance < minZoom or oldZoomDistance > maxZoom:
-                    self.zoom = defaultZoom
+                    self.SetZoom(defaultZoom)
                 shipTypeID = self.controller.GetTypeID()
                 if self.controller.IsSimulated():
                     stanceID = None

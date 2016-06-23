@@ -4,6 +4,8 @@ import sys
 import types
 import random
 import datetime
+from sensorsuite.overlay.bookmarks import BookmarkBracket
+from sensorsuite.overlay.brackets import SensorSuiteBracket
 import structures
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.cameraUtil import GetCameraMaxLookAtRange, IsNewCameraActive
@@ -3747,6 +3749,8 @@ class MenuSvc(service.Service):
     def AlignTo(self, alignID):
         if alignID == session.shipid:
             return
+        elif self._CheckAlignToSiteBracket(alignID):
+            return
         else:
             bp = sm.StartService('michelle').GetRemotePark()
             if bp is not None:
@@ -3757,6 +3761,13 @@ class MenuSvc(service.Service):
                     sm.GetService('autoPilot').CancelSystemNavigation()
                 sm.GetService('flightPredictionSvc').OptionActivated('AlignTo', alignID)
             return
+
+    def _CheckAlignToSiteBracket(self, itemID):
+        bracket = sm.GetService('sensorSuite').siteController.spaceLocations.GetBracketByBallID(itemID)
+        if bracket:
+            bracket.AlignTo()
+            return True
+        return False
 
     def AlignToBookmark(self, alignID):
         bp = sm.StartService('michelle').GetRemotePark()

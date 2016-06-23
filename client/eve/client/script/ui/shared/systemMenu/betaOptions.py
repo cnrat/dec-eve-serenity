@@ -7,10 +7,8 @@ import service
 from eve.common.script.sys.eveCfg import IsDockedInStructure
 BETA_MAP_SETTING_KEY = 'experimental_map_default'
 BETA_SCANNERS_SETTING_KEY = 'experimental_scanners'
-BETA_NEWCAM_SETTING_KEY = 'experimental_newcam4'
 DEFAULT_SETTINGS = {BETA_MAP_SETTING_KEY: True,
- BETA_SCANNERS_SETTING_KEY: True,
- BETA_NEWCAM_SETTING_KEY: True}
+ BETA_SCANNERS_SETTING_KEY: True}
 
 def ConstructOptInSection(column, columnWidth):
     optInOptions = GetOptInOptions()
@@ -26,27 +24,6 @@ def ConstructOptInSection(column, columnWidth):
 def OnBetaSettingChanged(checkbox):
     sm.GetService('neocom').UpdateNeocomButtons()
     settingID = checkbox.data['config']
-    if settingID == BETA_NEWCAM_SETTING_KEY:
-        ToggleNewCamera(checkbox.GetValue())
-
-
-def ToggleNewCamera(activate):
-    if not IsDockedInStructure():
-        sceneMan = sm.GetService('sceneManager')
-        camera = sceneMan.GetActiveCamera()
-        if activate:
-            if session.solarsystemid:
-                sceneMan.SetPrimaryCamera(evecamera.CAM_SHIPORBIT)
-        else:
-            if session.solarsystemid:
-                cam = sceneMan.SetPrimaryCamera(evecamera.CAM_SPACE_PRIMARY)
-                cam.LookAt(session.shipid)
-            for cameraID in (evecamera.CAM_SHIPORBIT, evecamera.CAM_SHIPPOV, evecamera.CAM_TACTICAL):
-                sceneMan.UnregisterCamera(cameraID)
-
-    if uicore.layer.shipui.isopen:
-        uicore.layer.shipui.SetupShip()
-    uicore.cmd.Reload()
 
 
 def IsGMRole():
@@ -75,13 +52,6 @@ def AppendNewScannersOption(options):
     options.append(newMap)
 
 
-def AppendNewcamOption(options):
-    newMap = Bunch()
-    newMap.settingKey = BETA_NEWCAM_SETTING_KEY
-    newMap.label = 'Try the New Camera'
-    options.append(newMap)
-
-
 def GetOptInOptions():
     if not session.userid:
         return []
@@ -90,8 +60,6 @@ def GetOptInOptions():
         AppendNewMapOption(options)
     if IsGMRole() or IsBetaFeaturedEnabledInGlobalConfig(BETA_SCANNERS_SETTING_KEY):
         AppendNewScannersOption(options)
-    if IsGMRole() or IsBetaFeaturedEnabledInGlobalConfig(BETA_NEWCAM_SETTING_KEY):
-        AppendNewcamOption(options)
     return options
 
 

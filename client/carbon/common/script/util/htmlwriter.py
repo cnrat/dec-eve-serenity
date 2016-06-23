@@ -3504,6 +3504,11 @@ class Form():
         self.elements.append([label, writer.GetDatePicker(ctrlID=dateName, ctrlCaption=None, ctrlFormat='yy-mm-dd', ctrlValue=v[0], ctrlTitle=''), writer.GetInput(ctrlID=timeName, labelCaption=None, className=None, minLength=None, width='60', value=v[1])])
         return
 
+    def AddDateTimeInput(self, label, name, value, text=''):
+        writer = HtmlWriter()
+        self.elements.append([label, writer.GetDateTimePicker(ctrlID=name, caption=None, value=value, title=''), text])
+        return
+
     def AddDatePicker(self, label, name, value):
         writer = HtmlWriter()
         self.elements.append([label, writer.GetDatePicker(ctrlID=name, ctrlCaption=None, ctrlFormat='yy-mm-dd', ctrlValue=value, ctrlTitle=''), ''])

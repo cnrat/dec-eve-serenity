@@ -89,7 +89,7 @@ class ModuleButtonTooltip(TooltipPanel):
         else:
             self.ownerGuid = self.owner.__guid__
             if self.ownerGuid == 'xtriui.ModuleButton':
-                self.moduleItemID = self.owner.sr.moduleInfo.itemID
+                self.moduleItemID = self.owner.moduleinfo.itemID
             else:
                 self.moduleItemID = self.controller.GetModuleID()
             if not self.moduleItemID:
@@ -505,7 +505,7 @@ class ModuleButtonTooltip(TooltipPanel):
         self.AddAttributePerTimeInfo(itemID=itemID, attributeID=const.attributePowerTransferAmount, labelPath='UI/Inflight/ModuleRacks/Tooltips/EnergyVampireAmountPerTime')
 
     def AddEnergyDestabilizerInfo(self, itemID, chargeInfoItem):
-        self.AddAttributePerTimeInfo(itemID=itemID, attributeID=const.attributeEnergyDestabilizationAmount, labelPath='UI/Inflight/ModuleRacks/Tooltips/EnergDestabilizedPerTime')
+        self.AddAttributePerTimeInfo(itemID=itemID, attributeID=const.attributeEnergyNeutralizerAmount, labelPath='UI/Inflight/ModuleRacks/Tooltips/EnergDestabilizedPerTime')
 
     def AddArmorRepairersInfo(self, itemID, chargeInfoItem):
         self.AddAttributePerTimeInfo(itemID=itemID, attributeID=const.attributeArmorDamageAmount, labelPath='UI/Inflight/ModuleRacks/Tooltips/ArmorRepairedPerTime')

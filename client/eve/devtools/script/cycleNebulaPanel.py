@@ -38,7 +38,7 @@ class CycleNebulaPanel(uicontrols.Window):
         res = walk.walk(NEBULA_RES_PATH)
         for dirpath, dirnames, filenames in res:
             for filename in filenames:
-                if not filename.lower().endswith(('_blur.dds', '_refl.dds')):
+                if not filename.lower().endswith(('_blur.dds', '_refl.dds', '_uv.dds')):
                     if '.dds' in filename.lower():
                         resPath = os.path.join(dirpath, filename).replace('\\', '/')
                         self.nebulaPaths.append(str(resPath.lower()))
@@ -71,6 +71,7 @@ class CycleNebulaPanel(uicontrols.Window):
         self.comboBox.SetValue(self.currentNebulaIndex)
         scene = sm.GetService('sceneManager').GetActiveScene()
         scene.backgroundEffect.resources[self.sceneResourceIndex].resourcePath = self.currentNebulaPath
+        scene.backgroundEffect.resources.FindByName('NebulaMapUV').resourcePath = self.currentNebulaPath[:-4] + '_uv.dds'
         scene.envMapResPath = self.currentNebulaPath[:-4] + '_refl.dds'
         scene.envMap1ResPath = self.currentNebulaPath
         scene.envMap2ResPath = self.currentNebulaPath[:-4] + '_blur.dds'

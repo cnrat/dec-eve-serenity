@@ -1,6 +1,10 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\dogma\authoring\attributeAuthoring.py
 import ast
+from .. import attributes as dogmaAttributes
+from ..attributes import datetime as dogmaDatetime
+from carbon.common.script.util.format import ParseDateTime
+from ..const import unitDatetime
 
 class AttributeAuthoring(object):
 
@@ -13,6 +17,12 @@ class AttributeAuthoring(object):
             value = ast.literal_eval(value)
         except ValueError:
             pass
+        except SyntaxError:
+            attribute = dogmaAttributes.GetAttribute(attributeID)
+            if attribute.unitID != unitDatetime:
+                raise
+            time = ParseDateTime(value)
+            value = dogmaDatetime.time_as_float(time)
 
         value = float(value)
         isBasicAttribute = self.attributeInfo.IsBasicAttribute(attributeID)

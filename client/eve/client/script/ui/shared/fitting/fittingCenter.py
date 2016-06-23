@@ -201,7 +201,6 @@ class ShipSceneParent(Container):
         self.sceneNavigation.GetMenu = self.GetShipMenu
 
     def SetScene(self):
-        self.sceneContainer.PrepareCamera()
         scenePath = self.controller.GetScenePath()
         self.sceneContainer.PrepareSpaceScene(scenePath=scenePath)
         self.sceneContainer.SetStencilMap()

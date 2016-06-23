@@ -19,15 +19,7 @@ gfxRaceTalocan = 'talocan'
 gfxRaceGeneric = 'generic'
 gfxRaceSoE = 'soe'
 gfxRaceMordu = 'mordu'
-DEFAULT_SCENE_PATH = 'res:/dx9/Scene/preview/ship_other.red'
-
-def GetScenePathByRaceID(raceID):
-    scenePaths = {const.raceCaldari: 'res:/dx9/Scene/preview/ship_caldari.red',
-     const.raceMinmatar: 'res:/dx9/Scene/preview/ship_minmatar.red',
-     const.raceGallente: 'res:/dx9/Scene/preview/ship_gallente.red',
-     const.raceAmarr: 'res:/dx9/Scene/preview/ship_amarr.red'}
-    return scenePaths.get(raceID, DEFAULT_SCENE_PATH)
-
+DEFAULT_SCENE_PATH = 'res:/dx9/scene/iconbackground/generic.red'
 
 def GetScenePathByRaceName(raceName):
     scenePaths = {gfxRaceAmarr: 'res:/dx9/scene/iconbackground/amarr.red',

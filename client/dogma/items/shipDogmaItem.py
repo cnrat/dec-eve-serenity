@@ -16,7 +16,7 @@ class ShipDogmaItem(LocationDogmaItem):
 
     @TimedFunction('ShipDogmaItem::__init__')
     def __init__(self, dogmaLocation, item, eveCfg, clientIDFunc):
-        super(ShipDogmaItem, self).__init__(dogmaLocation, item, eveCfg, clientIDFunc)
+        LocationDogmaItem.__init__(self, dogmaLocation, item, eveCfg, clientIDFunc)
         self.flagID = item.flagID
         self.drones = {}
         self.overloadedModules = set()
@@ -30,12 +30,12 @@ class ShipDogmaItem(LocationDogmaItem):
 
     @TimedFunction('ShipDogmaItem::Load')
     def Load(self, item, instanceRow):
-        super(ShipDogmaItem, self).Load(item, instanceRow)
+        LocationDogmaItem.Load(self, item, instanceRow)
         self.isDirty = True
         self.flagID = item.flagID
 
     def Unload(self):
-        super(ShipDogmaItem, self).Unload()
+        LocationDogmaItem.Unload(self)
         for droneID in self.GetDronesInBay():
             self.dogmaLocation.UnloadItem(droneID)
 
@@ -54,7 +54,7 @@ class ShipDogmaItem(LocationDogmaItem):
     def OnItemLoaded(self):
         self.dogmaLocation.LoadPilot(self.itemID)
         self.dogmaLocation.FitItemToLocation(self.itemID, self.itemID, self.flagID)
-        super(ShipDogmaItem, self).OnItemLoaded()
+        LocationDogmaItem.OnItemLoaded(self)
 
     def CanFitItem(self, dogmaItem, flagID):
         if self.ValidFittingFlag(flagID):
@@ -81,7 +81,7 @@ class ShipDogmaItem(LocationDogmaItem):
         return self.GetPilot()
 
     def GetPersistables(self):
-        ret = super(ShipDogmaItem, self).GetPersistables()
+        ret = LocationDogmaItem.GetPersistables(self)
         ret.update(self.drones)
         return ret
 
@@ -103,9 +103,9 @@ class ShipDogmaItem(LocationDogmaItem):
             del self.drones[droneID]
 
     def _FlushEffects(self):
-        ownerID = self.dogmaLocation.pilotsByShipID.get(self.itemID, None)
+        ownerID = self.ownerID
         with self.dogmaLocation.ignoredOwnerEvents.Event(ownerID):
-            stackTraceCount = super(ShipDogmaItem, self)._FlushEffects()
+            stackTraceCount = LocationDogmaItem._FlushEffects(self)
         return stackTraceCount
 
     def GetPilot(self):

@@ -4,6 +4,7 @@ import blue
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
 from carbonui.primitives.container import Container
+from carbonui.primitives.containerAutoSize import ContainerAutoSize
 from carbonui.primitives.frame import Frame
 from carbonui.primitives.fill import Fill
 from carbonui.primitives.gradientSprite import GradientSprite
@@ -89,13 +90,14 @@ class SkillExtractorWindow(Window):
         LoadingWheel(parent=self.loadingPanel, align=uiconst.CENTERTOP)
         text = localization.GetByLabel('UI/SkillTrading/LoadingSkills')
         EveHeaderMedium(parent=self.loadingPanel, align=uiconst.TOTOP, top=50, text='<center>%s</center>' % text)
-        self.messagePanel = Container(parent=self.GetMainArea(), align=uiconst.CENTER, width=300, height=300, opacity=0.0, idx=0)
+        self.messagePanel = ContainerAutoSize(parent=self.GetMainArea(), align=uiconst.CENTER, alignMode=uiconst.TOTOP, width=300, opacity=0.0, idx=0)
 
     def Reload(self):
         uthread.new(self._Reload)
 
     def _Reload(self):
         self.AnimShowLoading()
+        self.CheckShipAndShowMessage()
         self.entryDataList = self._GenerateSkillEntries(self.controller.skills)
         self._FlushAndPopulateSkillScroll(self.entryDataList)
         self.UpdateNoContentMessage()
@@ -142,8 +144,7 @@ class SkillExtractorWindow(Window):
             self.AnimShowMessage()
 
     def PrepareCompleteMessage(self):
-        if len(self.messagePanel.children) > 0:
-            return
+        self.messagePanel.Flush()
         text = localization.GetByLabel('UI/SkillTrading/CompleteMessageCaption')
         EveCaptionMedium(parent=self.messagePanel, align=uiconst.TOTOP, text='<center>%s</center>' % text)
         text = localization.GetByLabel('UI/SkillTrading/CompleteMessageMain', amount=self.controller.SKILL_POINT_GOAL, injector=invconst.typeSkillInjector)
@@ -157,10 +158,34 @@ class SkillExtractorWindow(Window):
         buttonCont = Container(parent=self.messagePanel, align=uiconst.TOTOP, top=16, height=40)
         Button(parent=buttonCont, align=uiconst.CENTER, label=localization.GetByLabel('UI/Common/Done'), func=self.Close)
 
+    def CheckShipAndShowMessage(self):
+        if self.controller.isCompleted:
+            return
+        ship = sm.GetService('godma').GetItem(session.shipid)
+        if ship.groupID != const.groupCapsule:
+            self.PrepareShipMessage()
+            self.AnimShowMessage()
+        else:
+            self.AnimHideMessage()
+
+    def PrepareShipMessage(self):
+        self.messagePanel.Flush()
+        text = 'Must Be In Capsule'
+        EveCaptionMedium(parent=self.messagePanel, align=uiconst.TOTOP, text='<center>%s</center>' % text)
+        text = 'A direct connection to your capsule is required in order to extract skill points. Please leave your active ship to continue.'
+        EveLabelMedium(parent=self.messagePanel, align=uiconst.TOTOP, top=4, text='<center>%s</center>' % text)
+        buttonCont = Container(parent=self.messagePanel, align=uiconst.TOTOP, top=16, height=40)
+        Button(parent=buttonCont, align=uiconst.CENTER, label='Leave Current Ship', func=self.LeaveShip, args=())
+
     def AnimShowMessage(self):
         self.contentCont.Disable()
         animations.FadeTo(self.contentCont, startVal=self.contentCont.opacity, endVal=0.1)
         animations.FadeIn(self.messagePanel)
+
+    def AnimHideMessage(self):
+        self.contentCont.Enable()
+        animations.FadeTo(self.contentCont, startVal=self.contentCont.opacity, endVal=1.0)
+        animations.FadeOut(self.messagePanel)
 
     def Close(self, *args, **kwargs):
         super(SkillExtractorWindow, self).Close(*args, **kwargs)
@@ -169,6 +194,13 @@ class SkillExtractorWindow(Window):
     def OnSessionChanged(self, isRemote, sess, change):
         if 'stationid2' in change:
             self.Close()
+        elif 'shipid' in change:
+            self.CheckShipAndShowMessage()
+
+    def LeaveShip(self):
+        ship = sm.GetService('godma').GetItem(session.shipid)
+        sm.StartService('station').TryLeaveShip(ship)
+        self.AnimHideMessage()
 
 
 class SkillFilterEdit(QuickFilterEdit):

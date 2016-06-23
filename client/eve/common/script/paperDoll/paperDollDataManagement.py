@@ -248,6 +248,10 @@ class ModifierLoader():
                 fullResPath = entry.GetFullResPath(fn)
                 availableTypes.append(fullResPath)
 
+        log.LogNotice('paperdollDataMgmt: List types -> (%s, %s, %s, %s)' % (gender,
+         cat,
+         modifier,
+         len(availableTypes)))
         return availableTypes
 
     def CategoryHasTypes(self, category):

@@ -1667,9 +1667,9 @@ class CharacterSheet(service.Service):
             scrolllist = []
             if implants:
                 scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/Implants', implantCount=len(implants))}))
-                for each in implants:
-                    scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': each,
-                     'label': evetypes.GetName(each.typeID)}))
+                for booster in implants:
+                    scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': booster,
+                     'label': evetypes.GetName(booster.typeID)}))
 
                 if boosters:
                     scrolllist.append(listentry.Get('Divider'))
@@ -1677,14 +1677,14 @@ class CharacterSheet(service.Service):
             staticMgr = dogmaLocation.dogmaStaticMgr
             if boosters:
                 scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/CharacterSheet/CharacterSheetWindow/Augmentations/Boosters', boosterCount=len(boosters))}))
-                for each in boosters:
-                    scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': each,
-                     'label': evetypes.GetName(each.boosterTypeID)}))
-                    boosterEffects = staticMgr.passiveFilteredEffectsByType.get(each.boosterTypeID, [])
+                for booster in boosters:
+                    scrolllist.append(listentry.Get('ImplantEntry', {'implant_booster': booster,
+                     'label': evetypes.GetName(booster.boosterTypeID)}))
+                    boosterEffects = staticMgr.GetPassiveFilteredEffectsByType(booster.boosterTypeID)
                     for effectID in boosterEffects:
                         eff = cfg.dgmeffects.Get(effectID)
                         chanceAttributeID = staticMgr.effects[effectID].fittingUsageChanceAttributeID
-                        if chanceAttributeID and effectID in each.sideEffectIDs:
+                        if chanceAttributeID and effectID in booster.sideEffectIDs:
                             scrolllist.append(listentry.Get('IconEntry', {'line': 1,
                              'hint': eff.displayName,
                              'text': None,

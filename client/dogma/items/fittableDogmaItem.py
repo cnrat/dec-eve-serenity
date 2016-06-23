@@ -10,7 +10,7 @@ class FittableDogmaItem(BaseDogmaItem):
     def __init__(self, *args, **kwargs):
         self._location = None
         self.lastStopTime = None
-        super(FittableDogmaItem, self).__init__(*args, **kwargs)
+        BaseDogmaItem.__init__(self, *args, **kwargs)
         return
 
     @property
@@ -38,7 +38,7 @@ class FittableDogmaItem(BaseDogmaItem):
 
     @TimedFunction('FittableDogmaItem::Unload')
     def Unload(self):
-        super(FittableDogmaItem, self).Unload()
+        BaseDogmaItem.Unload(self)
         if self.location:
             try:
                 locationFittedItems = self.location.fittedItems
@@ -103,10 +103,10 @@ class FittableDogmaItem(BaseDogmaItem):
         return otherID
 
     def SerializeForPropagation(self):
-        retVal = super(FittableDogmaItem, self).SerializeForPropagation()
+        retVal = BaseDogmaItem.SerializeForPropagation(self)
         retVal.lastStopTime = self.lastStopTime
         return retVal
 
     def UnpackPropagationData(self, propData, charID, shipID):
-        super(FittableDogmaItem, self).UnpackPropagationData(propData, charID, shipID)
+        BaseDogmaItem.UnpackPropagationData(self, propData, charID, shipID)
         self.SetLastStopTime(propData.lastStopTime)

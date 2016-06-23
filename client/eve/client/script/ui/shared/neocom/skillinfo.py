@@ -1,17 +1,15 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\neocom\skillinfo.py
-import math
 import sys
-import blue
 from carbonui.control.scrollentries import SE_BaseClassCore
 from eve.client.script.ui.control.infoIcon import InfoIcon
+import gametime
 import uiprimitives
 import uicontrols
 import uthread
 import log
 import base
 import util
-import characterskills as charskills
 import carbonui.const as uiconst
 import localization
 import telemetry
@@ -167,26 +165,24 @@ class BaseSkillEntry(uicontrols.SE_BaseClassCore):
         self.sr.icon.LoadIcon(icon, ignoreSize=True)
         self.sr.icon.SetSize(32, 32)
 
+    def _GetEndOfTraining(self, skillTypeID):
+        return sm.GetService('skillqueue').GetEndOfTraining(skillTypeID)
+
     def UpdateTraining(self, skill):
         if not self or self.destroyed:
             return
         else:
-            skillSvc = sm.GetService('skills')
-            spm = skillSvc.GetSkillpointsPerMinute(skill.typeID)
-            ETA = sm.GetService('skillqueue').GetEndOfTraining(skill.typeID)
-            spHi = skillSvc.SkillpointsNextLevel(skill.typeID)
+            ETA = self._GetEndOfTraining(skill.typeID)
             level = skill.skillLevel
             if not self or self.destroyed or util.GetAttrs(self, 'sr', 'node', 'skill', 'typeID') != skill.typeID:
                 return
             if ETA:
-                time = ETA - blue.os.GetWallclockTime()
+                time = ETA - gametime.GetWallclockTime()
                 secs = time / 10000000L
             else:
                 time = 0
                 secs = 0
-            currentPoints = 0
-            if spHi is not None:
-                currentPoints = spHi - secs / 60.0 * spm
+            currentPoints = sm.GetService('skillqueue').GetEstimatedSkillPointsTrained(skill.typeID)
             if util.GetAttrs(self, 'sr', 'node', 'trainToLevel') != level:
                 if util.GetAttrs(self, 'sr', 'node', 'timeLeft'):
                     time = self.sr.node.timeLeft
@@ -197,7 +193,7 @@ class BaseSkillEntry(uicontrols.SE_BaseClassCore):
                 self.endOfTraining = ETA
             else:
                 self.endOfTraining = None
-            self.lasttime = blue.os.GetWallclockTime()
+            self.lasttime = gametime.GetWallclockTime()
             self.lastsecs = secs
             self.lastpoints = currentPoints
             self.timer = base.AutoTimer(1000, self.UpdateProgress)
@@ -207,22 +203,18 @@ class BaseSkillEntry(uicontrols.SE_BaseClassCore):
         skill = self.rec
         skillSvc = sm.GetService('skills')
         skillQueue = sm.GetService('skillqueue')
-        inTraining = skillQueue.SkillInTraining(self.rec.typeID)
-        if self.endOfTraining is None:
+        skillTypeID = skill.typeID
+        inTraining = skillQueue.SkillInTraining(skillTypeID)
+        endOfTraining = self._GetEndOfTraining(skillTypeID)
+        currentPoints = skill.skillPoints
+        if endOfTraining is None:
             self.timer = None
-            currentPoints = skill.skillPoints
         elif inTraining:
-            secs = (self.endOfTraining - blue.os.GetWallclockTime()) / 10000000L
-            spHi = skillSvc.SkillpointsNextLevel(skill.typeID)
-            spm = skillSvc.GetSkillpointsPerMinute(skill.typeID)
-            currentPoints = min(spHi - secs / 60.0 * spm, spHi)
-        else:
-            currentPoints = skill.skillPoints
-        currentSpL = charskills.GetSPForLevelRaw(skill.skillRank, skill.skillLevel)
-        spHi = skillSvc.SkillpointsNextLevel(skill.typeID)
-        spLo = skillSvc.SkillpointsCurrentLevel(skill.typeID)
-        if skill.skillPoints < spHi:
-            if spLo < skill.skillPoints < spHi:
+            currentPoints = skillQueue.GetEstimatedSkillPointsTrained(skillTypeID)
+        skillPointsForNextLevel = skillSvc.SkillpointsNextLevel(skillTypeID)
+        skillPointsForCurrentLevel = skillSvc.SkillpointsCurrentLevel(skillTypeID)
+        if skill.skillPoints < skillPointsForNextLevel:
+            if skillPointsForCurrentLevel < skill.skillPoints < skillPointsForNextLevel:
                 self.GetIcon('partial')
                 if self.hilitePartiallyTrained:
                     yellowish = (238 / 255.0,
@@ -233,7 +225,8 @@ class BaseSkillEntry(uicontrols.SE_BaseClassCore):
                     self.sr.pointsLabel.SetTextColor(yellowish)
             else:
                 self.GetIcon('chapter')
-            self.sr.progressBar.width = int(46 * (float(currentPoints - currentSpL) / (spHi - currentSpL)))
+            progressBarWidth = int(46 * (float(currentPoints - skillPointsForCurrentLevel) / (skillPointsForNextLevel - skillPointsForCurrentLevel)))
+            self.sr.progressBar.width = progressBarWidth
             self.sr.progressBar.state = uiconst.UI_DISABLED
         else:
             self.GetIcon('complete')
@@ -252,8 +245,8 @@ class BaseSkillEntry(uicontrols.SE_BaseClassCore):
             if skill.skillLevel >= 5:
                 skillPointsText = localization.GetByLabel('UI/SkillQueue/Skills/SkillPointsValue', skillPoints=int(skillPoints))
             else:
-                spHi = sm.GetService('skills').SkillpointsNextLevel(skill.typeID)
-                skillPointsText = localization.GetByLabel('UI/SkillQueue/Skills/SkillPointsAndNextLevelValues', skillPoints=int(skillPoints), skillPointsToNextLevel=int(spHi + 0.5))
+                skillPointsForNextLevel = sm.GetService('skills').SkillpointsNextLevel(skill.typeID)
+                skillPointsText = localization.GetByLabel('UI/SkillQueue/Skills/SkillPointsAndNextLevelValues', skillPoints=int(skillPoints), skillPointsToNextLevel=int(skillPointsForNextLevel + 0.5))
             self.sr.nameLevelLabel.text = localization.GetByLabel('UI/SkillQueue/Skills/SkillNameAndRankValue', skill=skill.typeID, rank=int(skill.skillRank + 0.4))
             self.sr.pointsLabel.top = self.sr.nameLevelLabel.top + self.sr.nameLevelLabel.height
             self.sr.pointsLabel.text = skillPointsText
@@ -373,17 +366,16 @@ class SkillEntry(BaseSkillEntry):
             if self.endOfTraining is None:
                 self.timer = None
                 return
-            ms = blue.os.TimeDiffInMs(self.lasttime, blue.os.GetWallclockTime())
-            timeEndured = blue.os.GetWallclockTime() - self.lasttime
             skill = self.rec
-            timeLeft = self.endOfTraining - blue.os.GetWallclockTime()
-            secs = timeLeft / 10000000L
-            skillSvc = sm.GetService('skills')
-            spHi = skillSvc.SkillpointsNextLevel(skill.typeID)
-            spm = skillSvc.GetSkillpointsPerMinute(skill.typeID)
-            if spHi is None:
+            endOfTrainingTime = self._GetEndOfTraining(skill.typeID)
+            if endOfTrainingTime is None:
                 return
-            currentPoints = min(spHi - secs / 60.0 * spm, spHi)
+            timeLeft = endOfTrainingTime - gametime.GetWallclockTime()
+            skillSvc = sm.GetService('skills')
+            skillPointsForNextLevel = skillSvc.SkillpointsNextLevel(skill.typeID)
+            if skillPointsForNextLevel is None:
+                return
+            currentPoints = sm.GetService('skillqueue').GetEstimatedSkillPointsTrained(skill.typeID)
             self.OnSkillpointChange(currentPoints)
             self.SetTimeLeft(timeLeft)
             self.UpdateHalfTrained()

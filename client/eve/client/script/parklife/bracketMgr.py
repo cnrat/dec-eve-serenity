@@ -27,7 +27,7 @@ import telemetry
 import uicls
 import bracketUtils
 import collections
-import fsdSchemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.binaryLoader as fsdBinaryLoader
 from eve.client.script.ui.inflight.bracketsAndTargets.timedBracket import TimedBracket
 from eve.client.script.ui.inflight.bracketsAndTargets.siphonBracket import SiphonSiloBracket
 from eve.client.script.ui.inflight.bracketsAndTargets.structureBracket import StructureBracket

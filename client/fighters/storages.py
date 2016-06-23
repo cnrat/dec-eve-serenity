@@ -13,7 +13,8 @@ def AbilityStorage():
          'targetMode',
          'turretGraphicID',
          'disallowInHighSec',
-         'disallowInLowSec']
+         'disallowInLowSec',
+         'allowInForceField']
         mapping = [('$', collections.namedtuple('fighterAbilityTuple', abilityAttributes))]
         AbilityStorage._storage = fsdlite.EveStorage(data='fighters/abilities', cache='fighterAbilities.static', mapping=mapping, coerce=int)
         return AbilityStorage._storage

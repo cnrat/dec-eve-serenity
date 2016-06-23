@@ -8,7 +8,7 @@ class ControlTowerDogmaItem(LocationDogmaItem):
 
     def OnItemLoaded(self):
         self.dogmaLocation.FitItemToLocation(self.itemID, self.itemID, 0)
-        super(ControlTowerDogmaItem, self).OnItemLoaded()
+        LocationDogmaItem.OnItemLoaded(self)
 
     def GetCharacterID(self):
         return None

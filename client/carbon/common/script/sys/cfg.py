@@ -16,9 +16,9 @@ import carbon.common.script.net.machobase as machobase
 import carbon.common.script.sys.basesession as base
 import localization
 globals().update(service.consts)
-import fsdSchemas.persistence as fsdSchemaPersistence
-import fsdSchemas.binaryLoader as fsdBinaryLoader
-import fsdSchemas.schemaOptimizer as fsdSchemaOptimizer
+import fsd.schemas.persistence as fsdSchemaPersistence
+import fsd.schemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.schemaOptimizer as fsdSchemaOptimizer
 LogError = None
 LogInfo = None
 LogWarn = None

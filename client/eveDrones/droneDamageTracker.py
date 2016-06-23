@@ -11,12 +11,13 @@ class InBayDroneDamageTracker(object):
      'OnDamageStateChange',
      'OnDroneControlLost']
 
-    def __init__(self, dogmaLM):
+    def __init__(self, dogmaLM, clientDogmaLM):
         self.droneDamageStatesByDroneIDs = {}
         sm.RegisterNotify(self)
         self.fetchingInfoForDrones = set()
         self.clearTimestamp = None
         self.SetDogmaLM(dogmaLM)
+        self.clientDogmaLM = clientDogmaLM
         return
 
     def SetDogmaLM(self, dogmaLM):
@@ -28,7 +29,13 @@ class InBayDroneDamageTracker(object):
             return
         self.fetchingInfoForDrones.update(droneIDsMissingDamage)
         callMadeTime = blue.os.GetSimTime()
-        damageStateForDrones = self.dogmaLM.GetDamageStateItems(droneIDsMissingDamage)
+        damageStateForDrones = {}
+        damagesForDrones = self.dogmaLM.GetLayerDamageValuesByItems(droneIDsMissingDamage)
+        for droneID, droneDamage in damagesForDrones.iteritems():
+            maxHull = self.clientDogmaLM.dogmaItems[droneID].attributes[const.attributeHp].GetValue()
+            maxArmor = self.clientDogmaLM.dogmaItems[droneID].attributes[const.attributeArmorHP].GetValue()
+            damageStateForDrones[droneID] = [droneDamage.shieldInfo, 1.0 - droneDamage.armorDamage / maxArmor, 1.0 - droneDamage.hullDamage / maxHull]
+
         if not self.HasDictBeenClearedAfterCall(callMadeTime):
             damageStateDict = ConvertDroneStateToCorrectFormat(damageStateForDrones)
             self.droneDamageStatesByDroneIDs.update(damageStateDict)

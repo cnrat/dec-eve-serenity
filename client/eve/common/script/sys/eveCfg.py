@@ -32,7 +32,7 @@ import fsdlite
 globals().update(service.consts)
 import const
 import standingUtil
-import fsdSchemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.binaryLoader as fsdBinaryLoader
 import spacecomponents.common.factory
 from spacecomponents.common.helper import HasCargoBayComponent
 import evewar.util
@@ -1334,10 +1334,18 @@ def IsPreviewable(typeID):
         return False
     elif IsApparel(typeID):
         return True
+    elif IsShipSkin(typeID):
+        return True
     elif evetypes.GetGraphicID(typeID) is None:
         return False
     else:
         return evetypes.GetCategoryID(typeID) in const.previewCategories or evetypes.GetGroupID(typeID) in const.previewGroups
+
+
+def IsShipSkin(typeID):
+    if not evetypes.Exists(typeID):
+        return False
+    return evetypes.GetGroupID(typeID) == const.groupShipSkins
 
 
 def IsApparel(typeID):

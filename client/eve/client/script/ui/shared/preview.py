@@ -299,7 +299,7 @@ class PreviewWnd(Window):
         else:
             self.CloseSubSystemWnd()
         if newScene and animate:
-            self.previewContainer.AnimEntry(-1.8, 0.2, -0.7, -0.3)
+            self.previewContainer.AnimEntry()
         return
 
     def ClearText(self):
@@ -386,12 +386,13 @@ class PreviewNavigation(SceneContainerBaseNavigation):
         self.UpdateCursor()
 
     def OnMouseMove(self, *args):
-        SceneContainerBaseNavigation.OnMouseMove(self, *args)
-        if uicore.uilib.leftbtn and not uicore.uilib.rightbtn:
-            cameraDistance = self.sr.sceneContainer.camera.translationFromParent
+        if self.sr.sceneContainer.verticalPanEnabled and uicore.uilib.rightbtn:
+            cameraDistance = self.sr.sceneContainer.camera.GetZoomDistance()
             delta = uicore.uilib.dy * 0.0006 * cameraDistance
             y = self.sr.sceneContainer.verticalPan
             self.sr.sceneContainer.verticalPan = y + delta
+        else:
+            SceneContainerBaseNavigation.OnMouseMove(self, *args)
 
 
 class PreviewSceneContainer(SceneContainer):
@@ -424,14 +425,15 @@ class PreviewSceneContainer(SceneContainer):
 
     @property
     def verticalPan(self):
-        return self.cameraParent.value[1]
+        if self.camera:
+            return self.camera.atPosition[1]
 
     @verticalPan.setter
     def verticalPan(self, y):
         if self.verticalPanEnabled:
             y = Clamp(y, self._minY, self._maxY)
-            x, _, z = self.cameraParent.value
-            self.cameraParent.value = (x, y, z)
+            x, _, z = self.camera.atPosition
+            self.camera.SetAtPosition((x, y, z))
 
 
 class PreviewContainer(Container):
@@ -594,7 +596,7 @@ class PreviewContainer(Container):
 
         return
 
-    def AnimEntry(self, yaw0=0.0, pitch0=0.0, yaw1=-0.5, pitch1=-0.5, duration=2.0):
+    def AnimEntry(self, yaw0=1.1 * math.pi, pitch0=0.2, yaw1=1.25 * math.pi, pitch1=-0.3, duration=2.0):
         self.sceneContainer.AnimEntry(yaw0, pitch0, yaw1, pitch1, duration)
 
     def UpdateViewPort(self):
@@ -920,28 +922,31 @@ class TurretSceneContext(SceneContext):
 
 def SetupSpaceCamera(sceneContainer, model):
     sceneContainer.verticalPanLimits = None
-    alpha = sceneContainer.fieldOfView / 2.0
+    alpha = sceneContainer.fov / 2.0
     radius = model.GetBoundingSphereRadius()
     maxZoom = min(sceneContainer.backClip - radius, max(radius * (1 / math.tan(alpha)) * 2, 1.0))
     minZoom = radius + sceneContainer.frontClip
     sceneContainer.SetMinMaxZoom(minZoom, maxZoom)
+    sceneContainer.SetZoom(0.5)
     return
 
 
 def SetupInteriourCamera(sceneContainer, boundingBox):
     p0, p1 = geo2.Vector(boundingBox[0]), geo2.Vector(boundingBox[1])
     center = 0.5 * (p1 - p0) + p0
-    sceneContainer.cameraParent.parent = None
-    sceneContainer.cameraParent.value = center
+    camera = sceneContainer.camera
+    camera.SetAtPosition(center)
     sceneContainer.verticalPanLimits = (p0.y, p1.y)
     rad = max(geo2.Vec3Length(p0 - p1), 0.3)
-    alpha = sceneContainer.fieldOfView * 1.5 / 2.0
+    alpha = sceneContainer.fov * 1.5 / 2.0
     maxZoom = min(rad * (1 / math.tan(alpha)), 9.0)
     minZoom = rad + sceneContainer.frontClip
     sceneContainer.SetMinMaxZoom(minZoom, maxZoom)
-    sceneContainer.zoom = 0.6
-    sceneContainer.camera.maxPitch = 0.0
-    return
+    camera.SetZoomLinear(0.6)
+    camera.kMinPitch = 0.0
+    camera.kMaxPitch = math.pi / 2.0
+    camera.kOrbitSpeed = 30.0
+    camera.farClip = 100.0
 
 
 class CaptureDollMeshChanges(object):

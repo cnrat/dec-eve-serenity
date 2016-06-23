@@ -1,6 +1,9 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\structure\structureDocking.py
+from contextlib import contextmanager
 import service
+import carbonui.const as uiconst
+from eve.client.script.ui.station.undockQuestions import IsOkToUndock
 
 class StructureDocking(service.Service):
     __guid__ = 'svc.structureDocking'
@@ -11,13 +14,38 @@ class StructureDocking(service.Service):
         return self.clientDogmaIM.GetDogmaLocation()
 
     def Undock(self, structureID):
-        if session.structureid and session.solarsystemid and structureID == session.structureid:
+        if not self._InStateToUndock(structureID):
+            return
+        else:
             if session.shipid == session.structureid:
                 shipID = None
             else:
                 shipID = session.shipid
-            sm.RemoteSvc('structureDocking').Undock(session.structureid, shipID)
-        return
+            if not IsOkToUndock():
+                return
+
+            def TryUndockOnServer(doIgnoreContraband):
+                sm.RemoteSvc('structureDocking').Undock(session.structureid, shipID, ignoreContraband=doIgnoreContraband)
+
+            try:
+                ignoreContraband = settings.user.suppress.Get('suppress.ShipContrabandWarningUndock', None) == uiconst.ID_OK
+                TryUndockOnServer(doIgnoreContraband=ignoreContraband)
+            except UserError as e:
+                if e.msg == 'ShipContrabandWarningUndock':
+                    if eve.Message(e.msg, e.dict, uiconst.OKCANCEL, suppress=uiconst.ID_OK) == uiconst.ID_OK:
+                        TryUndockOnServer(doIgnoreContraband=True)
+
+            self.CloseStationWindows()
+            return
+
+    def _InStateToUndock(self, structureID):
+        if not session.structureid:
+            return False
+        if not session.solarsystemid:
+            return False
+        if structureID != session.structureid:
+            return False
+        return True
 
     def Dock(self, structureID):
 
@@ -38,3 +66,7 @@ class StructureDocking(service.Service):
         if session.structureid:
             capsuleID = self.gameui.GetShipAccess().LeaveShip(shipID)
             self.dogmaLocation.MakeShipActive(capsuleID)
+
+    def CloseStationWindows(self):
+        from reprocessing.ui.reprocessingWnd import ReprocessingWnd
+        ReprocessingWnd.CloseIfOpen()

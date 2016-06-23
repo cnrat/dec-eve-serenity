@@ -1532,13 +1532,6 @@ class SystemMenu(uicls.LayerCore):
               None,
               None,
               localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/Miscellaneous/EnableGreenscreenMenuTooltip'))]
-            if sm.GetService('lightFx').IsLightFxSupported():
-                graphicsData += [('checkbox',
-                  ('LightFxEnabled', ('user', 'ui'), 1),
-                  localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/Miscellaneous/LightLEDEffect'),
-                  None,
-                  None,
-                  localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/Miscellaneous/LightLEDEffectTooltip'))]
         graphicsData += (('header', localization.GetByLabel('UI/SystemMenu/DisplayAndGraphics/CharacterCreation/Header')),)
         currentFastCharacterCreationValue = gfxsettings.GetPendingOrCurrent(gfxsettings.GFX_CHAR_FAST_CHARACTER_CREATION)
         currentClothSimValue = gfxsettings.GetPendingOrCurrent(gfxsettings.GFX_CHAR_CLOTH_SIMULATION)

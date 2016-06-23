@@ -255,7 +255,7 @@ class ModTest(Service):
                     return
                 for module in uicore.layer.shipui.slotsContainer.modulesByID.itervalues():
                     module.SetRepeat(1000)
-                    attr = sm.GetService('godma').GetType(module.sr.moduleInfo.typeID)
+                    attr = sm.GetService('godma').GetType(module.moduleinfo.typeID)
                     groups = []
                     for x in range(1, 4):
                         if attr.AttributeExists('chargeGroup%d' % x):
@@ -278,7 +278,7 @@ class ModTest(Service):
                                         _Click(module)
                                         _WaitForIdle(module, reason='post-activate')
                                     except UserError as e:
-                                        errors.append((module.sr.moduleInfo.typeID, str(e)))
+                                        errors.append((module.moduleinfo.typeID, str(e)))
 
                                     sm.RemoteSvc('slash').SlashCmd('/unload me %d' % ammo.typeID)
                                     break
@@ -289,7 +289,7 @@ class ModTest(Service):
                         try:
                             _Click(module)
                         except UserError as e:
-                            errors.append((module.sr.moduleInfo.typeID, str(e)))
+                            errors.append((module.moduleinfo.typeID, str(e)))
 
                 busy = True
                 timeout = 30000

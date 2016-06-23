@@ -42,26 +42,13 @@ class BaseLinkCore(Container):
             self.ClickLink(self, self.url.replace('&amp;', '&'))
 
     def ClickLink(self, parent, URL):
-        if URL.startswith('shellexec:http://') or URL.startswith('shellexec:https://'):
-            blue.os.ShellExecute(URL[10:])
-            return
         if URL.startswith('localsvc:'):
             self.LocalSvcCall(URL[9:])
             return
         linkUsed = self.ClickGameLinks(parent, URL)
         if linkUsed:
             return
-        if self.CanOpenBrowser():
-            if uicore.commandHandler:
-                browser = uicore.commandHandler.OpenBrowser(URL)
-        else:
-            browser = various_unsorted.GetBrowser(parent)
-            if browser:
-                if hasattr(browser.sr, 'window') and hasattr(browser.sr.window, 'ShowHint'):
-                    browser.sr.window.ShowHint('')
-                browser.GoTo(URL)
-            else:
-                self.UrlHandlerDelegate(parent, 'GoTo', URL)
+        self.UrlHandlerDelegate(parent, 'GoTo', URL)
 
     def GetStandardLinkHint(self, *args, **kwds):
         return None

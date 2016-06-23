@@ -31,7 +31,7 @@ labelsByFuncName = {'CmdCloseActiveWindow': '/Carbon/UI/Commands/CmdCloseActiveW
  'CmdCloseAllWindows': '/Carbon/UI/Commands/CmdCloseAllWindows',
  'CmdLogOff': '/Carbon/UI/Commands/CmdLogOff',
  'CmdMinimizeActiveWindow': '/Carbon/UI/Commands/CmdMinimizeActiveWindow',
- 'CmdMinimizeAllWindows': '/Carbon/UI/Commands/CmdMinimizeAllWindows',
+ 'CmdToggleMinimizeMaximizeAllWindows': '/Carbon/UI/Commands/CmdMinimizeAllWindows',
  'CmdQuitGame': '/Carbon/UI/Commands/CmdQuitGame',
  'CmdResetMonitor': '/Carbon/UI/Commands/CmdResetMonitor',
  'CmdToggleAudio': '/Carbon/UI/Commands/CmdToggleAudio',
@@ -344,10 +344,6 @@ class CommandService(service.Service):
           SHIFT,
           uiconst.VK_F12)),
          c(self.WinCmdToggleWindowed, (ALT, uiconst.VK_RETURN)),
-         c(self.CmdCloseAllWindows, (CTRL, ALT, uiconst.VK_W)),
-         c(self.CmdMinimizeAllWindows, None),
-         c(self.CmdMinimizeActiveWindow, None),
-         c(self.CmdCloseActiveWindow, (CTRL, uiconst.VK_W)),
          c(self.CmdResetMonitor, (CTRL, ALT, uiconst.VK_RETURN)),
          c(self.OpenMonitor, (CTRL,
           ALT,
@@ -357,6 +353,14 @@ class CommandService(service.Service):
          c(self.CmdForward, uiconst.VK_XBUTTON2)]
         for cm in m:
             cm.category = 'general'
+            ret.append(cm)
+
+        m = [c(self.CmdCloseAllWindows, (CTRL, ALT, uiconst.VK_W)),
+         c(self.CmdToggleMinimizeMaximizeAllWindows, None),
+         c(self.CmdMinimizeActiveWindow, None),
+         c(self.CmdCloseActiveWindow, (CTRL, uiconst.VK_W))]
+        for cm in m:
+            cm.category = 'window'
             ret.append(cm)
 
         return ret
@@ -585,15 +589,26 @@ class CommandService(service.Service):
         return True
 
     def CmdMinimizeAllWindows(self):
-        all = uicore.registry.GetValidWindows()
-        for each in all:
-            if each.sr.stack is not None:
+        wnds = uicore.registry.GetValidWindows()
+        for wnd in wnds:
+            if wnd.InStack() or wnd.align == uiconst.TOALL:
                 continue
-            if each.align == uiconst.TOALL:
-                continue
-            uthread.new(each.Minimize)
+            uthread.new(wnd.Minimize)
 
         return True
+
+    def CmdMaximizeAllWindows(self):
+        for wnd in uicore.registry.GetWindows():
+            if wnd.InStack() or getattr(wnd, 'isImplanted', False):
+                continue
+            uthread.new(wnd.Maximize)
+
+    def CmdToggleMinimizeMaximizeAllWindows(self):
+        wnds = uicore.registry.GetValidWindows()
+        if False in [ w.IsMinimized() for w in wnds ]:
+            self.CmdMinimizeAllWindows()
+        else:
+            self.CmdMaximizeAllWindows()
 
     def CmdMinimizeActiveWindow(self):
         activeWnd = uicore.registry.GetActiveStackOrWindow()

@@ -778,6 +778,10 @@ class Character(service.Service):
         if getTypesOnly:
             return retData
         else:
+            log.LogNotice('GetAvailableTypesByCategory -> (%s, %s, %s, %s)' % (gender,
+             category,
+             bloodline,
+             len(ret)))
             ret = uiutil.SortListOfTuples(ret)
             return ret
 

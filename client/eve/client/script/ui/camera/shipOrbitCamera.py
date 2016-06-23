@@ -2,6 +2,7 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\shipOrbitCamera.py
 import math
 import destiny
+from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.baseCamera import K_ZOOMPOWER
 from eve.client.script.ui.camera.cameraUtil import GetDurationByDistance, GetBallPosition, GetBall, GetBallMaxZoom, Vector3Chaser, VectorLerper, IsAutoTrackingEnabled, CheckShowModelTurrets
@@ -9,8 +10,10 @@ from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 import evecamera
 import blue
 import geo2
+import evetypes
 import uthread
 import evegraphics.settings as gfxsettings
+import inventorycommon.const as invconst
 MAX_SPEED_OFFSET_SPEED = 3000.0
 MAX_SPEED_OFFSET_LOGSPEED = math.log(MAX_SPEED_OFFSET_SPEED) ** 2
 FOV_MIN = 0.55
@@ -23,6 +26,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
     isBobbingCamera = True
     minFov = 0.3
     maxFov = 1.2
+    name = 'ShipOrbitCamera'
 
     def __init__(self):
         BaseSpaceCamera.__init__(self)
@@ -119,10 +123,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
             return self.lookAtBall
 
     def _ScatterLookAtEvent(self, itemID):
-        if itemID == self.ego:
-            sm.ScatterEvent('OnLookAtMyShip', itemID)
-        else:
-            sm.ScatterEvent('OnLookAtOther', itemID)
+        sm.ScatterEvent('OnCameraLookAt', itemID == self.ego, itemID)
 
     def IsLookAtAllowed(self, itemID):
         if not self.IsManualControlEnabled():
@@ -160,12 +161,16 @@ class ShipOrbitCamera(BaseSpaceCamera):
         else:
             self.UpdateMaxZoom()
             self.UpdateAnchorPos()
+            if isinstance(self.lookAtBall, SpaceObject):
+                self.lookAtBall.RegisterForModelLoad(self.OnLookAtItemModelLoaded)
             return
 
     def UpdateMaxZoom(self):
         ball = self.lookAtBall
         nearClip = self.nearClip
         self.SetMaxZoom(GetBallMaxZoom(ball, nearClip))
+        if self.GetZoomDistance() < self.maxZoom:
+            self.SetZoom(0.0)
 
     def _LookAtAnimate(self, itemID, radius):
         atPos1 = GetBallPosition(self.lookAtBall)
@@ -175,7 +180,13 @@ class ShipOrbitCamera(BaseSpaceCamera):
         self.TransitTo(atPos1, eyePos1, duration=duration, smoothing=0.0)
 
     def _GetNewLookAtEyePos(self, atPos1, itemID, radius):
-        direction = self.GetLookAtDirection()
+        if evetypes.GetGroupID(self.lookAtBall.typeID) == invconst.groupBillboard:
+            direction = self.GetSpeedDirection()
+            if geo2.Vec3Dot(self.GetLookAtDirection(), direction) < 0:
+                direction = geo2.Vec3Scale(direction, -1)
+            radius = self.lookAtBall.radius * 5
+        else:
+            direction = self.GetLookAtDirection()
         eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(direction, radius))
         return eyePos1
 
@@ -236,7 +247,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
         return offset
 
     def _GetTrackEyeOffsetDirection(self):
-        pitch = self.GetPitch() - 0.5 * math.pi
+        pitch = self.GetPitch()
         rotMat = geo2.MatrixRotationAxis(self.GetZAxis(), -pitch)
         return geo2.Vec3Transform(self.GetYAxis(), rotMat)
 
@@ -407,6 +418,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
         self.ResetAnchorPos()
         self.DisableManualFov()
         self._trackSpeed = 1.0
+        self.ResetRotate()
         return
 
     def GetItemID(self):
@@ -472,3 +484,6 @@ class ShipOrbitCamera(BaseSpaceCamera):
         if speedOffset:
             offset = geo2.Vec3AddD(offset, speedOffset)
         return offset
+
+    def OnLookAtItemModelLoaded(self):
+        self.UpdateMaxZoom()

@@ -18,9 +18,10 @@ except ImportError:
 import trinity
 import devenv.libconst as const
 import inventorycommon.const as invconst
+from evegraphics.fsd import graphicIDs
 import iconrendering.photo as photo
 from iconrendering import USAGE_IEC_ICON, USAGE_INGAME_ICON, USAGE_IEC_RENDER
-from iconrendering import BLUEPRINT_NONE, BLUEPRINT_NORMAL, BLUEPRINT_COPY, BLUEPRINT_RELIC, BLUEPRINT_DUST
+from iconrendering import BLUEPRINT_NONE, BLUEPRINT_NORMAL, BLUEPRINT_COPY, BLUEPRINT_RELIC, BLUEPRINT_DUST, BLUEPRINT_SCENE_GFXID
 from iconrendering import ICON_GROUPS_IEC, NON_ICON_GROUPS, NON_ICON_CATEGORIES
 from evegraphics.utils import CombineSOFDNA
 from eveSpaceObject import GetScenePathByRaceName, DEFAULT_SCENE_PATH
@@ -34,7 +35,6 @@ ICON_BLUEPRINT_RELIC_OVERLAY = 'res:/UI/Texture/Icons/relic_overlay.png'
 ICON_BLUEPRINT_DUSTBACKGROUND = 'res:/UI/Texture/Icons/BPD.png'
 BLUEPRINT_STRING = 'BP'
 BLUEPRINT_STRING_COPY = 'BPC'
-SCENE_BLUEPRINT = 'res:/dx9/scene/blueprint/original.red'
 DIR_ICONS = 'res:/UI/Texture/Icons'
 DIR_CORPS = 'res:/UI/Texture/Corps'
 RENDER_METHOD_NONE = 'none'
@@ -55,6 +55,7 @@ RENDER_CATEGORIES = (const.categoryDrone,
  const.categoryPlanetaryInteraction,
  const.categoryOrbital,
  const.categoryStructure,
+ const.categoryFighter,
  const.categoryApparel)
 RENDER_GROUPS = (const.groupPlanetaryCustomsOffices,)
 ICON_CATEGORIES = (const.categoryModule,
@@ -196,18 +197,18 @@ def GetRenderFunctionAndArgsForGraphic(resourceMapper, graphicID, size, outputFo
         elif blueprint == BLUEPRINT_NORMAL:
             backgroundPath = ICON_BLUEPRINT_BACKGROUND
             overlayPath = ICON_BLUEPRINT_OVERLAY
-            scenePath = SCENE_BLUEPRINT
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         elif blueprint == BLUEPRINT_COPY:
             backgroundPath = ICON_BLUEPRINT_COPY_BACKGROUND
             overlayPath = ICON_BLUEPRINT_COPY_OVERLAY
-            scenePath = SCENE_BLUEPRINT
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         elif blueprint == BLUEPRINT_RELIC:
             backgroundPath = ICON_BLUEPRINT_RELIC_BACKGROUND
             overlayPath = ICON_BLUEPRINT_RELIC_OVERLAY
-            scenePath = SCENE_BLUEPRINT
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         elif blueprint == BLUEPRINT_DUST:
             backgroundPath = ICON_BLUEPRINT_DUSTBACKGROUND
-            scenePath = SCENE_BLUEPRINT
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         return (photo.RenderSpaceObject, [outPath], {'scenePath': scenePath,
           'objectPath': graphicFile,
           'sofDNA': sofDNA,
@@ -283,7 +284,7 @@ def GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, c
         return (photo.RenderPin, [outPath, graphicFile], {'size': size})
     elif renderType == RENDER_METHOD_SPACEOBJECT:
         if blueprint != BLUEPRINT_NONE:
-            scenePath = SCENE_BLUEPRINT
+            scenePath = gfxutils.GetResPathFromGraphicID(BLUEPRINT_SCENE_GFXID)
         else:
             scenePath = GetScenePathByRaceName(raceName)
         animationStates = resourceMapper.GetGraphicStateFilesFromGraphicID(graphicID)

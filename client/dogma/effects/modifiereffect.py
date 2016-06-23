@@ -10,19 +10,19 @@ def IsPassiveEffect(effectInfo):
 class ModifierEffect(Effect):
     __modifier_only__ = True
 
-    def __init__(self, effectInfo, modifiers):
+    def __init__(self, effectInfo, modifiers, side_effects=None):
         self.isPythonEffect = False
         self.__modifies_ship__ = IsPassiveEffect(effectInfo) and any((m.IsShipModifier() for m in modifiers))
         self.__modifies_structure__ = IsPassiveEffect(effectInfo) and any((m.IsStructureModifier() for m in modifiers))
         self.__modifies_character__ = IsPassiveEffect(effectInfo) and any((m.IsCharModifier() for m in modifiers))
-        self.modifiers = modifiers
+        self.effects = modifiers
+        if side_effects:
+            self.effects.extend(side_effects)
 
     def Start(self, *args):
-        for modifier in self.modifiers:
-            modifier.Start(*args)
+        map(lambda e: e.Start(*args), self.effects)
 
     def Stop(self, *args):
-        for modifier in self.modifiers:
-            modifier.Stop(*args)
+        map(lambda e: e.Stop(*args), self.effects)
 
     RestrictedStop = Stop

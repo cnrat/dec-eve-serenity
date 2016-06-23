@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\fw\base_fw.py
 from math import pi
+import math
 from eve.client.script.ui.control.themeColored import GradientThemeColored
 import uicontrols
 import blue
@@ -303,11 +304,11 @@ class MilitiaWindow(uicontrols.Window):
             self.bracketsByID[systemID] = bracket
 
         if self.factionID in (const.factionAmarrEmpire, const.factionMinmatarRepublic):
-            self.sceneContainer.orbit = (5.44, -0.16)
+            self.sceneContainer.SetOrbit(2.23, math.pi / 2 + 0.16)
             self.sceneContainerNav.SetMinMaxZoom(0.5, 12.0)
             self.sceneContainer.zoom = 0.82
         else:
-            self.sceneContainer.orbit = (5.61, -0.16)
+            self.sceneContainer.SetOrbit(2.47, math.pi / 2 + 0.16)
             self.sceneContainerNav.SetMinMaxZoom(0.5, 15.0)
             self.sceneContainer.zoom = 0.93
         self.sceneContainer.AnimRotateFrom(yaw=-40.0, pitch=-40.0, zoom=10.0, duration=1.5)

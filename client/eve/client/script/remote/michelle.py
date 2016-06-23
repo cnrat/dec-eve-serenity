@@ -188,8 +188,8 @@ class Michelle(service.Service):
             dogmaModules, dogmaReport = _GetReducedModuleList('dogmaModules', FittingController(session.shipid).GetFittedModules(), attrgetters)
             godmaModules, godmaReport = _GetReducedModuleList('godmaModules', hudController.GetModules(), attrgetters)
             attrgetters = {'itemID': attrgetter('id'),
-             'typeID': attrgetter('sr.moduleInfo.typeID'),
-             'flagID': attrgetter('sr.moduleInfo.flagID')}
+             'typeID': attrgetter('moduleinfo.typeID'),
+             'flagID': attrgetter('moduleinfo.flagID')}
             shipModuleButtons, shipModuleReport = _GetReducedModuleList('shipUIButtons', [ x for x in shipUI.slotsContainer.modulesByID.itervalues() ], attrgetters)
             if dogmaModules != godmaModules:
                 dogmaReport = '\n---------------- %s ----------------\n=>%s\n%s' % ('dogmaModules', dogmaModules, dogmaReport)

@@ -203,6 +203,9 @@ class SensorSuiteBracket(Bracket):
         return curveSet
 
     def OnDblClick(self, *args):
+        self.AlignTo()
+
+    def AlignTo(self):
         scanSvc = sm.GetService('scanSvc')
         scanSvc.AlignToPosition(self.data.position)
 

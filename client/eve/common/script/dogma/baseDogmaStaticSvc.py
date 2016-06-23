@@ -348,3 +348,6 @@ class BaseDogmaStaticSvc(service.Service):
                 self.LogError('dogmaStaticMgr::GetSkillModifiedAttributePercentageValue.Value %s not a percentile!' % percentageMod)
                 percentageMod = 1.0
         return percentageMod
+
+    def GetPassiveFilteredEffectsByType(self, typeID):
+        return self.passiveFilteredEffectsByType.get(typeID, [])

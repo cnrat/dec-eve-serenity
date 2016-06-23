@@ -1,7 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\base.py
 from eve.client.script.ui.station import stationServiceConst
-from eve.client.script.ui.station.askForUndock import IsOkToBoardWithModulesLackingSkills
+from eve.client.script.ui.station.undockQuestions import IsOkToUndockWithMissingCargo, IsOkToUndock
 from eve.client.script.ui.station.assembleModularShip import AssembleShip
 from eveSpaceObject import spaceobjanimation
 import evetypes
@@ -550,39 +550,8 @@ class StationSvc(service.Service):
                 currentView.StartExitAudio()
             if sm.GetService('actionObjectClientSvc').IsEntityUsingActionObject(session.charid):
                 sm.GetService('actionObjectClientSvc').ExitActionObject(session.charid)
-            if settings.user.suppress.Get('suppress.AskUndockInEnemySystem', None) is None:
-                if cfg.mapSystemCache[session.solarsystemid2].securityStatus < 0.0:
-                    if util.IsOutpost(session.stationid2) or sm.GetService('godma').GetType(eve.stationItem.stationTypeID).isPlayerOwnable == 1:
-                        try:
-                            sm.GetService('corp').GetCorpStationManager().DoStandingCheckForStationService(const.stationServiceDocking)
-                        except UserError as e:
-                            sovHolderName = cfg.eveowners.Get(eve.stationItem.ownerID).ownerName
-                            if uicore.Message('AskUndockInEnemySystem', {'sovHolderName': sovHolderName}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                                return False
-
-                else:
-                    facwarSvc = sm.GetService('facwar')
-                    if facwarSvc.IsFacWarSystem(session.solarsystemid2):
-                        occupierID = facwarSvc.GetSystemOccupier(session.solarsystemid2)
-                        if facwarSvc.IsEnemyCorporation(session.corpid, occupierID):
-                            sovHolderName = cfg.eveowners.Get(occupierID).ownerName
-                            if uicore.Message('AskUndockInEnemySystem', {'sovHolderName': sovHolderName}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                                return False
-            if not IsOkToBoardWithModulesLackingSkills(sm.GetService('clientDogmaIM').GetDogmaLocation(), uicore.Message):
+            if not IsOkToUndock(eve.stationItem.stationTypeID):
                 return False
-            systemSecStatus = sm.StartService('map').GetSecurityClass(eve.session.solarsystemid2)
-            beenWarned = False
-            if self.crimewatchSvc.IsCriminal(session.charid):
-                if systemSecStatus == const.securityClassHighSec:
-                    beenWarned = True
-                    if eve.Message('UndockCriminalConfirm', {}, uiconst.YESNO) != uiconst.ID_YES:
-                        return False
-            if not beenWarned:
-                if systemSecStatus > const.securityClassZeroSec:
-                    engagements = self.crimewatchSvc.GetMyEngagements()
-                    if len(engagements):
-                        if eve.Message('UndockAggressionConfirm', {}, uiconst.YESNO, suppress=uiconst.ID_YES) != uiconst.ID_YES:
-                            return False
             shipID = util.GetActiveShip()
             if shipID is None:
                 shipID = self.ShipPicker()
@@ -590,9 +559,8 @@ class StationSvc(service.Service):
                     eve.Message('NeedShipToUndock')
                     return False
                 sm.GetService('clientDogmaIM').GetDogmaLocation().MakeShipActive(shipID)
-            if settings.user.suppress.Get('suppress.CourierUndockMissingCargo', None) is None:
-                if not sm.GetService('journal').CheckUndock(session.stationid2):
-                    return False
+            if not IsOkToUndockWithMissingCargo():
+                return False
             self.exitingstation = 1
             uthread.new(self.LoadSvc, None)
             uthread.new(self.Undock_Thread, shipID)
@@ -660,12 +628,11 @@ class StationSvc(service.Service):
                         dogmaLocation.MakeShipActive(capsuleID)
                     raise
                 elif e.msg == 'ShipContrabandWarningUndock':
-                    if eve.Message(e.msg, e.dict, uiconst.OKCANCEL) == uiconst.ID_OK:
+                    if eve.Message(e.msg, e.dict, uiconst.OKCANCEL, suppress=uiconst.ID_OK) == uiconst.ID_OK:
                         sys.exc_clear()
                         self.DoUndockAttempt(True, False, shipID)
                         return
                     else:
-                        settings.user.suppress.Set('suppress.ShipContrabandWarningUndock', None)
                         self.AbortUndock()
                         return
                 else:

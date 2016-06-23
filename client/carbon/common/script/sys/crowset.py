@@ -3,7 +3,6 @@
 import blue
 import const
 import weakref
-DEBUG = False
 ROWSETVERSION = 3
 
 class CRowset(list):
@@ -19,9 +18,6 @@ class CRowset(list):
 
     def Copy(self):
         return CRowset(self.header, self)
-
-    def GetColumnSchema(self):
-        return self.header
 
     def GetColumnNames(self):
         return self.header.Keys()
@@ -68,13 +64,6 @@ class CRowset(list):
 
         return l
 
-    if DEBUG:
-
-        def __contains__(self, item):
-            if not isinstance(item, blue.DBRow):
-                raise TypeError("CRowset: 'item' must be of type DBRow, but was type '%s'" % type(item))
-            return list.__contains__(self, item)
-
 
 class CIndexedRowset(dict):
     __guid__ = 'dbutil.CIndexedRowset'
@@ -86,16 +75,6 @@ class CIndexedRowset(dict):
     @property
     def columns(self):
         return self.header.Keys()
-
-    if DEBUG:
-
-        def __setitem__(self, key, value):
-            if not isinstance(value, blue.DBRow):
-                raise TypeError("CIndexedRowset: 'value' must be of type DBRow, but was type '%s'" % type(value))
-            h1, h2 = str(value.__header__), str(self.header)
-            if h1 != h2:
-                raise TypeError("CIndexedRowset: Header mismatch - This rowset has '%s', 'value' had '%s'" % (h2, h1))
-            return dict.__setitem__(self, key, value)
 
     def Build(self, rowset):
         if '.' in self.columnName:
@@ -183,17 +162,6 @@ class CFilterRowset(dict):
     def Rebuild(self, rowset):
         self.clear()
         self.Build(rowset)
-
-    def RefreshWithList(self, li):
-        self.clear()
-        if len(li) > 0:
-            keyIdx = li[0].__columns__.index(self.columnName)
-            for row in li:
-                key = row[keyIdx]
-                if key in self:
-                    self[key].append(row)
-                else:
-                    self[key] = CRowset(row.__header__, [row])
 
 
 def SaveRowset(rs, filename, segmented):

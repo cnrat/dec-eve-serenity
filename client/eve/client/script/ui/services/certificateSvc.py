@@ -6,7 +6,7 @@ import localization
 import const
 from collections import defaultdict
 import log
-import fsdSchemas.binaryLoader as fsdBinaryLoader
+import fsd.schemas.binaryLoader as fsdBinaryLoader
 import evetypes
 
 class Certificate(object):

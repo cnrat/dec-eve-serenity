@@ -187,6 +187,7 @@ class MachoNetService(service.Service):
      'SendProvisionalResponse': [ROLE_SERVICE],
      'GetIDOfAddress': [ROLE_SERVICE],
      'ForwardProxyBroadcast': [ROLE_SERVICE],
+     'ForwardSinglecastByCharID': [ROLE_SERVICE],
      'Subscribe': [ROLE_SERVICE],
      'SubscribeMany': [ROLE_SERVICE],
      'UnSubscribe': [ROLE_SERVICE],
@@ -4228,6 +4229,9 @@ class MachoNetService(service.Service):
 
     def ForwardProxyBroadcast(self, *args):
         self.ProxyBroadcast(*args)
+
+    def ForwardSinglecastByCharID(self, *args):
+        self.SinglecastByCharID(*args)
 
 
 def WhitelistDumper():

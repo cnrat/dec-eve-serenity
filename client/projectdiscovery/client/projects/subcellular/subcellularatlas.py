@@ -82,6 +82,7 @@ class SubcellularAtlas(uiprimitives.Container):
         uthread.new(self.get_new_task)
 
     def close(self):
+        self.task_image.reset_image()
         self.rewards_view.close()
         self.result_window.kill()
         self.processing_view.Close()
@@ -95,13 +96,13 @@ class SubcellularAtlas(uiprimitives.Container):
         self.category_selector.reset_categories()
         self.enable_ui()
         self.category_selector.state = uiconst.UI_DISABLED
+        self.task_image.reset_image()
         self.get_new_task()
 
     def get_new_task(self):
         if self.getting_new_task:
             return
         self.getting_new_task = True
-        self.task_image.reset()
         self.selection = []
         try:
             self.task = self.service.new_task()
@@ -321,4 +322,4 @@ class SubcellularAtlas(uiprimitives.Container):
     def reset_task_image(self):
         self.submitting = False
         self.task_image.state = uiconst.UI_DISABLED
-        animations.FadeOut(self, duration=0.4, callback=self.task_image.reset)
+        animations.FadeOut(self, duration=0.4, callback=self.task_image.reset_image)

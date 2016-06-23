@@ -1478,9 +1478,6 @@ class StructureDeliveriesHangar(StructureContainer):
     def IsItemHere(self, item):
         return item.locationID == self.itemID and item.ownerID == session.charid and item.flagID == const.flagDeliveries
 
-    def IsInRange(self):
-        return bool(self.GetItems())
-
 
 class StructureCorpHangar(BaseCorpContainer):
     __guid__ = 'invCtrl.StructureCorpHangar'

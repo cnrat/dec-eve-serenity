@@ -17,10 +17,13 @@ class Fitting(object):
         self.chargesByType = {}
         self.fuelByType = {}
         self.rigsToFit = False
+        self.hasSubsystems = False
         for typeID, flag, qty in fitData:
             groupID = evetypes.GetGroupID(typeID)
             if self._IsRig(flag):
                 self.rigsToFit = True
+            if self._IsSubsystem(flag):
+                self.hasSubsystems = True
             if self._IsModule(flag):
                 self.modulesByFlag[flag] = typeID
             elif self._IsDrone(flag):
@@ -45,6 +48,9 @@ class Fitting(object):
             if skipType:
                 continue
             self.itemTypes[typeID] += qty
+
+    def _IsSubsystem(self, flag):
+        return invconst.flagSubSystemSlot0 <= flag <= invconst.flagSubSystemSlot7
 
     def _IsRig(self, flag):
         return invconst.flagRigSlot0 <= flag <= invconst.flagRigSlot7
@@ -78,3 +84,6 @@ class Fitting(object):
 
     def GetDronesByType(self):
         return self.dronesByType
+
+    def FittingHasSubsystems(self):
+        return self.hasSubsystems

@@ -79,7 +79,9 @@ class GameUI(service.Service):
      'OnJumpQueueMessage',
      'ProcessActiveShipChanged',
      'OnViewStateChanged',
-     'OnSetDevice']
+     'OnSetDevice',
+     'OnShowMarketDetails',
+     'OnShowContract']
 
     def Run(self, ms):
         service.Service.Run(self, ms)
@@ -853,6 +855,13 @@ class GameUI(service.Service):
 
     def UsingSingleSignOn(self):
         return getattr(self, 'usingSingleSignOn', False)
+
+    def OnShowMarketDetails(self, typeID):
+        sm.GetService('marketutils').ShowMarketDetails(typeID, None, True)
+        return
+
+    def OnShowContract(self, contractID):
+        sm.GetService('contracts').ShowContract(contractID)
 
 
 def _ScheduleBackgroundDownloads():

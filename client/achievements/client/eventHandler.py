@@ -21,8 +21,7 @@ class EventHandler(object):
      'OnClientMouseZoomInSpace',
      'OnClientMouseSpinInSpace',
      'OnModuleUnfitted',
-     'OnLookAtMyShip',
-     'OnLookAtOther',
+     'OnCameraLookAt',
      'OnClient_ShipActivated',
      'OnClientEvent_OpenCorpFinder',
      'OnClientEvent_BlueprintLoaded',
@@ -99,11 +98,12 @@ class EventHandler(object):
     def OnModuleUnfitted(self):
         self.LogAchievementEvent(eventConst.FITTING_UNFIT_MODULE_CLIENT)
 
-    def OnLookAtMyShip(self, itemID):
-        self.LogAchievementEvent(eventConst.LOOK_AT_OWN_SHIP)
-
-    def OnLookAtOther(self, itemID):
-        self.LogAchievementEvent(eventConst.LOOK_AT_OBJECT)
+    def OnCameraLookAt(self, isEgo, itemID):
+        if isEgo:
+            self.LogAchievementEvent(eventConst.LOOK_AT_OWN_SHIP)
+        elif itemID is not None:
+            self.LogAchievementEvent(eventConst.LOOK_AT_OBJECT)
+        return
 
     def OnClient_ShipActivated(self):
         self.LogAchievementEvent(eventConst.ACTIVATE_SHIP_CLIENT)

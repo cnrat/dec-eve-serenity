@@ -7,7 +7,7 @@ import localization
 class AchievementLoader:
 
     def _LoadRawAchievementData(self):
-        import fsdSchemas.binaryLoader as fsdBinaryLoader
+        import fsd.schemas.binaryLoader as fsdBinaryLoader
         return fsdBinaryLoader.LoadFSDDataForCFG('res:/staticdata/achievements.static')
 
     def GetAchievements(self, getDisabled=False):

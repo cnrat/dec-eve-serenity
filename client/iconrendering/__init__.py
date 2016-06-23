@@ -11,6 +11,7 @@ BLUEPRINT_NORMAL = 'normal'
 BLUEPRINT_COPY = 'copy'
 BLUEPRINT_DUST = 'dust'
 BLUEPRINT_RELIC = 'relic'
+BLUEPRINT_SCENE_GFXID = 21345
 ICON_GROUPS_INGAME = (const.groupCargoContainer,
  const.groupSecureCargoContainer,
  const.groupAuditLogSecureContainer,

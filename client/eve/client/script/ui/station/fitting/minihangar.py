@@ -145,7 +145,7 @@ class CargoStructureAmmoBay(CargoSlots):
         CargoSlots.OnDropData(self, dragObj, nodes)
 
     def OnClick(self, *args):
-        invID = ('Structure', self.controller.GetItemID())
+        invID = ('StructureAmmoBay', self.controller.GetItemID())
         from eve.client.script.ui.shared.inventory.invWindow import Inventory
         Inventory.OpenOrShow(invID, usePrimary=False, toggle=True)
 
