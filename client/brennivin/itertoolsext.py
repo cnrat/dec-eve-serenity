@@ -22,6 +22,9 @@ class Bundle(dict):
         except KeyError:
             raise AttributeError(item)
 
+    def __setattr__(self, key, value):
+        self[key] = value
+
     def __str__(self):
         clsn = self.__class__.__name__
         return '%s(%s)' % (clsn, dict.__repr__(self))

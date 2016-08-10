@@ -5,6 +5,7 @@ from eve.client.script.ui.control.scenecontainer import SceneContainer
 from eve.client.script.ui.inflight.shipstance import get_ship_stance
 from eveSpaceObject import spaceobjanimation
 import evetypes
+from evegraphics.fsd.graphicIDs import GetSofFactionName
 from iconrendering.photo import _ApplyIsisEffect
 import log
 import turretSet
@@ -29,6 +30,8 @@ class ShipSceneContainer(SceneContainer):
         self.controller.on_stance_activated.connect(self.OnStanceActive)
         self.CreateActiveShipModelThrottled = CallCombiner(self.CreateActiveShipModel, 1.0)
         sm.RegisterNotify(self)
+
+    def LoadShipModel(self):
         uthread.new(self.ReloadShipModel)
 
     def OnSkinChanged(self):
@@ -101,10 +104,7 @@ class ShipSceneContainer(SceneContainer):
             log.LogError('UpdateHardpoints - No model!')
             return
         else:
-            factionName = None
-            graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.controller.GetTypeID()))
-            if graphicInfo is not None:
-                factionName = getattr(graphicInfo, 'sofFactionName', None)
+            factionName = GetSofFactionName(evetypes.GetGraphicID(self.controller.GetTypeID()))
             turretSet.TurretSet.FitTurrets(self.controller.GetItemID(), newModel, factionName)
             return
 

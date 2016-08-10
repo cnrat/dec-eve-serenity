@@ -66,6 +66,7 @@ servicesToRun = ['counter',
  'prefetchSvc',
  'visualEffect',
  'projectDiscoveryClient',
- 'structureServices']
+ 'structureServices',
+ 'logControlSvc']
 autoexec_evecore.SetupForChina()
 autoexec_client_core.StartClient(appCacheDirs, userCacheDirs, servicesToRun)

@@ -4,6 +4,8 @@ import gatekeeper
 from notifications.client.contactNotificationAdapter import ContactNotificationAdapter
 from notifications.client.ccpNotificationAdapter import CCPNotificationAdapter
 from notifications.client.shutdownNotificationAdapter import ShutdownNotificationAdapter
+from notifications.client.oreMinedNotificationAdapter import OreMinedNotificationAdapter
+from notifications.client.bountyNotificationAdapter import BountyNotificationAdapter
 from notifications.client.notificationSettings.notificationSettingHandler import NotificationSettingHandler
 from notifications.common.notification import Notification
 import blue
@@ -17,7 +19,10 @@ import gatekeeper.gatekeeperConst as gkConst
 class NotificationUIService(CoreService):
     __guid__ = 'svc.notificationUIService'
     __notifyevents__ = ['OnNewNotificationReceived', 'OnSetDevice', 'OnLocalNotificationSettingChanged']
-    __startupdependencies__ = ['settings', 'mailSvc', 'notificationSvc']
+    __startupdependencies__ = ['settings',
+     'mailSvc',
+     'notificationSvc',
+     'logger']
 
     def Run(self, memstream=None):
         self.notificationCenter = None
@@ -30,12 +35,14 @@ class NotificationUIService(CoreService):
         self.isEnabled = self.notificationSettings.GetNotificationWidgetEnabled()
         self.shouldShowOnEnable = False
         self.__developerMode = False
-        self.contactNotificationAdapter = ContactNotificationAdapter()
-        self.ccpNotificationAdapter = CCPNotificationAdapter()
-        self.shutdownNotificationAdapter = ShutdownNotificationAdapter()
-        sm.RegisterNotify(self.contactNotificationAdapter)
-        sm.RegisterNotify(self.ccpNotificationAdapter)
-        sm.RegisterNotify(self.shutdownNotificationAdapter)
+        self.adapterRegistry = [ContactNotificationAdapter(),
+         CCPNotificationAdapter(),
+         ShutdownNotificationAdapter(),
+         OreMinedNotificationAdapter(sm.GetService('logger')),
+         BountyNotificationAdapter(sm.GetService('logger'))]
+        for adapter in self.adapterRegistry:
+            sm.RegisterNotify(adapter)
+
         self.lastSeenMessageTime = self.notificationSettings.GetLastSeenTime()
         self.lastHistoryTimeCleanTime = self.notificationSettings.GetLastHistoryTimeCleanTime()
         self.lastSeenNotificationId = self.notificationSettings.GetLastSeenNotificationId()
@@ -47,9 +54,8 @@ class NotificationUIService(CoreService):
 
     def Stop(self, memStream=None):
         CoreService.Stop(self, memStream)
-        sm.UnregisterNotify(self.contactNotificationAdapter)
-        sm.UnregisterNotify(self.ccpNotificationAdapter)
-        sm.UnregisterNotify(self.shutdownNotificationAdapter)
+        for adapter in self.adapterRegistry:
+            sm.UnregisterNotify(adapter)
 
     def PlaySound(self, eventName):
         if self.notificationSettings.GetNotificationSoundEnabled():

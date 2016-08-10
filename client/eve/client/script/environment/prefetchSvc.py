@@ -4,6 +4,7 @@ import inventorycommon.typeHelpers
 import service
 import util
 import everesourceprefetch
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 
 class PrefetchSvc(service.Service):
     __guid__ = 'svc.prefetchSvc'
@@ -13,14 +14,14 @@ class PrefetchSvc(service.Service):
         service.Service.__init__(self)
 
     def _AddGraphicAttribute(self, pla, attr, filesToPrefetch):
-        graphic = util.GraphicFile(getattr(pla, attr))
+        graphic = GetGraphicFile(getattr(pla, attr))
         filesToPrefetch.add(graphic.lower())
 
     def GatherFilesForSolarSystem(self, ssid):
         filesToPrefetch = set()
         neighborSystemContents = cfg.mapSolarSystemContentCache[ssid]
         for stargateID, stargateInfo in neighborSystemContents.stargates.iteritems():
-            graphic = inventorycommon.typeHelpers.GetGraphic(stargateInfo.typeID).graphicFile
+            graphic = inventorycommon.typeHelpers.GetGraphicFile(stargateInfo.typeID)
             filesToPrefetch.add(graphic.lower())
 
         for planetID, planetInfo in neighborSystemContents.planets.iteritems():
@@ -28,10 +29,6 @@ class PrefetchSvc(service.Service):
             self._AddGraphicAttribute(pla, 'heightMap1', filesToPrefetch)
             self._AddGraphicAttribute(pla, 'heightMap2', filesToPrefetch)
             self._AddGraphicAttribute(pla, 'shaderPreset', filesToPrefetch)
-            if hasattr(planetInfo, 'npcStations'):
-                for stationID, stationInfo in planetInfo.npcStations.iteritems():
-                    graphic = util.GraphicFile(stationInfo.graphicID)
-                    filesToPrefetch.add(graphic.lower())
 
         return filesToPrefetch
 
@@ -42,18 +39,6 @@ class PrefetchSvc(service.Service):
             everesourceprefetch.AddFileset(key, filesToPrefetch)
         everesourceprefetch.ScheduleFront(key)
 
-    def SchedulePrefetchForStation(self, stationId):
-        key = 'station_%d' % stationId
-        if not everesourceprefetch.KeyExists(key):
-            filesToPrefetch = set()
-            npcStation = cfg.mapSolarSystemContentCache.npcStations.get(stationId, None)
-            if npcStation:
-                graphic = util.GraphicFile(npcStation.graphicID)
-                filesToPrefetch.add(graphic.lower())
-            everesourceprefetch.AddFileset(key, filesToPrefetch)
-        everesourceprefetch.ScheduleFront(key)
-        return
-
     def OnSessionChanged(self, isremote, session, change):
         if 'stationid' in change:
             stationId = change['stationid'][1]
@@ -61,7 +46,6 @@ class PrefetchSvc(service.Service):
                 npcStation = cfg.mapSolarSystemContentCache.npcStations.get(stationId, None)
                 if npcStation:
                     self.SchedulePrefetchForSystem(npcStation.solarSystemID)
-                self.SchedulePrefetchForStation(stationId)
                 return
         if 'solarsystemid' not in change:
             return

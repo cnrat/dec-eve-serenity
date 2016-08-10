@@ -1,5 +1,8 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\station\navigation.py
+from carbonui.primitives.container import Container
+from carbonui.util.color import Color
+from eve.client.script.ui.camera.capitalHangarCameraController import CapitalHangarCameraController
 from eve.client.script.ui.camera.debugCameraController import DebugCameraController
 import uicontrols
 import blue
@@ -32,6 +35,7 @@ class HangarLayer(LayerCore):
         self.numSpins = 0
         self.spinThread = None
         self.prevSpinTime = None
+        self.fadeLayer = Container(bgParent=self, bgColor=Color.BLACK, opacity=0.0)
         return
 
     def Startup(self):
@@ -98,7 +102,7 @@ class HangarLayer(LayerCore):
         sm.ScatterEvent('OnCameraDragEnd')
         self.isMouseMoving = False
         if self.cameraController:
-            self.cameraController.OnMouseDown(*args)
+            self.cameraController.OnMouseUp(button, *args)
         if not uicore.cmd.IsUIHidden():
             uicore.layer.main.state = uiconst.UI_PICKCHILDREN
         self.cursor = None
@@ -135,6 +139,8 @@ class HangarLayer(LayerCore):
     def OnActiveCameraChanged(self, cameraID):
         if cameraID == evecamera.CAM_HANGAR:
             self.cameraController = HangarCameraController()
+        elif cameraID == evecamera.CAM_CAPITALHANGAR:
+            self.cameraController = CapitalHangarCameraController()
         elif cameraID == evecamera.CAM_DEBUG:
             self.cameraController = DebugCameraController()
         else:
@@ -221,4 +227,17 @@ class HangarLayer(LayerCore):
                 self._CountRotations(curYaw)
 
         self.spinThread = None
+        return
+
+    def FadeIn(self, duration=0.5, sleep=False):
+        ppJob = sm.GetService('sceneManager').fisRenderJob
+        if ppJob is not None:
+            ppJob.sceneFadeOut.color = (0.0, 0.0, 0.0)
+            uicore.animations.MorphScalar(ppJob.sceneFadeOut, 'opacity', ppJob.sceneFadeOut.opacity, 1.0, duration=duration, sleep=sleep)
+        return
+
+    def FadeOut(self, duration=0.5, sleep=False):
+        ppJob = sm.GetService('sceneManager').fisRenderJob
+        if ppJob is not None:
+            uicore.animations.MorphScalar(ppJob.sceneFadeOut, 'opacity', ppJob.sceneFadeOut.opacity, 0.0, duration=duration, sleep=sleep)
         return

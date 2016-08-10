@@ -141,7 +141,6 @@ from eve.common.script.sys.eveCfg import GetPlanetWarpInPoint
 from eve.common.script.sys.eveCfg import GetReprocessingOptions
 from eve.common.script.sys.eveCfg import GetShipFlagLocationName
 from eve.common.script.sys.eveCfg import GetWarpInPoint
-from eve.common.script.sys.eveCfg import GraphicFile
 from eve.common.script.sys.eveCfg import IconFile
 from eve.common.script.sys.eveCfg import InShip
 from eve.common.script.sys.eveCfg import InShipInSpace

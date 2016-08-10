@@ -16,6 +16,7 @@ from eve.client.script.ui.shared.maps.label import TransformableLabel
 from eve.client.script.ui.shared.maps.maputils import GetMyPos
 from eve.common.script.util.eveFormat import FmtSystemSecStatus
 import evetypes
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 from localization import GetByLabel
 import trinity
 import uthread
@@ -230,8 +231,8 @@ class SystemMapHandler(object):
                 maxRadius = max(maxRadius, geo2.Vec3Length((celestialObject.x, celestialObject.y, celestialObject.z)))
             elif celestialObject.groupID == const.groupSun:
                 sunID = celestialObject.itemID
-                sunGraphic = cfg.graphics.Get(evetypes.GetGraphicID(celestialObject.typeID))
-                sunGraphicFile = trinity.Load(sunGraphic.graphicFile)
+                sunGraphicFilePath = GetGraphicFile(evetypes.GetGraphicID(celestialObject.typeID))
+                sunGraphicFile = trinity.Load(sunGraphicFilePath)
                 self.CreateSun(sunGraphicFile)
 
         self.sunID = sunID

@@ -330,7 +330,7 @@ class TacticalCompass:
         self.rootCurve.SetParentFunction(ball)
         self.connectorContainer.translationCurve = ball
         self.darkDiscContainer.translationCurve = ball
-        self.compassDisc.SetBaseRadius(self.baseRadius)
+        self.SetBaseRadius(self.baseRadius)
 
     def SetMoveMode(self, flag, ball):
         self.connectorContainer.translationCurve = ball
@@ -348,6 +348,10 @@ class TacticalCompass:
     def GetRootFunction(self):
         return self.rootCurve.GetBlueFunction()
 
+    def SetAggressive(self, ballID, isAggressive):
+        if ballID in self.connectors:
+            self.connectors[ballID].isAggressive = isAggressive
+
     def AddConnector(self, ball):
         if ball.id in self.connectors:
             return
@@ -357,21 +361,37 @@ class TacticalCompass:
         self.connectorContainer.trackObjects.append(trackObject)
         self.connectors[ball.id] = trackObject
 
+    def SetInterest(self, ball):
+        if self.connectorContainer is None:
+            return
+        elif ball is None or ball.id not in self.connectors:
+            self.connectorContainer.interestObject = None
+            return
+        else:
+            self.connectorContainer.interestObject = self.connectors[ball.id]
+            return
+
     def RemoveConnector(self, ballID):
         if ballID in self.connectors:
             trackObject = self.connectors[ballID]
+            if self.connectorContainer.interestObject == trackObject:
+                self.connectorContainer.interestObject = None
             self.connectorContainer.trackObjects.fremove(trackObject)
             trackObject.translationCurve = None
             del self.connectors[ballID]
         return
 
-    def SetTargetingRange(self, range):
+    def GetMaxRange(self):
+        return self.connectorContainer.activeRange + self.connectorContainer.rangeFadeLength
+
+    def SetTargetingRange(self, range, setInterestRange):
         self.compassDisc.SetTargetingRange(range)
         activeRange = max(150000.0, range * 1.1)
         self.compassDisc.SetActiveRange(activeRange)
         self.connectorContainer.activeRange = activeRange + self.baseRadius
         self.connectorContainer.rangeFadeLength = max(range * 0.25, 50000)
-        self.connectorContainer.interestRange = range
+        if setInterestRange:
+            self.connectorContainer.interestRange = range
 
     def SetFiringRange(self, optimal, falloff):
         if optimal > 0:
@@ -399,6 +419,16 @@ class TacticalCompass:
         ids = self.connectors.keys()
         for each in ids:
             self.RemoveConnector(each)
+
+    def ShowCynoRange(self, radius):
+        self.HideBombRange()
+        self.connectorContainer.interestRange = self.compassDisc.targetingRange
+        self.bombSphere.translationCurve = self.rootCurve.GetBlueFunction()
+        self.bombSphere.display = True
+        scale = 2 * radius
+        self.bombSphere.scaling = (scale, scale, scale)
+        self.firingRangeRoot.translationCurve = self.rootCurve.GetBlueFunction()
+        self.compassDisc.ShowFiringRange(radius, radius, False)
 
     def ShowBombRange(self, bombRadius, distance, ball):
         self.HideBombRange()

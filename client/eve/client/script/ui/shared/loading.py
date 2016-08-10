@@ -181,10 +181,21 @@ class Loading(service.Service):
         return uicore.layer.loading.state == uiconst.UI_NORMAL or self.fadingToColor or self.fadingFromColor or self.cycling
 
     def FadeIn(self, time=1000.0, color=(0, 0, 0, 1.0), sleep=True, *args):
+        ppJob = sm.GetService('sceneManager').fisRenderJob
+        if ppJob is not None:
+            ppJob.sceneFadeOut.color = color[:3]
+            uicore.animations.MorphScalar(ppJob.sceneFadeOut, 'opacity', ppJob.sceneFadeOut.opacity, color[3], duration=time / 1000.0)
         self.ConstructFill(color=color)
         uicore.animations.FadeTo(self.fill, self.fill.opacity, color[3], duration=time / 1000.0, sleep=sleep)
+        return
 
     def FadeOut(self, time=1000.0, opacityStart=None, sleep=True, *args):
+        ppJob = sm.GetService('sceneManager').fisRenderJob
+        if ppJob is not None:
+            opacity = ppJob.sceneFadeOut.opacity
+            if opacityStart is not None:
+                opacity = opacityStart
+            uicore.animations.MorphScalar(ppJob.sceneFadeOut, 'opacity', opacity, 0.0, duration=time / 1000.0)
         if self.fill:
             self.fill.Disable()
             if opacityStart is not None:

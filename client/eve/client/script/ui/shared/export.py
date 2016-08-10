@@ -257,7 +257,7 @@ class ExportFittingsWindow(ExportBaseWindow):
                     hardWareElement.attributes['type'] = typeName
                     slot = self.GetSlotFromFlag(flag)
                     hardWareElement.attributes['slot'] = slot
-                    if flag in (const.flagDroneBay, const.flagCargo):
+                    if flag in (const.flagDroneBay, const.flagCargo, const.flagFighterBay):
                         hardWareElement.attributes['qty'] = str(qty)
                     profile.appendChild(hardWareElement)
 
@@ -293,20 +293,22 @@ class ExportFittingsWindow(ExportBaseWindow):
         return
 
     def GetSlotFromFlag(self, flag):
-        if flag >= const.flagHiSlot0 and flag <= const.flagHiSlot7:
+        if flag in const.hiSlotFlags:
             return 'hi slot ' + str(flag - const.flagHiSlot0)
-        if flag >= const.flagMedSlot0 and flag <= const.flagMedSlot7:
+        if flag in const.medSlotFlags:
             return 'med slot ' + str(flag - const.flagMedSlot0)
-        if flag >= const.flagLoSlot0 and flag <= const.flagLoSlot7:
+        if flag in const.loSlotFlags:
             return 'low slot ' + str(flag - const.flagLoSlot0)
-        if flag >= const.flagRigSlot0 and flag <= const.flagRigSlot7:
+        if flag in const.rigSlotFlags:
             return 'rig slot ' + str(flag - const.flagRigSlot0)
-        if flag >= const.flagSubSystemSlot0 and flag <= const.flagSubSystemSlot7:
+        if flag in const.subSystemSlotFlags:
             return 'subsystem slot ' + str(flag - const.flagSubSystemSlot0)
         if flag == const.flagCargo:
             return 'cargo'
         if flag == const.flagDroneBay:
             return 'drone bay'
+        if flag == const.flagFighterBay:
+            return 'fighter bay'
 
 
 class ImportFittingsWindow(ImportBaseWindow):
@@ -401,7 +403,7 @@ class ImportFittingsWindow(ImportBaseWindow):
                         if flag is None:
                             borkedFlags.add(typeName)
                             continue
-                        if IsShipFittable(evetypes.GetCategoryID(typeID)):
+                        if IsShipFittable(evetypes.GetCategoryID(typeID)) and flag != const.flagCargo:
                             qty = 1
                         else:
                             qty = hardwareElement.attributes['qty'].value
@@ -443,6 +445,8 @@ class ImportFittingsWindow(ImportBaseWindow):
     def GetFlagFromSlot(self, slot):
         if slot == 'drone bay':
             return const.flagDroneBay
+        if slot == 'fighter bay':
+            return const.flagFighterBay
         if slot == 'cargo':
             return const.flagCargo
         if slot.startswith('hi slot'):

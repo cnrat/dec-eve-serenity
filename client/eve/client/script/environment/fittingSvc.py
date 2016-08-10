@@ -2,13 +2,15 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\fittingSvc.py
 import sys
 from collections import defaultdict
+import uthread
 from carbon.common.script.util.commonutils import StripTags
+from carbon.common.script.util.linkUtil import GetShowInfoLink
 from eve.client.script.ui.shared.fittingGhost.fittingSearchUtil import SearchFittingHelper
 from eve.client.script.ui.shared.fittingMgmtWindow import ViewFitting
 from eve.common.script.sys.eveCfg import GetActiveShip
 from shipfitting import Fitting
 import inventorycommon
-from inventorycommon.util import IsShipFittingFlag, IsShipFittable
+from inventorycommon.util import IsShipFittingFlag, IsShipFittable, IsModularShip
 import service
 import util
 import blue
@@ -37,6 +39,7 @@ class fittingSvc(service.Service):
         self.importFittingUtil = None
         self.simulated = False
         self.searchFittingHelper = SearchFittingHelper(cfg)
+        self.busyFitting = False
         return
 
     def Run(self, ms=None):
@@ -87,12 +90,16 @@ class fittingSvc(service.Service):
         dronesByType = defaultdict(int)
         chargesByType = defaultdict(int)
         iceByType = defaultdict(int)
+        fightersByType = defaultdict(int)
         for item in items:
             if IsShipFittingFlag(item.flagID) and IsShipFittable(item.categoryID):
                 fitData.append((int(item.typeID), int(item.flagID), 1))
             elif item.categoryID == const.categoryDrone and item.flagID == const.flagDroneBay:
                 typeID = item.typeID
                 dronesByType[typeID] += item.stacksize
+            elif item.categoryID == const.categoryFighter and item.flagID == const.flagFighterBay:
+                typeID = item.typeID
+                fightersByType[typeID] += item.stacksize
             elif item.categoryID == const.categoryCharge and item.flagID == const.flagCargo:
                 typeID = item.typeID
                 chargesByType[typeID] += item.stacksize
@@ -100,19 +107,18 @@ class fittingSvc(service.Service):
                 typeID = item.typeID
                 iceByType[typeID] += item.stacksize
 
-        flag = const.flagDroneBay
-        for drone, quantity in dronesByType.iteritems():
-            fitData.append((int(drone), int(flag), int(quantity)))
-
-        flag = const.flagCargo
-        for charge, quantity in chargesByType.iteritems():
-            fitData.append((int(charge), int(flag), int(quantity)))
-
-        flag = const.flagCargo
-        for ice, quantity in iceByType.iteritems():
-            fitData.append((int(ice), int(flag), int(quantity)))
-
+        fitData += self.GetDataToAddToFitData(const.flagDroneBay, dronesByType)
+        fitData += self.GetDataToAddToFitData(const.flagFighterBay, fightersByType)
+        fitData += self.GetDataToAddToFitData(const.flagCargo, chargesByType)
+        fitData += self.GetDataToAddToFitData(const.flagCargo, iceByType)
         return fitData
+
+    def GetDataToAddToFitData(self, flag, qtyByTypeID):
+        data = []
+        for typeID, quantity in qtyByTypeID.iteritems():
+            data.append((int(typeID), int(flag), int(quantity)))
+
+        return data
 
     def DisplayFittingFromItems(self, shipTypeID, items):
         newItems = []
@@ -158,7 +164,6 @@ class fittingSvc(service.Service):
         self.VerifyFitting(fitting)
         fitting.ownerID = ownerID
         fitting.fittingID = self.GetFittingMgr(ownerID).SaveFitting(ownerID, fitting)
-        self.fittings[ownerID][fitting.fittingID] = fitting
         self.UpdateFittingWindow()
         sm.ScatterEvent('OnFittingsUpdated')
         return fitting
@@ -217,7 +222,7 @@ class fittingSvc(service.Service):
             except TypeError:
                 raise UserError('InvalidFittingDataInvalidFlag', {'type': typeID})
 
-            if not (IsShipFittingFlag(flag) or flag in (const.flagDroneBay, const.flagCargo)):
+            if not (IsShipFittingFlag(flag) or flag in (const.flagDroneBay, const.flagCargo, const.flagFighterBay)):
                 raise UserError('InvalidFittingDataInvalidFlag', {'type': typeID})
             try:
                 int(qty)
@@ -232,6 +237,10 @@ class fittingSvc(service.Service):
     def GetFittings(self, ownerID):
         self.PrimeFittings(ownerID)
         return self.fittings[ownerID]
+
+    def GetFittingsForType(self, ownerID, typeID):
+        allFittings = self.GetFittings(ownerID)
+        return [ fitting for fitting in allFittings.items() if fitting[1]['shipTypeID'] == typeID ]
 
     def PrimeFittings(self, ownerID):
         if ownerID not in self.fittings:
@@ -248,19 +257,81 @@ class fittingSvc(service.Service):
         fitting = self.fittings.get(ownerID, {}).get(fittingID, None)
         return self.LoadFitting(fitting)
 
+    def CheckBusyFittingAndRaiseIfNeeded(self):
+        if self.busyFitting:
+            sm.GetService('loading').ProgressWnd('', '', 1, 1)
+            raise UserError('CustomInfo', {'info': localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/BusyFittingWarning')})
+
+    def DoFitManyShips(self, chargesByType, dronesByType, fightersByTypeID, fitRigs, fitting, iceByType, cargoItemsByType, maxAvailableFitting, modulesByFlag):
+        shipAccess = sm.StartService('gameui').GetShipAccess()
+        try:
+            failedInfo = None
+            fittingName = fitting.name
+            if fittingName:
+                fittingName = StripTags(fittingName)
+            self.busyFitting = True
+            sm.GetService('inv').ChangeTreeUpdatingState(isUpdateEnabled=False)
+            failedInfo = shipAccess.FitShips(shipTypeID=fitting.shipTypeID, modulesByFlag=modulesByFlag, itemLocationID=session.stationid2 or session.structureid, dronesByType=dronesByType, fightersByTypeID=fightersByTypeID, chargesByType=chargesByType, iceByType=iceByType, cargoItemsByType=cargoItemsByType, fitRigs=fitRigs, name=fittingName, numToFit=maxAvailableFitting)
+        finally:
+            self.busyFitting = False
+            sm.GetService('inv').ChangeTreeUpdatingState(isUpdateEnabled=True)
+            if failedInfo:
+                failedToLoad, failedShipID = failedInfo
+                if failedShipID:
+                    self._RenameShip(failedShipID)
+                if failedToLoad:
+                    self.ShowFailedToLoadMsg(failedToLoad)
+
+        return
+
+    def _RenameShip(self, failedShipID):
+        badFitName = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/BadFitFittingFailed')
+        self.invCache.GetInventoryMgr().SetLabel(failedShipID, badFitName)
+
+    def GetMaxAvailabeAndMissingForFullFit(self, fitRigs, itemTypes, numToFit, qtyByTypeID, rigTypeIDs):
+        missingForFullFit = {}
+        maxRoundsForEachTypeID = {}
+        for itemTypID, qtyNeeded in itemTypes.iteritems():
+            if not fitRigs and itemTypID in rigTypeIDs:
+                continue
+            qtyInHangar = qtyByTypeID.get(itemTypID, 0)
+            rounds = int(qtyInHangar / qtyNeeded)
+            maxRoundsForEachTypeID[itemTypID] = rounds
+            if rounds < numToFit:
+                missingForFullFit[itemTypID] = qtyNeeded * numToFit - qtyInHangar
+
+        maxAvailableFitting = min(maxRoundsForEachTypeID.values())
+        return (maxAvailableFitting, missingForFullFit)
+
+    def GetMaxAvailable(self, fitRigs, itemTypes, qtyByTypeID, rigTypeIDs):
+        maxRoundsForEachTypeID = {}
+        for itemTypID, qtyNeeded in itemTypes.iteritems():
+            if not fitRigs and itemTypID in rigTypeIDs:
+                continue
+            qtyInHangar = qtyByTypeID.get(itemTypID, 0)
+            rounds = int(qtyInHangar / qtyNeeded)
+            maxRoundsForEachTypeID[itemTypID] = rounds
+
     def LoadFitting(self, fitting):
-        if session.stationid is None and session.structureid is None:
-            raise UserError('CannotLoadFittingInSpace')
-        if fitting is None:
-            raise UserError('FittingDoesNotExist')
+        self.CheckBusyFittingAndRaiseIfNeeded()
+        self._CheckValidFittingLocation(fitting)
         shipInv = self.invCache.GetInventoryFromId(util.GetActiveShip())
-        chargesByType, dronesByType, iceByType, itemTypes, modulesByFlag, rigsToFit, subsystems = self.GetTypesToFit(fitting, shipInv)
+        if shipInv.item.typeID != fitting.shipTypeID:
+            raise UserError('ShipTypeInFittingNotSameAsShip')
+        chargesByType, dronesByType, fightersByTypeID, iceByType, itemTypes, modulesByFlag, rigsToFit, subsystems = self.GetTypesToFit(fitting, shipInv)
         fitRigs = False
+        cargoItemsByType = defaultdict(int)
         if rigsToFit:
             if self.HasRigFitted():
                 eve.Message('CustomNotify', {'notify': localization.GetByLabel('UI/Fitting/ShipHasRigsAlready')})
             elif eve.Message('FitRigs', {}, uiconst.YESNO) == uiconst.ID_YES:
                 fitRigs = True
+            else:
+                for flagID, typeID in modulesByFlag.iteritems():
+                    if flagID in const.rigSlotFlags:
+                        cargoItemsByType[typeID] += 1
+
+        cargoItemsByType = dict(cargoItemsByType)
         itemsToFit = defaultdict(set)
         for item in self.invCache.GetInventory(const.containerHangar).List(const.flagHangar):
             if item.typeID in itemTypes:
@@ -283,15 +354,25 @@ class fittingSvc(service.Service):
                     if module in itemTypes and itemTypes[module] > 0:
                         raise UserError('CantUnfitSubSystems')
 
-        failedToLoad = shipInv.FitFitting(util.GetActiveShip(), itemsToFit, session.stationid2 or session.structureid, modulesByFlag, dronesByType, chargesByType, iceByType, fitRigs)
-        for typeID, qty in failedToLoad:
-            itemTypes[typeID] += qty
+        self.CheckBusyFittingAndRaiseIfNeeded()
+        self.busyFitting = True
+        try:
+            failedToLoad = shipInv.FitFitting(util.GetActiveShip(), itemsToFit, session.stationid2 or session.structureid, modulesByFlag, dronesByType, fightersByTypeID, chargesByType, iceByType, cargoItemsByType, fitRigs)
+        finally:
+            self.busyFitting = False
 
+        self.ShowFailedToLoadMsg(failedToLoad)
+        if settings.user.ui.Get('useFittingNameForShips', 0):
+            fittingName = StripTags(fitting.get('name'))
+            fittingName = fittingName[:20]
+            self.invCache.GetInventoryMgr().SetLabel(util.GetActiveShip(), fittingName)
+
+    def ShowFailedToLoadMsg(self, failedToLoad):
         textList = []
-        for typeID, qty in itemTypes.iteritems():
+        for typeID, qty in failedToLoad:
             if qty > 0:
                 typeName = evetypes.GetName(typeID)
-                link = '<url="showinfo:%s">%s</url>' % (typeID, typeName)
+                link = GetShowInfoLink(typeID, typeName)
                 textList.append((typeName.lower(), '%sx %s' % (qty, link)))
 
         if textList:
@@ -299,16 +380,30 @@ class fittingSvc(service.Service):
             text = '<br>'.join(textList)
             text = localization.GetByLabel('UI/Fitting/MissingItems', types=text)
             eve.Message('CustomInfo', {'info': text}, modal=False)
-        if settings.user.ui.Get('useFittingNameForShips', 0):
-            fittingName = StripTags(fitting.get('name'))
-            fittingName = fittingName[:20]
-            self.invCache.GetInventoryMgr().SetLabel(util.GetActiveShip(), fittingName)
+
+    def _CheckValidFittingLocation(self, fitting):
+        if session.stationid is None and session.structureid is None:
+            raise UserError('CannotLoadFittingInSpace')
+        if fitting is None:
+            raise UserError('FittingDoesNotExist')
         return
+
+    def GetQt0yInHangarByTypeIDs(self, itemTypes, onlyGetNonSingletons=False):
+        hangar = self.invCache.GetInventory(const.containerHangar)
+        qtyByTypeID = defaultdict(int)
+        for item in hangar.List(const.flagHangar):
+            if item.typeID in itemTypes:
+                if onlyGetNonSingletons and item.quantity < 0:
+                    continue
+                qtyByTypeID[item.typeID] += item.stacksize
+
+        return qtyByTypeID
 
     def GetTypesToFit(self, fitting, shipInv):
         fittingObj = Fitting(fitting.fitData, shipInv)
         return (fittingObj.GetChargesByType(),
          fittingObj.GetDronesByType(),
+         fittingObj.GetFigthersByType(),
          fittingObj.GetIceByType(),
          fittingObj.GetQuantityByType(),
          fittingObj.GetModulesByFlag(),
@@ -395,46 +490,38 @@ class fittingSvc(service.Service):
             form.ViewFitting.Open(windowID=windowID, fitting=fitting, truncated=truncated)
 
     def GetStringForFitting(self, fitting):
-        typesByFlag = {}
-        drones = []
-        charges = []
-        ice = []
+        typesDict = defaultdict(int)
+        drones = {}
+        fighters = {}
+        charges = {}
+        ice = {}
         for typeID, flag, qty in fitting.fitData:
             categoryID = evetypes.GetCategoryID(typeID)
             groupID = evetypes.GetGroupID(typeID)
             if IsShipFittable(categoryID):
-                typesByFlag[flag] = typeID
+                typesDict[typeID] += 1
             elif categoryID == const.categoryDrone:
-                drones.append((typeID, qty))
+                drones[typeID] = qty
+            elif categoryID == const.categoryFighter:
+                fighters[typeID] = qty
             elif categoryID == const.categoryCharge:
-                charges.append((typeID, qty))
+                charges[typeID] = qty
             elif groupID == const.groupIceProduct:
-                ice.append((typeID, qty))
+                ice[typeID] = qty
 
-        typesDict = {}
-        for flag, typeID in typesByFlag.iteritems():
-            if typeID not in typesDict:
-                typesDict[typeID] = 0
-            typesDict[typeID] += 1
+        retList = []
+        subString = str(fitting.shipTypeID)
+        retList.append(subString)
+        for eachDict in [typesDict,
+         drones,
+         fighters,
+         charges,
+         ice]:
+            for typeID, qty in eachDict.iteritems():
+                subString = '%s;%s' % (typeID, qty)
+                retList.append(subString)
 
-        ret = str(fitting.shipTypeID) + ':'
-        for typeID, qty in typesDict.iteritems():
-            subString = str(typeID) + ';' + str(qty) + ':'
-            ret += subString
-
-        for typeID, qty in drones:
-            subString = str(typeID) + ';' + str(qty) + ':'
-            ret += subString
-
-        for typeID, qty in charges:
-            subString = str(typeID) + ';' + str(qty) + ':'
-            ret += subString
-
-        for typeID, qty in ice:
-            subString = str(typeID) + ';' + str(qty) + ':'
-            ret += subString
-
-        ret = ret.strip(':')
+        ret = ':'.join(retList)
         ret += '::'
         return ret
 
@@ -473,6 +560,8 @@ class fittingSvc(service.Service):
                 groupID = evetypes.GetGroupID(typeID)
                 if categoryID == const.categoryDrone:
                     fitData.append((typeID, const.flagDroneBay, qty))
+                if categoryID == const.categoryFighter:
+                    fitData.append((typeID, const.flagFighterBay, qty))
                 elif categoryID == const.categoryCharge:
                     fitData.append((typeID, const.flagCargo, qty))
                 elif groupID == const.groupIceProduct:
@@ -498,58 +587,44 @@ class fittingSvc(service.Service):
          ('subSystems', const.effectSubSystem),
          ('serviceSlots', const.effectServiceSlot)]:
             slots = typesByRack[key]
-            if len(slots) > 0:
-                label = cfg.dgmeffects.Get(effectID).displayName
-                scrolllist.append(listentry.Get('Header', {'label': label}))
-                slotScrollList = []
-                for typeID, qty in slots.iteritems():
-                    data = util.KeyVal()
-                    data.typeID = typeID
-                    data.showinfo = 1
-                    data.getIcon = True
-                    data.singleton = 1
-                    data.effectID = effectID
-                    data.label = str(util.FmtAmt(qty)) + 'x ' + evetypes.GetName(typeID)
-                    entry = listentry.Get('FittingModuleEntry', data=data)
-                    slotScrollList.append((evetypes.GetGroupID(typeID), entry))
+            if len(slots) < 1:
+                continue
+            label = cfg.dgmeffects.Get(effectID).displayName
+            scrolllist.append(listentry.Get('Header', {'label': label}))
+            slotScrollList = []
+            for typeID, qty in slots.iteritems():
+                data = self._GetDataForFittingEntry(typeID, qty)
+                data.singleton = 1
+                data.effectID = effectID
+                entry = listentry.Get('FittingModuleEntry', data=data)
+                slotScrollList.append((evetypes.GetGroupID(typeID), entry))
 
-                slotScrollList = SortListOfTuples(slotScrollList)
-                scrolllist.extend(slotScrollList)
+            slotScrollList = SortListOfTuples(slotScrollList)
+            scrolllist.extend(slotScrollList)
 
-        charges = typesByRack['charges']
-        if len(charges) > 0:
-            scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/Generic/Charges')}))
-            for type, qty in charges.iteritems():
-                data = util.KeyVal()
-                data.typeID = type
-                data.showinfo = 1
-                data.getIcon = True
-                data.label = str(util.FmtAmt(qty)) + 'x ' + evetypes.GetName(type)
-                scrolllist.append(listentry.Get('FittingModuleEntry', data=data))
-
-        ice = typesByRack['ice']
-        if len(ice) > 0:
-            scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/Inflight/MoonMining/Processes/Fuel')}))
-            for type, qty in ice.iteritems():
-                data = util.KeyVal()
-                data.typeID = type
-                data.showinfo = 1
-                data.getIcon = True
-                data.label = str(util.FmtAmt(qty)) + 'x ' + evetypes.GetName(type)
-                scrolllist.append(listentry.Get('FittingModuleEntry', data=data))
-
-        drones = typesByRack['drones']
-        if len(drones) > 0:
-            scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel('UI/Drones/Drones')}))
-            for type, qty in drones.iteritems():
-                data = util.KeyVal()
-                data.typeID = type
-                data.showinfo = 1
-                data.getIcon = True
-                data.label = str(util.FmtAmt(qty)) + 'x ' + evetypes.GetName(type)
-                scrolllist.append(listentry.Get('FittingModuleEntry', data=data))
+        for qtyByTypeIdDict, headerLabelPath, isValidGroup in ((typesByRack['charges'], 'UI/Generic/Charges', True),
+         (typesByRack['ice'], 'UI/Inflight/MoonMining/Processes/Fuel', True),
+         (typesByRack['drones'], 'UI/Drones/Drones', True),
+         (typesByRack['fighters'], 'UI/Common/Fighters', True),
+         (typesByRack['other'], 'UI/Fitting/FittingWindow/FittingManagement/OtherItems', False)):
+            if len(qtyByTypeIdDict) > 0:
+                scrolllist.append(listentry.Get('Header', {'label': localization.GetByLabel(headerLabelPath)}))
+                scrolllist += self._GetFittingEntriesForGroup(qtyByTypeIdDict, isValidGroup)
 
         return scrolllist
+
+    def _GetFittingEntriesForGroup(self, qtyByTypeIdDict, isValidGroup):
+        entries = []
+        for typeID, qty in qtyByTypeIdDict.iteritems():
+            data = self._GetDataForFittingEntry(typeID, qty, isValidGroup)
+            entry = listentry.Get('FittingModuleEntry', data=data)
+            entries.append(entry)
+
+        return entries
+
+    def _GetDataForFittingEntry(self, typeID, qty, isValidGroup=True):
+        data = util.KeyVal(typeID=typeID, showinfo=1, getIcon=True, label=str(util.FmtAmt(qty)) + 'x ' + evetypes.GetName(typeID), isValidGroup=isValidGroup)
+        return data
 
     def GetTypesByRack(self, fitting):
         ret = {'hiSlots': defaultdict(int),
@@ -560,26 +635,32 @@ class fittingSvc(service.Service):
          'serviceSlots': defaultdict(int),
          'charges': {},
          'drones': {},
-         'ice': {}}
+         'ice': {},
+         'fighters': {},
+         'other': {}}
         for typeID, flag, qty in fitting.fitData:
             if evetypes.GetCategoryID(typeID) == const.categoryCharge:
                 ret['charges'][typeID] = qty
             elif evetypes.GetGroupID(typeID) == const.groupIceProduct:
                 ret['ice'][typeID] = qty
-            elif flag >= const.flagHiSlot0 and flag <= const.flagHiSlot7:
+            elif flag in const.hiSlotFlags:
                 ret['hiSlots'][typeID] += 1
-            elif flag >= const.flagMedSlot0 and flag <= const.flagMedSlot7:
+            elif flag in const.medSlotFlags:
                 ret['medSlots'][typeID] += 1
-            elif flag >= const.flagLoSlot0 and flag <= const.flagLoSlot7:
+            elif flag in const.loSlotFlags:
                 ret['lowSlots'][typeID] += 1
-            elif flag >= const.flagRigSlot0 and flag <= const.flagRigSlot7:
+            elif flag in const.rigSlotFlags:
                 ret['rigSlots'][typeID] += 1
             elif flag >= const.flagServiceSlot0 and flag <= const.flagServiceSlot7:
                 ret['serviceSlots'][typeID] += 1
-            elif flag >= const.flagSubSystemSlot0 and flag <= const.flagSubSystemSlot7:
+            elif flag in const.subSystemSlotFlags:
                 ret['subSystems'][typeID] += 1
             elif flag == const.flagDroneBay:
                 ret['drones'][typeID] = qty
+            elif flag == const.flagFighterBay:
+                ret['fighters'][typeID] = qty
+            else:
+                ret['other'][typeID] = qty
 
         return ret
 

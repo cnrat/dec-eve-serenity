@@ -43,6 +43,7 @@ import itertoolsext
 from eve.client.script.ui.shared.monetization.trialPopup import ORIGIN_SHOWINFO
 import inventorycommon.typeHelpers
 from utillib import KeyVal
+from structures.services import SERVICE_LABELS, SERVICE_ICONS
 GENERIC_ATTRIBUTES_TO_AVOID = (const.attributeMass,)
 SUN_STATISTICS_ATTRIBUTES = ['spectralClass',
  'luminosity',
@@ -153,7 +154,8 @@ class Info(service.Service):
                                   const.attributeMaxVelocity,
                                   const.attributeSignatureRadius,
                                   const.attributeFighterSquadronMaxSize,
-                                  const.attributeFighterRefuelingTime]}
+                                  const.attributeFighterRefuelingTime,
+                                  const.attributeFighterSquadronOrbitRange]}
             fighterAttributes[localization.GetByLabel('UI/Common/Shield')] = {'normalAttributes': [const.attributeShieldCapacity, const.attributeShieldRechargeRate],
              'groupedAttributes': [('em', const.attributeShieldEmDamageResonance),
                                    ('thermal', const.attributeShieldThermalDamageResonance),
@@ -544,12 +546,20 @@ class Info(service.Service):
         wnd.data[TAB_ATTIBUTES]['items'] += attributeEntries
         baseWarpSpeed = self.GetBaseWarpSpeed(typeID, shipinfo)
         if baseWarpSpeed:
-            bwsAttr = cfg.dgmattribs.Get(const.attributeBaseWarpSpeed)
-            data = {'attributeID': const.attributeBaseWarpSpeed,
+
+            def OnBaseWarpClicked(aID, iID):
+                logLine = 'Base warp speed for %s = %s' % (iID, baseWarpSpeed)
+                self.LogError(logLine)
+                return self.OnAttributeClick(aID, iID)
+
+            attributeID = const.attributeBaseWarpSpeed
+            bwsAttr = cfg.dgmattribs.Get(attributeID)
+            data = {'attributeID': attributeID,
              'line': 1,
              'label': bwsAttr.displayName,
              'text': baseWarpSpeed,
-             'iconID': bwsAttr.iconID}
+             'iconID': bwsAttr.iconID,
+             'OnClick': (OnBaseWarpClicked, attributeID, itemID)}
             wnd.data[TAB_ATTIBUTES]['items'].append(listentry.Get(decoClass=listentry.LabelTextSides, data=data))
         wnd.dynamicTabs.append(TAB_FITTING)
         wnd.dynamicTabs.append(TAB_REQUIREMENTS)
@@ -621,6 +631,7 @@ class Info(service.Service):
         sm.GetService('charactersheet').OpenCertificates()
 
     def UpdateStructure(self, wnd, typeID, itemID):
+        wnd.dynamicTabs.append(TAB_TRAITS)
         attributesByCaption = self.GetShipAndDroneAttributes()
         attributeEntries, addedAttributes = self.GetItemAttributeScrolllistAndAttributesList(itemID, typeID, attributesByCaption)
         wnd.data[TAB_ATTIBUTES]['items'] += attributeEntries
@@ -630,6 +641,51 @@ class Info(service.Service):
             wnd.data[TAB_ATTIBUTES]['items'] += attributeScrollListForItem
         wnd.dynamicTabs.append(TAB_REQUIREMENTS)
         wnd.dynamicTabs.append(TAB_FITTING)
+        structureInfo = None
+        if itemID is not None:
+            structureInfo = sm.GetService('structureDirectory').GetStructureInfo(itemID)
+            if structureInfo:
+                solarsystemID = structureInfo.solarSystemID
+                mapData = cfg.mapSystemCache.Get(solarsystemID)
+                constellationID = mapData.constellationID
+                regionID = mapData.regionID
+                for locID in [regionID, constellationID, solarsystemID]:
+                    mapItem = self.map.GetItem(locID)
+                    if mapItem is not None:
+                        if mapItem.typeID == const.typeSolarSystem:
+                            text = self.GetColorCodedSecurityStringForSystem(mapItem.itemID, mapItem.itemName)
+                            text = text.replace('<t>', ' ')
+                        else:
+                            text = mapItem.itemName
+                        entry = listentry.Get('LabelTextTop', {'line': 1,
+                         'label': evetypes.GetName(mapItem.typeID),
+                         'text': text,
+                         'typeID': mapItem.typeID,
+                         'itemID': mapItem.itemID})
+                        wnd.data[TAB_LOCATION]['items'].append(entry)
+
+        if itemID is not None and structureInfo is not None:
+            serviceEntryList = self.GetServicesForStructure(itemID)
+            wnd.data[TAB_SERVICES]['items'] += serviceEntryList
+        return
+
+    def GetServicesForStructure(self, structureID):
+        serviceList = []
+        for serviceID in sm.RemoteSvc('structureSettings').CharacterGetServices(structureID):
+            icon = SERVICE_ICONS.get(serviceID)
+            if icon is None:
+                icon = stationServiceConst.serviceDataByServiceID[serviceID].iconID
+            data = {'line': 2,
+             'selectable': 0,
+             'label': localization.GetByLabel(SERVICE_LABELS[serviceID]),
+             'icon': icon,
+             'iconsize': 24,
+             'height': 28,
+             'iconoffset': 8,
+             'labeloffset': 8}
+            serviceList.append(listentry.Get('IconEntry', data=data))
+
+        return serviceList
 
     def UpdateDataDrone(self, wnd, typeID, itemID):
         metaTypeScrollList, variationTypeDict = self.GetMetaTypeInfo(typeID)
@@ -1682,7 +1738,7 @@ class Info(service.Service):
             elif info.name == 'securityoffice':
                 if not sm.GetService('securityOfficeSvc').CanAccessServiceInStation(itemID):
                     continue
-            for bit in info.serviceIDs:
+            for bit in info.maskServiceIDs:
                 if mask & bit:
                     if hasattr(info, 'iconID'):
                         icon = info.iconID

@@ -268,7 +268,9 @@ class PlanetUISvc(service.Service):
             self.CreateScene()
             newScene = True
         self.UpdateLoadingBar('planet_ui_init', localization.GetByLabel('UI/PI/Common/PlanetMode'), localization.GetByLabel('UI/PI/Common/LoadingPlanetResources'), 1, 4)
-        sm.GetService('sceneManager').SetRegisteredScenes('planet')
+        sceneManager = sm.GetService('sceneManager')
+        sceneManager.SetRegisteredScenes('planet')
+        sceneManager.SetSecondaryCamera(evecamera.CAM_PLANET)
         self.UpdateLoadingBar('planet_ui_init', localization.GetByLabel('UI/PI/Common/PlanetMode'), localization.GetByLabel('UI/PI/Common/LoadingPlanetResources'), 2, 4)
         self.SetPlanet()
         self.UpdateLoadingBar('planet_ui_init', localization.GetByLabel('UI/PI/Common/PlanetMode'), localization.GetByLabel('UI/PI/Common/LoadingPlanetResources'), 3, 4)
@@ -346,9 +348,9 @@ class PlanetUISvc(service.Service):
         self.LoadPlanet()
         self.LoadOrbitalObjects(self.planetScene)
         camera = PlanetCamera()
+        camera.translationFromParent = PLANET_ZOOM_MAX
         sm.GetService('sceneManager').RegisterCamera(camera)
         sm.GetService('sceneManager').RegisterScene(self.planetScene, 'planet')
-        camera.translationFromParent = PLANET_ZOOM_MAX
 
     def GetScene(self):
         _, regionID, constellationID, solarSystemID, _ = sm.GetService('map').GetParentLocationID(self.solarSystemID)

@@ -17,6 +17,9 @@ class StructureDogmaItem(LocationDogmaItem):
         self.dogmaLocation.FitItemToLocation(self.itemID, self.itemID, 0)
         LocationDogmaItem.OnItemLoaded(self)
 
+    def PostLoadAction(self):
+        self.dogmaLocation.UpdateStructureServices(self.itemID)
+
     def ValidFittingFlag(self, flagID):
         return IsStructureFittingFlag(flagID) or flagID == invconst.flagDroneBay
 

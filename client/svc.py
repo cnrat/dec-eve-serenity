@@ -324,3 +324,5 @@ from eve.client.script.environment.prefetchSvc import PrefetchSvc as prefetchSvc
 from eve.client.script.ui.shared.fittingGhost.ghostFittingSvc import GhostFittingSvc as ghostFittingSvc
 from tacticalNavigation.tacticalNavigationService import TacticalNavigationService as tacticalNavigation
 from projectdiscovery.client.projectdiscoveryClientSvc import ProjectDiscoveryClientService as projectDiscoveryClient
+from seasons.client.seasonservice import SeasonService as seasonService
+from logcontrol.logcontrolsvc import LogControlSvc as logControlSvc

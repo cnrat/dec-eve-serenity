@@ -194,6 +194,7 @@ class ShipSceneParent(Container):
         self.controller.on_new_itemID.connect(self.OnNewShipLoaded)
         self.sceneContainer = ShipSceneContainer(align=uiconst.TOALL, parent=self, state=uiconst.UI_DISABLED, controller=self.controller)
         self.SetScene()
+        self.sceneContainer.LoadShipModel()
         scaleFactor = GetScaleFactor()
         self.sceneNavigation = SceneContainerBaseNavigation(parent=self, align=uiconst.TOALL, pos=(0, 0, 0, 0), idx=0, state=uiconst.UI_NORMAL, pickRadius=225 * scaleFactor)
         self.sceneNavigation.Startup(self.sceneContainer)

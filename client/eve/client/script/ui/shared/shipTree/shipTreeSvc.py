@@ -183,17 +183,27 @@ class ShipTree(service.Service):
 
         factionID1, factionID2 = shipTreeConst.PARENT_FACTIONIDS_BY_FACTIONID[factionID]
         root = c = RootNode(parent=None, position=(0, 0))
-        for i, shipGroupID in enumerate((shipTreeConst.groupFrigate,
-         shipTreeConst.groupCruiser,
-         shipTreeConst.groupBattleship,
-         shipTreeConst.groupCarrier)):
-            if sm.GetService('shipTree').GetShipTypeIDs(factionID, shipGroupID):
+        shipTreeSvc = sm.GetService('shipTree')
+        for i, shipGroupID in enumerate((shipTreeConst.groupFrigate, shipTreeConst.groupCruiser, shipTreeConst.groupBattleship)):
+            if shipTreeSvc.GetShipTypeIDs(factionID, shipGroupID):
                 x = K2 if i == 0 else 3 * K4
                 c = Grp(c, (x, 0), shipGroupID, factionID, False)
-                top = OtherGrp(root, (K2 + i * x, -3 * K4), shipGroupID, factionID1, True)
-                Grp(top, (0, 3 * K4), shipGroupID, factionID, False)
-                bottom = OtherGrp(root, (K2 + i * x, 3 * K4), shipGroupID, factionID2, True)
-                Grp(bottom, (0, -3 * K4), shipGroupID, factionID, False)
+                top = OtherGrp(root, (K2 + i * x, -0.5), shipGroupID, factionID1, True)
+                Grp(top, (0, 0.5), shipGroupID, factionID, False)
+                bottom = OtherGrp(root, (K2 + i * x, 0.5), shipGroupID, factionID2, True)
+                Grp(bottom, (0, -0.5), shipGroupID, factionID, False)
+
+        i = 0
+        for shipGroupID in (shipTreeConst.groupDreadnought, shipTreeConst.groupCarrier, shipTreeConst.groupTitan):
+            if shipTreeSvc.GetShipTypeIDs(factionID, shipGroupID):
+                h = 0.0 if i == 0 else -0.8
+                c = Con(c, (K2, h))
+                Grp(c, (K2, 0), shipGroupID, factionID, False)
+                top = OtherGrp(root, (3.0 + i / 2.0, -K2 + h * i), shipGroupID, factionID1, True)
+                Grp(top, (0, K2), shipGroupID, factionID, False)
+                bottom = OtherGrp(root, (3.0 + i / 2.0, K2 + h * i), shipGroupID, factionID2, True)
+                Grp(bottom, (0, -K2), shipGroupID, factionID, False)
+                i += 1
 
         return root
 

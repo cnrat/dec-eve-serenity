@@ -3,6 +3,7 @@
 import math
 import sys
 import evetypes
+import evegraphics.fsd.graphicIDs as fsdGraphicIDs
 from spacecomponents.client.messages import MSG_ON_LOAD_OBJECT
 import states as state
 import service
@@ -110,19 +111,18 @@ class SpaceMgr(service.Service):
         data['typeID'] = slimItem.typeID
         data['groupID'] = slimItem.groupID
         data['typeName'] = evetypes.GetEnglishName(slimItem.typeID)
-        graphicFile = inventorycommon.typeHelpers.GetGraphicFile(slimItem.typeID)
         graphicID = evetypes.GetGraphicID(slimItem.typeID)
         station = self.npcStations.get(slimItem.itemID, None)
         if station:
             data['graphicID'] = station.graphicID
         else:
             data['graphicID'] = evetypes.GetGraphicID(slimItem.typeID)
-        data['graphicFile'] = graphicFile
-        data['animationStates'] = inventorycommon.typeHelpers.GetAnimationStates(slimItem.typeID)
-        graphicInfo = cfg.graphics.GetIfExists(graphicID)
-        data['animationStateObjects'] = getattr(graphicInfo, 'animationStateObjects', {})
-        data['sofRaceName'] = getattr(graphicInfo, 'sofRaceName', None)
-        data['sofFactionName'] = getattr(graphicInfo, 'sofFactionName', None)
+        graphicInfo = fsdGraphicIDs.GetGraphic(graphicID)
+        data['graphicFile'] = fsdGraphicIDs.GetGraphicFile(graphicInfo)
+        data['animationStates'] = fsdGraphicIDs.GetAnimationStates(graphicInfo, [])
+        data['animationStateObjects'] = fsdGraphicIDs.GetAnimationStateObjects(graphicInfo, default={})
+        data['sofRaceName'] = fsdGraphicIDs.GetSofRaceName(graphicInfo)
+        data['sofFactionName'] = fsdGraphicIDs.GetSofFactionName(graphicInfo)
         dunRotation = getattr(slimItem, 'dunRotation', None)
         data['dunRotation'] = dunRotation
         dunDirection = getattr(slimItem, 'dunDirection', None)
@@ -976,9 +976,8 @@ class SpaceMgr(service.Service):
             return
 
     def GetNebulaTextureForType(self, nebulaType):
-        sceneName = cfg.graphics.Get(nebulaType).graphicFile
         sceneManager = sm.GetService('sceneManager')
-        return sceneManager.DeriveTextureFromSceneName(sceneName)
+        return sceneManager.DeriveTextureFromSceneName(fsdGraphicIDs.GetGraphicFile(nebulaType))
 
 
 class PlanetManager():

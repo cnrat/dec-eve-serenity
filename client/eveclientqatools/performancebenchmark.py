@@ -4,6 +4,7 @@ import blue
 import math
 import evecamera
 import uthread
+import geo2
 from eve.client.script.ui.control.eveWindow import Window
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.eveLabel import Label
@@ -15,6 +16,12 @@ from eve.client.script.ui.control.eveLabel import EveHeaderSmall
 from eve.client.script.ui.util.uix import TextBox
 import carbonui.const as uiconst
 from .performancebenchmarkdata import *
+MIN_PAN_DISTANCE = 0
+MAX_PAN_DISTANCE = 1000000
+
+def ClampPan(pan):
+    return min(MAX_PAN_DISTANCE, max(pan, MIN_PAN_DISTANCE))
+
 
 class SceneDirector(object):
 
@@ -23,9 +30,12 @@ class SceneDirector(object):
         self.initialSceneState = set([])
 
     def SetCamera(self, yaw, pitch, pan):
-        cam = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
-        cam.SetOrbit(math.radians(yaw), math.radians(pitch))
-        cam.translationFromParent = pan
+        cam = sm.GetService('sceneManager').GetActiveCamera()
+        cam.SetYaw(math.radians(yaw))
+        cam.SetPitch(math.radians(pitch))
+        pan = ClampPan(pan)
+        newPos = geo2.Vec3Add(geo2.Vec3Scale(cam.GetLookAtDirection(), pan), cam.GetAtPosition())
+        cam.TransitTo(atPosition=cam.GetAtPosition(), eyePosition=newPos)
 
     def GoToAndReturnStartPosition(self, stayHere):
         bp = sm.GetService('michelle').GetBallpark()
@@ -147,8 +157,10 @@ class PerformanceBenchmarkWindow(Window):
         self.yawField.OnChange = self.OnCamChange
         panCont = Container(name='panCont', parent=mainCont, align=uiconst.TOTOP, height=20, padLeft=4, padRight=4)
         Label(name='panLabel', parent=panCont, align=uiconst.TOLEFT, width=40, padTop=3, text='Pan')
-        self.panField = SinglelineEdit(name='panField', parent=panCont, align=uiconst.TOTOP, ints=[0, 1000000], setvalue=0)
+        self.panField = SinglelineEdit(name='panField', parent=panCont, align=uiconst.TOTOP, ints=[MIN_PAN_DISTANCE, MAX_PAN_DISTANCE], setvalue=0)
         self.panField.OnChange = self.OnCamChange
+        buttonBox = Container(name='buttonBox', parent=mainCont, align=uiconst.TOTOP, padTop=3, height=20)
+        Button(parent=buttonBox, label='Capture camera coords', align=uiconst.TORIGHT, func=self.OnStoreCurrentCameraValues, width=40, height=18, hint='Captures the current camera coordinates and saves them in the input fields')
         uthread.new(self._GetCurrentCameraValues)
 
     def TestComboChanged(self, *args):
@@ -221,12 +233,15 @@ class PerformanceBenchmarkWindow(Window):
             self.benchmarkButton.SetLabel('Stop Benchmark')
             uthread.new(_thread)
 
+    def OnStoreCurrentCameraValues(self, *args):
+        self._GetCurrentCameraValues()
+
     def _GetCurrentCameraValues(self):
         self.camLock = True
-        cam = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SPACE_PRIMARY)
+        cam = sm.GetService('sceneManager').GetActiveCamera()
         self.lastPitch = math.degrees(cam.pitch)
         self.lastYaw = math.degrees(cam.yaw)
-        self.pan = int(cam.translationFromParent)
+        self.pan = pan = ClampPan(int(cam.GetZoomDistance()))
         self.pitchField.SetValue(self.lastPitch)
         self.yawField.SetValue(self.lastYaw)
         self.panField.SetValue(self.pan)

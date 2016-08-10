@@ -3,6 +3,7 @@
 import blue
 import trinity
 import audio2
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 import eve.client.script.environment.spaceObject.ship as ship
 from eve.client.script.environment.effects.effectConsts import FX_TF_NONE, FX_TF_SCALE_SYMMETRIC, FX_TF_SCALE_RADIUS, FX_TF_SCALE_BOUNDING, FX_TF_ROTATION_BALL, FX_TF_POSITION_BALL, FX_TF_POSITION_MODEL, FX_TF_POSITION_TARGET
 STOP_REASON_DEFAULT = 'STOP_REASON_DEFAULT'
@@ -22,10 +23,8 @@ class GenericEffect(object):
             self.duration = trigger.duration
         else:
             self.duration = getattr(effect, 'duration', 10000)
-        if getattr(effect, 'secondaryGraphicID', None):
-            secondaryGraphicID = getattr(effect, 'secondaryGraphicID', None)
-            graphic = cfg.graphics.get(secondaryGraphicID, None)
-            self.secondaryGraphicFile = getattr(graphic, 'graphicFile', None)
+        if hasattr(effect, 'secondaryGraphicID'):
+            self.secondaryGraphicFile = GetGraphicFile(getattr(effect, 'secondaryGraphicID'))
         else:
             self.secondaryGraphicFile = None
         self.scaleTime = getattr(effect, 'timeScale', False)
@@ -120,7 +119,7 @@ class GenericEffect(object):
     def CheckForExistingObserver(self, location, name):
         if location is not None:
             for observer in location.Find('trinity.TriObserverLocal'):
-                if hasattr(observer, 'observer'):
+                if getattr(observer, 'observer', None) is not None:
                     if observer.observer.name == name:
                         self.observer = observer
                         return
@@ -129,8 +128,10 @@ class GenericEffect(object):
             return
         else:
             for observer in self.gfx.Find('trinity.TriObserverLocal'):
-                self.observer = observer
-                return
+                if getattr(observer, 'observer', None) is not None:
+                    if 'booster' not in observer.observer.name:
+                        self.observer = observer
+                        return
 
             return
 
@@ -146,8 +147,8 @@ class GenericEffect(object):
                 model = self.gfx
             self.AttachObserverToModel(model)
             self.AttachObserverToTriEventCurve()
-        if hasattr(self.observer, 'observer') and self.observer.observer is not None:
-            self.ScaleEffectAudioEmitter(self.observer.observer, scaler)
+            if hasattr(self.observer, 'observer') and self.observer.observer is not None:
+                self.ScaleEffectAudioEmitter(self.observer.observer, scaler)
         return
 
     def SetupEffectEmitter(self):

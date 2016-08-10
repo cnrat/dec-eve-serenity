@@ -8,19 +8,5 @@ def TryInitiateTrade(charID, nodes):
         return
     if not IsEvePlayerCharacter(charID):
         return
-    if session.stationid:
-        return TryInitiateStationTrade(charID, nodes)
-    if session.structureid:
-        return TryInitiateStructureDelivery(charID, nodes)
-
-
-def TryInitiateStationTrade(charID, nodes):
-    if session.stationid and sm.StartService('station').IsGuest(charID):
-        sm.StartService('pvptrade').StartTradeSession(charID, tradeItems=nodes)
-
-
-def TryInitiateStructureDelivery(charID, nodes):
-    if session.structureid:
-        invItems = filter(None, [ getattr(n, 'item', None) for n in nodes ])
-        DeliverToStructure(invItems, charID)
-    return
+    if session.stationid or session.structureid:
+        return sm.StartService('pvptrade').StartTradeSession(charID, tradeItems=nodes)

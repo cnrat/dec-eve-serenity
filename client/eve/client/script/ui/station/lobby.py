@@ -478,7 +478,7 @@ class Lobby(Window):
             button = BigButton(parent=parent, width=btnsize, height=btnsize, name=service.name, align=uiconst.NOALIGN)
             button.Startup(btnsize, btnsize, iconOpacity=0.75)
             button.cmdStr = service.command
-            button.stationServiceIDs = service.serviceIDs
+            button.stationServiceIDs = service.maskServiceIDs
             button.displayName = service.label
             button.OnClick = (self.OnSvcBtnClick, button)
             button.serviceStatus = localization.GetByLabel('UI/Station/Lobby/Enabled')
@@ -487,7 +487,7 @@ class Lobby(Window):
                 button.SetTexturePath(service.iconID)
             else:
                 button.SetTexturePath(service.texturePath)
-            self.SetServiceButtonState(button, service.serviceIDs)
+            self.SetServiceButtonState(button, service.maskServiceIDs)
             button.LoadTooltipPanel = self.LoadServiceButtonTooltipPanel
 
         return
@@ -496,10 +496,10 @@ class Lobby(Window):
         serviceMask = eve.stationItem.serviceMask
         haveServices = []
         for serviceData in stationServiceConst.serviceData:
-            if stationServiceConst.serviceIDAlwaysPresent in serviceData.serviceIDs:
+            if stationServiceConst.serviceIDAlwaysPresent in serviceData.maskServiceIDs:
                 haveServices.append(serviceData)
                 continue
-            elif serviceMask & sum(serviceData.serviceIDs) > 0:
+            elif serviceMask & sum(serviceData.maskServiceIDs) > 0:
                 if serviceData.name == 'navyoffices':
                     if not sm.GetService('facwar').CheckStationElegibleForMilitia():
                         continue
@@ -526,7 +526,7 @@ class Lobby(Window):
             if serviceData.name == serviceName:
                 corpStationMgr = None
                 now = blue.os.GetWallclockTime()
-                for stationServiceID in serviceData.serviceIDs:
+                for stationServiceID in serviceData.maskServiceIDs:
                     doCheck = 1
                     time, result = (None, None)
                     if self.sr.serviceAccessCache.has_key(stationServiceID):

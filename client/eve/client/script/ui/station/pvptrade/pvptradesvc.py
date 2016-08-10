@@ -3,21 +3,26 @@
 import service
 import form
 import uicontrols
-import uicls
 
 class PVPTradeService(service.Service):
     __guid__ = 'svc.pvptrade'
-    __exportedcalls__ = {'StartTradeSession': []}
-    __notifyevents__ = ['OnTrade']
+    __notifyevents__ = ['OnTradeInitiate',
+     'OnTradeCancel',
+     'OnTradeStateToggle',
+     'OnTradeMoneyOffer',
+     'OnTradeComplete']
 
-    def StartTradeSession(self, charID, tradeItems=None):
-        tradeSession = sm.RemoteSvc('trademgr').InitiateTrade(charID)
+    def _ShowTradeSessionWindow(self, tradeSession, charID, tradeItems):
         windowID = self.GetWindowIDForTradeSession(tradeSession)
         checkWnd = uicontrols.Window.GetIfOpen(windowID=windowID)
         if checkWnd and not checkWnd.destroyed:
             checkWnd.Maximize()
         else:
-            self.OnInitiate(charID, tradeSession, tradeItems)
+            self.OnTradeInitiate(charID, tradeSession, tradeItems)
+
+    def StartTradeSession(self, charID, tradeItems=None):
+        tradeSession = sm.RemoteSvc('trademgr').InitiateTrade(charID)
+        self._ShowTradeSessionWindow(tradeSession, charID, tradeItems)
 
     def GetWindowIDForTradeSession(self, tradeSession):
         tradeContainerID = tradeSession.List().tradeContainerID
@@ -27,11 +32,7 @@ class PVPTradeService(service.Service):
         windowID = ('tradeWnd', tradeContainerID)
         return windowID
 
-    def OnTrade(self, what, *args):
-        self.LogInfo('OnTrade', what, args)
-        getattr(self, 'On' + what)(*args)
-
-    def OnInitiate(self, charID, tradeSession, tradeItems=None):
+    def OnTradeInitiate(self, charID, tradeSession, tradeItems=None):
         self.LogInfo('OnInitiate', charID, tradeSession)
         windowID = self.GetWindowIDForTradeSession(tradeSession)
         checkWnd = uicontrols.Window.GetIfOpen(windowID=windowID)
@@ -39,19 +40,19 @@ class PVPTradeService(service.Service):
             return
         form.PVPTrade.Open(windowID=windowID, tradeSession=tradeSession, tradeItems=tradeItems)
 
-    def OnCancel(self, containerID):
+    def OnTradeCancel(self, containerID):
         windowID = self.GetWindowID(containerID)
         w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:
             w.OnCancel()
 
-    def OnStateToggle(self, containerID, state):
+    def OnTradeStateToggle(self, containerID, state):
         windowID = self.GetWindowID(containerID)
         w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:
             w.OnStateToggle(state)
 
-    def OnMoneyOffer(self, containerID, money):
+    def OnTradeMoneyOffer(self, containerID, money):
         windowID = self.GetWindowID(containerID)
         w = uicontrols.Window.GetIfOpen(windowID=windowID)
         if w:

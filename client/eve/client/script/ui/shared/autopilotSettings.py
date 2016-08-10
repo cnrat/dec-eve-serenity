@@ -105,6 +105,7 @@ class AutopilotSettings(Window):
     def LoadWaypoints(self, *args):
         mapSvc = sm.GetService('map')
         starmapSvc = sm.GetService('starmap')
+        structureDirectory = sm.GetService('structureDirectory')
         waypoints = starmapSvc.GetWaypoints()
         tmplst = []
         fromID = eve.session.solarsystemid2
@@ -124,9 +125,10 @@ class AutopilotSettings(Window):
             for waypointID in waypoints:
                 blue.pyos.BeNice()
                 actualID = actualID + 1
-                each = mapSvc.GetItem(waypointID)
-                description = localization.GetByLabel('UI/Map/MapPallet/lblActiveColorCategory', activeLabel=evetypes.GetName(each.typeID))
-                wasID = each.itemID
+                wasID, waypointName, waypointTypeID = self._GetWaypointInfo(waypointID, mapSvc, structureDirectory)
+                if wasID is None:
+                    continue
+                description = localization.GetByLabel('UI/Map/MapPallet/lblActiveColorCategory', activeLabel=evetypes.GetName(waypointTypeID))
                 while wasID:
                     wasID = mapSvc.GetParent(wasID)
                     if wasID:
@@ -146,9 +148,9 @@ class AutopilotSettings(Window):
                              'orderID': -1,
                              'actualID': actualID}))
 
-                lblTxt = localization.GetByLabel('UI/Map/MapPallet/lblWaypointListEntry', counter=counter + 1, itemName=each.itemName, description=description)
+                lblTxt = localization.GetByLabel('UI/Map/MapPallet/lblWaypointListEntry', counter=counter + 1, itemName=waypointName, description=description)
                 scrolllist.append(listentry.Get('AutoPilotItem', {'itemID': waypointID,
-                 'typeID': each.typeID,
+                 'typeID': waypointTypeID,
                  'label': lblTxt,
                  'orderID': counter,
                  'actualID': actualID,
@@ -168,6 +170,16 @@ class AutopilotSettings(Window):
             if selectedItem is not None:
                 self.sr.scroll2.SetSelected(selectedItem)
             return
+
+    def _GetWaypointInfo(self, waypointID, mapSvc, structureDirectory):
+        each = mapSvc.GetItem(waypointID)
+        if each:
+            return (each.itemID, each.itemName, each.typeID)
+        else:
+            structureInfo = structureDirectory.GetStructureInfo(waypointID)
+            if structureInfo:
+                return (structureInfo.solarSystemID, cfg.evelocations.Get(waypointID).name, structureInfo.typeID)
+            return (None, None, None)
 
     def LoadAvoidance(self, *args):
         mapSvc = sm.StartService('map')

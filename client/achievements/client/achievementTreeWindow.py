@@ -175,6 +175,7 @@ class AchievementTreeConnection(VectorLineTrace, ColorThemeMixin):
     glowLine = None
     glowLineColor = (1, 1, 1, 0.5)
     localScale = 1.0
+    MARGIN_BASE = 32.0
     __notifyevents__ = ['OnUIScalingChange']
 
     def ApplyAttributes(self, attributes):
@@ -244,7 +245,7 @@ class AchievementTreeConnection(VectorLineTrace, ColorThemeMixin):
          g,
          b,
          0.0)
-        MARGIN = 16.0 * self.localScale
+        MARGIN = self.MARGIN_BASE * self.localScale
         vecDir = geo2.Vec2Subtract(self.toPosition, self.fromPosition)
         vecLength = geo2.Vec2Length(vecDir)
         vecDirNorm = geo2.Vec2Normalize(vecDir)
@@ -269,7 +270,7 @@ class AchievementTreeConnection(VectorLineTrace, ColorThemeMixin):
          g,
          b,
          0.0)
-        MARGIN = 16.0 * self.localScale
+        MARGIN = self.MARGIN_BASE * self.localScale
         vecDir = geo2.Vec2Subtract(self.toPosition, self.fromPosition)
         vecLength = geo2.Vec2Length(vecDir)
         vecDirNorm = geo2.Vec2Normalize(vecDir)
@@ -429,6 +430,8 @@ class AchievementTreeSlot(Container):
         centerX, centerY = hex_slot_center_position(hexColumn, hexRow, self.parent.hexGridSize * self.parent.localScale)
         self.left = centerX - self.width / 2
         self.top = centerY - self.height / 2
+        self.parent.UpdateTreePositions()
+        self.hexGridPosition = (hexColumn, hexRow)
 
     def _PrintPositions(self):
         print '# -----------------------------------'
@@ -650,7 +653,8 @@ class AchievementTree(Container):
         settings.char.ui.Set('opportunities_tree_position8', (proportionX, proportionY))
 
     def LoadRegisteredPosition(self):
-        proportionX, proportionY = settings.char.ui.Get('opportunities_tree_position8', (0.5, 0.5))
+        proportionX, proportionY = settings.char.ui.Get('opportunities_tree_position8', (0.6, 0.5))
+        proportionX, proportionY = (0.6, 0.5)
         pW, pH = self.parent.GetAbsoluteSize()
         self.left = pW * proportionX - self.width / 2
         self.top = pH * proportionY - self.height / 2
@@ -727,7 +731,18 @@ class AchievementTree(Container):
             toSlot = self.GetSlotByAchievementGroupID(toID)
             if not fromSlot or not toSlot:
                 continue
-            connection.SetLineType(LINE_DASHED)
+            import achievements.common.achievementGroups as ag
+            toAchievementGroup = ag.mainGroupsStore.GetAchievementGroup(toID)
+            fromAchievementGroup = ag.mainGroupsStore.GetAchievementGroup(fromID)
+            if toAchievementGroup and toAchievementGroup.suggestedGroup:
+                if fromAchievementGroup and fromAchievementGroup.IsCompleted():
+                    connection.opacity = 1
+                    connection.SetLineType(LINE_SOLID)
+                else:
+                    connection.opacity = 1
+                    connection.SetLineType(LINE_DASHED)
+            else:
+                connection.opacity = 0
 
     def UpdateTreePositions(self):
         minColumn = sys.maxint
@@ -749,7 +764,7 @@ class AchievementTree(Container):
             maxRow = max(hexRow, maxRow)
             each.SetLocalScale(self.localScale)
 
-        xmargin = 6
+        xmargin = 8
         ymargin = 4
         leftMargin, topMargin = hex_slot_center_position(minColumn - xmargin, minRow - ymargin, self.hexGridSize * self.localScale)
         rightMargin, bottomMargin = hex_slot_center_position(maxColumn + xmargin, maxRow + ymargin, self.hexGridSize * self.localScale)
@@ -799,11 +814,11 @@ class AchievementTreeWindow(Window):
     __guid__ = 'form.AchievementTreeWindow'
     default_captionLabelPath = 'Achievements/UI/OpportunitiesTreeHeader'
     default_windowID = 'AchievementTreeWindow'
-    default_width = 900
-    default_height = 600
-    default_minSize = (default_width, default_height)
+    default_width = 960
+    default_height = 640
+    default_minSize = (900, 600)
     default_maxSize = (1200, 800)
-    default_iconNum = 'res:/ui/Texture/WindowIcons/opportunitiesTree.png'
+    default_iconNum = 'res:/ui/Texture/WindowIcons/tutorial.png'
     default_topParentHeight = 0
     achievementTree = None
     activeInfo = None
@@ -815,6 +830,10 @@ class AchievementTreeWindow(Window):
     def ApplyAttributes(self, attributes):
         Window.ApplyAttributes(self, attributes)
         self.MakeUnstackable()
+        self._ConstructUI()
+        sm.RegisterNotify(self)
+
+    def _ConstructUI(self):
         mainArea = self.GetMainArea()
         mainArea.clipChildren = True
         infoContainer = Container(parent=mainArea, align=uiconst.TOLEFT_NOPUSH, width=260, padding=6)
@@ -833,6 +852,8 @@ class AchievementTreeWindow(Window):
         for i, achievementGroup in enumerate(GetAchievementGroups()):
             column, row = achievementGroup.treePosition
             self.achievementTree.AddSlot(column, row, achievementGroup.groupID)
+            for toGroupID in achievementGroup.groupConnections:
+                connections.add((achievementGroup.groupID, toGroupID))
 
         for groupID1, groupID2 in connections:
             self.achievementTree.AddConnection(groupID1, groupID2)
@@ -841,7 +862,6 @@ class AchievementTreeWindow(Window):
         self.achievementTree.UpdateTreeState()
         self.achievementTree.ShowBackgroundGrid()
         self.achievementTree.LoadRegisteredPosition()
-        sm.RegisterNotify(self)
 
     def OnTreeClipperSizeChanged(self, *args, **kwds):
         self.achievementTree.LoadRegisteredPosition()

@@ -10,6 +10,7 @@ import evecamera
 import evetypes
 import industry
 import service
+from eve.common.script.sys.eveCfg import InShipInSpace
 from service import SERVICE_START_PENDING, SERVICE_RUNNING, ROLE_GML
 from math import sin, cos, pi
 import uiprimitives
@@ -428,10 +429,10 @@ class StarMapSvc(service.Service):
             return
         if session.regionid > const.mapWormholeRegionMin:
             return
+        elif not InShipInSpace():
+            return
         else:
             shipID = util.GetActiveShip()
-            if shipID is None:
-                return
             dogmaLM = sm.GetService('clientDogmaIM').GetDogmaLocation()
             driveRange = dogmaLM.GetAttributeValue(shipID, const.attributeJumpDriveRange)
             if driveRange is None or driveRange == 0:
@@ -1085,6 +1086,7 @@ class StarMapSvc(service.Service):
         self.SetMapPerspective(camera)
         self.RegisterStarColorModes()
         self.sceneManager.SetRegisteredScenes('starmap')
+        self.sceneManager.SetSecondaryCamera(evecamera.CAM_STARMAP)
         self.UpdateLoadingBar('starmap_init', initMapText, gettingDataText, 3, 4)
         self.SetStarColorMode()
         self.UpdateLines(updateColor=1, hint='InitStarMap')
@@ -2140,15 +2142,15 @@ class StarMapSvc(service.Service):
         return pfRouteType
 
     def _IsDestinationValid(self, destinationID):
-        isDestinationValid = False
         if util.IsStation(destinationID):
             destinationSolarSystemID = cfg.stations[destinationID].solarSystemID
             isDestinationInSameSolarSystem = destinationSolarSystemID == session.solarsystemid2
             isDestinationInWormholeSpace = util.IsWormholeSystem(destinationSolarSystemID)
-            isDestinationValid = isDestinationInSameSolarSystem or not isDestinationInWormholeSpace
+            return bool(isDestinationInSameSolarSystem or not isDestinationInWormholeSpace)
         elif destinationID in self.GetKnownUniverseSolarSystems():
-            isDestinationValid = True
-        return isDestinationValid
+            return True
+        else:
+            return sm.GetService('structureDirectory').GetStructureInfo(destinationID) is not None
 
     def OnDestinationChange(self, solarSystemID, clearOtherWaypoints, first):
         sm.GetService('autoPilot').SetOff('Waypoints set remotely.')
@@ -2245,7 +2247,8 @@ class StarMapSvc(service.Service):
         waypoints = self.GetWaypoints()
         self.LogInfo('UpdateRoute - waypoints ', waypoints)
         if len(waypoints):
-            for each in [session.stationid2,
+            for each in [session.structureid,
+             session.stationid2,
              session.solarsystemid2,
              session.constellationid,
              session.regionid]:

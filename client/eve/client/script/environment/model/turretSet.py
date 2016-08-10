@@ -10,6 +10,7 @@ import util
 import evetypes
 import evegraphics.settings as gfxsettings
 from stacklesslib.util import block_trap
+from evegraphics.fsd.graphicIDs import GetGraphic
 
 class TurretSet:
     __guid__ = 'turretSet.TurretSet'
@@ -177,7 +178,7 @@ class TurretSet:
             log.LogError('Wrong object is trying to get turret attached due to wrong authored content! model:' + model.name + ' bluetype:' + model.__bluetype__)
             return
         else:
-            graphics = cfg.graphics.GetIfExists(turretGraphicsID)
+            graphics = GetGraphic(turretGraphicsID)
             newTurretSet = TurretSet()
             eveTurretSets = newTurretSet.Initialize(graphics, locatorID, None, count=count)
             spaceObjectFactory = sm.GetService('sofService').spaceObjectFactory

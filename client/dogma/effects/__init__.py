@@ -33,7 +33,12 @@ def _GetModifierDict(realDict):
 
 def IterReadableModifierStrings(modifiers):
     for modifierDict in modifiers:
-        yield 'modifies {modifiedAttributeID} on {domainInfo} with attribute {modifyingAttributeID}'.format(**_GetModifierDict(modifierDict))
+        if modifierDict['func'] in EXPRESSIONS:
+            formatDict = _GetModifierDict(modifierDict)
+            yield 'Modifies {modifiedAttributeID} on {domainInfo} with attribute {modifyingAttributeID}'.format(**formatDict)
+        elif modifierDict['func'] == 'EffectStopper':
+            effectID = modifierDict['effectID']
+            yield 'Forcibly stops effect %s' % cfg.dgmeffects.Get(effectID).effectName
 
 
 def IsCloakingEffect(effectID):
@@ -132,6 +137,7 @@ OFFENSIVE_EWAR_TYPES = {const.effectEwTargetPaint: 'ewTargetPaint',
  const.effectRemoteWebifierFalloff: 'webify',
  const.effectRemoteGuidanceDisruptFalloff: 'ewGuidanceDisrupt',
  const.effectRemoteECMFalloff: 'electronic',
+ const.effectEntityECMFalloff: 'electronic',
  const.effectStructureEwEffectJam: 'electronic',
  const.effectStructureEwTargetPaint: 'ewTargetPaint',
  const.effectStructureEnergyNeutralizerFalloff: 'ewEnergyNeut',

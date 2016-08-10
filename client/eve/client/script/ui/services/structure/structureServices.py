@@ -2,6 +2,7 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\services\structure\structureServices.py
 import service
 import structures
+from eve.client.script.ui.station import stationServiceConst
 
 class StructureServices(service.Service):
     __guid__ = 'svc.structureServices'
@@ -9,6 +10,7 @@ class StructureServices(service.Service):
 
     def Run(self, *args):
         self.onlineServices = None
+        self.structureID = None
         return
 
     def OnSessionChanged(self, isRemote, session, change):
@@ -21,7 +23,12 @@ class StructureServices(service.Service):
     def IsServiceAvailable(self, serviceID):
         if serviceID in structures.ONLINE_SERVICES:
             return True
-        return serviceID in self.onlineServices
+        elif serviceID == stationServiceConst.serviceIDAlwaysPresent:
+            return True
+        else:
+            if self.onlineServices is None or self.structureID != session.structureid:
+                self._FetchOnlineServices()
+            return serviceID in self.onlineServices
 
     def OnStructureServiceChanged(self, structureID):
         if structureID == session.structureid:
@@ -29,4 +36,7 @@ class StructureServices(service.Service):
         sm.ScatterEvent('OnStructureServiceUpdated')
 
     def _FetchOnlineServices(self):
-        self.onlineServices = sm.RemoteSvc('structureSettings').CharacterGetServices(session.structureid)
+        if session.structureid is not None:
+            self.onlineServices = sm.RemoteSvc('structureSettings').CharacterGetServices(session.structureid)
+        self.structureID = session.structureid
+        return

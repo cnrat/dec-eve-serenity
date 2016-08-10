@@ -200,7 +200,7 @@ class TypeCompare(uicontrols.Window):
                 if attributeID not in self.banAttrs and attributeID not in attrIDDict:
                     attrIDDict.append(attributeID)
                     dgmAttribs = cfg.dgmattribs.Get(attributeID)
-                    if dgmAttribs.published or dgmAttribs.attributeID == const.attributeHp:
+                    if dgmAttribs.published or dgmAttribs.attributeID in (const.attributeHp, const.attributeBaseWarpSpeed):
                         attrDict.append(dgmAttribs)
 
         attributesToRemove = []

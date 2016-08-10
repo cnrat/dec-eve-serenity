@@ -121,9 +121,22 @@ class SkillInjectorBanner(ContainerAutoSize):
 
 BANNER_DISMISSED_KEY = 'skillInjectorBanner_dismissed'
 BANNER_DISMISSED_DEFAULT = False
+CHARACTER_SHEET_DISPLAY_COUNT = 'skillInjectorCharacterSheetOpenCount'
+MINIMUM_CHARSHEET_OPEN_COUNT = 2
 
 def IsSkillInjectorBannerDismissed():
     return settings.user.ui.Get(BANNER_DISMISSED_KEY, BANNER_DISMISSED_DEFAULT)
+
+
+def ShouldShowBanner():
+    return not IsSkillInjectorBannerDismissed() and IncrementAndGetCharacterSheetOpenCount() > MINIMUM_CHARSHEET_OPEN_COUNT
+
+
+def IncrementAndGetCharacterSheetOpenCount():
+    count = int(settings.user.ui.Get(CHARACTER_SHEET_DISPLAY_COUNT, 0))
+    count += 1
+    settings.user.ui.Set(CHARACTER_SHEET_DISPLAY_COUNT, count)
+    return count
 
 
 def SetSkillInjectorBannerDismissed(dismissed=True):

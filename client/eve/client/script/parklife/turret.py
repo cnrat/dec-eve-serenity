@@ -26,17 +26,17 @@ class TurretSvc(service.Service):
     def Stop(self, memStream=None):
         pass
 
-    def OnStateChange(self, itemID, flag, true, *args):
+    def OnStateChange(self, itemID, flag, *args):
         if flag == state.targeting:
             pass
         if flag != state.activeTarget:
             return
-        targets = sm.GetService('target').GetTargets()
-        if len(targets) == 0:
-            return
         ship = sm.GetService('michelle').GetBall(eve.session.shipid)
+        rest = len(sm.GetService('target').GetTargets()) == 0
         for turretSet in getattr(ship, 'turrets', []):
-            if not turretSet.IsShooting():
+            if rest:
+                turretSet.Rest()
+            elif not turretSet.IsShooting():
                 turretSet.SetTarget(eve.session.shipid, itemID)
                 turretSet.TakeAim(itemID)
 

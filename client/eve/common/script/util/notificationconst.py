@@ -181,6 +181,7 @@ notificationTypeStructureLostDockingAccess = 195
 notificationTypeStructureOfficeRentalBill = 196
 notificationTypeStructureServicesOffline = 198
 notificationTypeStructureItemsDelivered = 199
+notificationTypeSeasonalChallengeCompleted = 200
 notificationTypeSkillEmptyQueue = 1002
 notificationTypeSkillFinished = 1000
 notificationTypeMailSummary = 1003

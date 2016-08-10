@@ -15,7 +15,7 @@ from carbonui.uianimations import animations
 from eve.client.script.ui.control.eveLabel import EveLabelLargeBold
 from projectdiscovery.client import const
 from projectdiscovery.client.util.eventlistener import eventlistener, on_event
-from projectdiscovery.client.util.util import calculate_score_bar_length
+from projectdiscovery.client.util.util import calculate_score_bar_length, calculate_rank_band
 
 @eventlistener()
 class RewardsView(uiprimitives.Container):
@@ -33,7 +33,7 @@ class RewardsView(uiprimitives.Container):
         self.player_rank = self.playerState.rank
         self.total_xp_needed_for_current_rank = self.projectDiscovery.get_total_needed_xp(self.player_rank)
         self.total_xp_needed_for_next_rank = self.projectDiscovery.get_total_needed_xp(self.player_rank + 1)
-        self.original_rank_band = self.get_rank_band()
+        self.original_rank_band = calculate_rank_band(self.player_rank)
         self.rank_band = self.original_rank_band
         self.score_bar_height = 7
         self.setup_rewards_screen()
@@ -236,7 +236,7 @@ class RewardsView(uiprimitives.Container):
         self.experience_points.SetText('0')
 
     def get_rank_icon_path(self):
-        return 'res:/UI/Texture/classes/ProjectDiscovery/rankIcon' + str(self.rank_band) + '.png'
+        return const.rank_paths[calculate_rank_band(self.player_rank)]
 
     def get_rank_band(self):
         rank_band = int(math.ceil(float(self.player_rank) / 10 + 0.1))
@@ -263,7 +263,7 @@ class RewardsView(uiprimitives.Container):
             counter += 1
             if counter >= ScaleDpi(self.scoreBarLength):
                 counter = -1
-                self.rank_band = self.get_rank_band()
+                self.rank_band = calculate_rank_band(self.player_rank)
                 if self.rank_band > self.original_rank_band:
                     self.original_rank_band = self.rank_band
                     self.fade_badge_out()

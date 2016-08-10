@@ -5,7 +5,7 @@ from .client import Client
 
 def default_client():
     if not hasattr(default_client, '_client'):
-        default_client._client = Client(host=os.environ.get('AGGREGATED_CLIENT_HOST', 'dev-metrics.tech.ccp.is'), env_tags=os.environ.get('AGGREGATED_CLIENT_TAGS', {}), port=int(os.environ.get('AGGREGATED_CLIENT_PORT', 80)))
+        default_client._client = Client(host=os.environ.get('AGGREGATED_CLIENT_HOST', 'dev-metrics.tech.ccp.is'), env_tags=os.environ.get('AGGREGATED_CLIENT_TAGS', {}))
     return default_client._client
 
 

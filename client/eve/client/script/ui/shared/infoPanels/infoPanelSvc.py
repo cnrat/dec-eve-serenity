@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelSvc.py
 from eve.client.script.ui.shared.infoPanels.infoPanelAchievements import InfoPanelAchievements
+from eve.client.script.ui.shared.infoPanels.infoPanelChallenges import InfoPanelChallenges
 from eveexceptions.exceptionEater import ExceptionEater
 import service
 import uicls
@@ -16,7 +17,9 @@ import log
 import telemetry
 import const
 from eve.client.script.ui.view.viewStateConst import ViewState
-from infoPanelConst import PANEL_LOCATION_INFO, PANEL_ROUTE, PANEL_MISSIONS, PANEL_INCURSIONS, PANEL_FACTIONAL_WARFARE, PANEL_PLANETARY_INTERACTION, PANEL_SHIP_TREE, PANEL_ACHIEVEMENTS, PANEL_QUESTS
+from infoPanelConst import PANEL_LOCATION_INFO, PANEL_ROUTE, PANEL_MISSIONS, PANEL_INCURSIONS, PANEL_FACTIONAL_WARFARE
+from infoPanelConst import PANEL_PLANETARY_INTERACTION, PANEL_SHIP_TREE, PANEL_ACHIEVEMENTS, PANEL_QUESTS
+from infoPanelConst import PANEL_CHALLENGES
 import infoPanelConst
 from infoPanelShipTree import InfoPanelShipTree
 from infoPanelLocationInfo import InfoPanelLocationInfo
@@ -40,7 +43,9 @@ class InfoPanelSvc(service.Service):
      'OnEntitySelectionChanged',
      'OnPostCfgDataChanged',
      'OnMissionTrackerUpdate',
-     'OnItemsChanged']
+     'OnItemsChanged',
+     'OnChallengeProgressUpdate',
+     'OnChallengeCompleted']
 
     def OnItemsChanged(self, items, change):
         shipHold = [const.flagCargo,
@@ -170,6 +175,8 @@ class InfoPanelSvc(service.Service):
             return InfoPanelAchievements
         if panelTypeID == PANEL_QUESTS:
             return InfoPanelQuests
+        if panelTypeID == PANEL_CHALLENGES:
+            return InfoPanelChallenges
 
     def GetModeForPanel(self, panelTypeID):
         settingsEntry = self.GetPanelSettingsEntryByTypeID(panelTypeID)
@@ -366,6 +373,10 @@ class InfoPanelSvc(service.Service):
         self.UpdatePanel(PANEL_INCURSIONS)
 
     @telemetry.ZONE_FUNCTION
+    def UpdateChallengesPanel(self):
+        self.UpdatePanel(PANEL_CHALLENGES)
+
+    @telemetry.ZONE_FUNCTION
     def UpdatePanel(self, panelTypeID):
         if not session.charid:
             return
@@ -442,8 +453,13 @@ class InfoPanelSvc(service.Service):
     def GetSolarSystemTrace(self, itemID, altText=None, traceFontSize=12):
         if util.IsStation(itemID):
             solarSystemID = cfg.stations.Get(itemID).solarSystemID
-        else:
+        elif util.IsSolarSystem(itemID):
             solarSystemID = itemID
+        else:
+            structure = sm.GetService('structureDirectory').GetStructureInfo(itemID)
+            if structure is None:
+                raise RuntimeError('Invalid destination')
+            solarSystemID = structure.solarSystemID
         try:
             sec, col = util.FmtSystemSecStatus(sm.GetService('map').GetSecurityStatus(solarSystemID), 1)
             col.a = 1.0
@@ -495,3 +511,9 @@ class InfoPanelSvc(service.Service):
         elif systemStatus == const.contestionStateNone and returnNone:
             xtra = localization.GetByLabel('UI/Neocom/Uncontested')
         return xtra
+
+    def OnChallengeProgressUpdate(self, challengeID, newProgress):
+        self.UpdateChallengesPanel()
+
+    def OnChallengeCompleted(self, oldChallengeID, newChallenge):
+        self.UpdateChallengesPanel()

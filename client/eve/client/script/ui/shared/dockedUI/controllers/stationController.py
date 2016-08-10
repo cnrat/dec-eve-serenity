@@ -39,15 +39,6 @@ class StationController(BaseStationController):
     def DoesOfficeExist(self):
         return sm.GetService('corp').GetOffice() is not None
 
-    def CanRent(self):
-        return self._HasRole(const.corpRoleCanRentOffice)
-
-    def CanMoveHQ(self):
-        return self._HasRole(const.corpRoleDirector)
-
-    def _HasRole(self, corpRole):
-        return session.corprole & corpRole == corpRole
-
     def IsMyHQ(self):
         return sm.GetService('corp').GetCorporation().stationID == session.stationid2
 
@@ -197,7 +188,16 @@ class StationController(BaseStationController):
         pass
 
     def GetCurrentStateForService(self, serviceID):
-        return sm.GetService('station').GetServiceState(serviceID)
+        data = stationServiceConst.serviceDataByServiceID.get(serviceID, None)
+        if not data:
+            return
+        else:
+            for eachID in data.maskServiceIDs:
+                serviceState = sm.GetService('station').GetServiceState(eachID)
+                if serviceState:
+                    return serviceState
+
+            return
 
     def IsControlable(self):
         return False

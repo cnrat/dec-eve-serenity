@@ -21,7 +21,6 @@ TRANSLATETBL = '                               ! #$%&\\  ()*+,-./0123456789:;<=>
 
 class MapSvc(service.Service):
     __guid__ = 'svc.map'
-    __notifyevents__ = ['OnSessionChanged']
     __servicename__ = 'map'
     __displayname__ = 'Map Client Service'
     __update_on_reload__ = 0
@@ -40,10 +39,6 @@ class MapSvc(service.Service):
             self.LogInfo('Map svc')
             self.Reset()
             return
-
-    def OnSessionChanged(self, isRemote, sess, change):
-        if 'charid' in change:
-            self.__PurgeOldCachedMap2dData()
 
     def Reset(self):
         self.LogInfo('MapSvc Reset')
@@ -121,26 +116,14 @@ class MapSvc(service.Service):
 
     @telemetry.ZONE_METHOD
     def GetSolarsystemItems(self, solarsystemID, requireLocalizedTexts=True, doYields=False):
-        local, playerStations = uthread.parallel([(cfg.GetLocationsLocalBySystem, (solarsystemID, requireLocalizedTexts, doYields)), (sm.RemoteSvc('config').GetDynamicCelestials, (solarsystemID,))], contextSuffix='GetSolarsystemItems')
+        local, playerStations, structures = uthread.parallel([(cfg.GetLocationsLocalBySystem, (solarsystemID, requireLocalizedTexts, doYields)), (sm.RemoteSvc('config').GetDynamicCelestials, (solarsystemID,)), (sm.GetService('structureDirectory').GetStructureMapData, (solarsystemID,))], contextSuffix='GetSolarsystemItems')
         for station in playerStations:
             local.InsertNew(station)
 
+        for structure in structures:
+            local.InsertNew(structure)
+
         return local
-
-    def __PurgeOldCachedMap2dData(self):
-        try:
-            settingKeys = settings.user.ui.GetValues()
-            toRemove = []
-            for key in settingKeys.keys():
-                if isinstance(key, str) and key.startswith('map2d_'):
-                    toRemove.append(key)
-
-            for key in toRemove:
-                settings.user.ui.Delete(key)
-                log.LogInfo('Successfully removed old F11 map cache data: %s' % key)
-
-        except:
-            log.LogException('Failed to purge old map cache out of settings')
 
     def GetMapConnectionCache(self):
         if self.mapconnectionscache is None:
@@ -213,6 +196,18 @@ class MapSvc(service.Service):
             return (const.locationUniverse,
              solarSystem.regionID,
              solarSystem.constellationID,
+             ssID,
+             locationID)
+        ssID = cfg.evelocations.Get(locationID).solarSystemID
+        if ssID is None:
+            structureInfo = sm.GetService('structureDirectory').GetStructureInfo(locationID)
+            if structureInfo is not None:
+                ssID = structureInfo.solarSystemID
+        if ssID is not None:
+            mapData = cfg.mapSystemCache.Get(ssID)
+            return (const.locationUniverse,
+             mapData.regionID,
+             mapData.constellationID,
              ssID,
              locationID)
         else:

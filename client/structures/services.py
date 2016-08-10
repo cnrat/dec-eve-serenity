@@ -60,6 +60,13 @@ SERVICES_ACCESS_SETTINGS = {SERVICE_FITTING: structures.SETTING_HOUSING_CAN_DOCK
  SERVICE_MARKET: structures.SETTING_MARKET_TAX,
  SERVICE_MEDICAL: structures.SETTING_CLONINGBAY_TAX}
 ONLINE_SERVICES = {SERVICE_FITTING, SERVICE_DOCKING, SERVICE_OFFICES}
+SERVICE_ICONS = {SERVICE_DOCKING: 'res:/UI/Texture/classes/ProfileSettings/docking.png',
+ SERVICE_FITTING: 'res:/UI/Texture/classes/ProfileSettings/fitting.png',
+ SERVICE_OFFICES: 'res:/UI/Texture/classes/ProfileSettings/corpOffice.png',
+ SERVICE_REPROCESSING: 'res:/UI/Texture/classes/ProfileSettings/reprocess.png',
+ SERVICE_MARKET: 'res:/UI/Texture/classes/ProfileSettings/market.png',
+ SERVICE_MEDICAL: 'res:/UI/Texture/classes/ProfileSettings/cloneBay.png',
+ SERVICE_JUMP_CLONE: 'res:/UI/Texture/classes/ProfileSettings/cloneBay.png'}
 
 def GetServiceID(typeID):
     return MODULES_TO_SERVICES[typeID]

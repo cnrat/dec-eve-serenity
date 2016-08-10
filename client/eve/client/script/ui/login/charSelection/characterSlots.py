@@ -14,6 +14,7 @@ import localization
 import math
 import base
 import evetypes
+import inventorycommon.typeHelpers
 from eve.client.script.ui.shared.radialMenu.radialMenu import ThreePartContainer
 from carbonui.primitives.container import Container
 import eve.client.script.ui.login.charSelection.characterSelectionUtils as csUtil
@@ -805,7 +806,7 @@ class CharacterDetailsLocation(Container):
         try:
             graphicID = evetypes.GetGraphicID(currentShipTypeID)
             if graphicID is not None:
-                texturePath = cfg.graphics.Get(graphicID).isisIconPath
+                texturePath = inventorycommon.typeHelpers.GetHoloIconPath(currentShipTypeID)
         except AttributeError as e:
             log.LogException(e)
 

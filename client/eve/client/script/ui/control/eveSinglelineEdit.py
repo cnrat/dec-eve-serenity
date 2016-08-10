@@ -34,6 +34,7 @@ class SinglelineEdit(SinglelineEditCore):
         self.isTypeField = attributes.isTypeField
         self.isCharacterField = attributes.isCharacterField
         self.isCharCorpOrAllianceField = attributes.isCharCorpOrAllianceField
+        self.isLocationField = attributes.isLocationField
 
     def Close(self):
         if self.capsWarning:
@@ -67,6 +68,8 @@ class SinglelineEdit(SinglelineEditCore):
         SinglelineEditCore.OnDropData(self, dragObj, nodes)
         if self.isTypeField:
             self.OnDropType(dragObj, nodes)
+        elif self.isLocationField:
+            self.OnDropLocation(dragObj, nodes)
         if self.isCharCorpOrAllianceField:
             self.OndDropCharCorpOrAlliance(dragObj, nodes)
         elif self.isCharacterField:
@@ -82,20 +85,38 @@ class SinglelineEdit(SinglelineEditCore):
             typeID = getattr(node, 'typeID', None)
         if typeID:
             typeName = evetypes.GetName(typeID)
-            self.SetValue(typeName)
+            self.SetValueAfterDragging(typeName, draggedValue=typeID)
+        return
+
+    def OnDropLocation(self, dragObj, nodes):
+        node = nodes[0]
+        guid = node.Get('__guid__', None)
+        locationItemID = None
+        itemID = GetItemIDFromTextLink(node, None)
+        if itemID and cfg.evelocations.GetIfExists(itemID):
+            locationItemID = itemID
+        elif guid in ('xtriui.ListSurroundingsBtn', 'listentry.LocationTextEntry', 'listentry.LabelLocationTextTop', 'listentry.LocationGroup', 'listentry.LocationSearchItem'):
+            if node.itemID and cfg.evelocations.GetIfExists(node.itemID):
+                locationItemID = node.itemID
+        if locationItemID:
+            self.SetValueAfterDragging(cfg.evelocations.Get(locationItemID).name, locationItemID)
         return
 
     def OnDropCharacter(self, dragObj, nodes):
-        charName = GetDroppedCharName(nodes[0])
-        if charName is not None:
-            self.SetValue(charName)
+        charInfo = GetDroppedCharInfo(nodes[0])
+        if charInfo is not None:
+            self.SetValueAfterDragging(charInfo.charName, charInfo.charID)
         return
 
     def OndDropCharCorpOrAlliance(self, dragObj, nodes):
-        itemName = GetDroppedCharCorpOrAllianceName(nodes[0])
-        if itemName is not None:
-            self.SetValue(itemName)
+        itemInfo = GetDroppedCharCorpOrAllianceName(nodes[0])
+        if itemInfo is not None:
+            self.SetValueAfterDragging(itemInfo.itemName, itemID=itemID)
         return
+
+    def SetValueAfterDragging(self, name, draggedValue):
+        self.SetValue(name)
+        self.draggedValue = draggedValue
 
     def UpdateCapsState(self):
         if not self.capsWarning or self.capsWarning.destroyed or self.destroyed:
@@ -126,12 +147,12 @@ def GetDroppedCharCorpOrAllianceName(node):
         itemID = node.itemID
     if util.IsCharacter(itemID) or util.IsCorporation(itemID) or util.IsAlliance(itemID):
         itemName = cfg.eveowners.Get(itemID).name
-        return itemName
+        return util.KeyVal(itemName=itemName, itemID=itemID)
     else:
         return
 
 
-def GetDroppedCharName(node):
+def GetDroppedCharInfo(node):
     if not IsUserNode(node):
         return
     charID = GetCharIDFromTextLink(node)
@@ -139,7 +160,7 @@ def GetDroppedCharName(node):
         charID = node.charID
     if util.IsCharacter(charID):
         charName = cfg.eveowners.Get(charID).name
-        return charName
+        return util.KeyVal(charName=charName, charID=charID)
     else:
         return
 

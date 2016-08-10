@@ -21,7 +21,6 @@ class MessageParentClass(uiprimitives.Container):
 
     def ApplyAttributes(self, attributes):
         uiprimitives.Container.ApplyAttributes(self, attributes)
-        self.layerOffset = uicore.layer.abovemain.absoluteLeft
         self.myLayer = uicore.layer.abovemain
         self.minTop = 0
         config = settings.char.ui.Get(self.configName, self.defaultConfig)
@@ -48,7 +47,7 @@ class MessageParentClass(uiprimitives.Container):
         uicore.animations.SpSwoopBlink(self.dragFill, rotation=math.pi - 0.5, duration=1.5, loops=10)
 
     def BeginDrag(self, *args):
-        layerOffset = self.layerOffset
+        layerOffset = self.GetLayerOffset()
         mouseX = uicore.uilib.x - layerOffset
         self.lastx = mouseX
         fromTop = self.absoluteTop - uicore.uilib.y
@@ -56,8 +55,11 @@ class MessageParentClass(uiprimitives.Container):
             self.CalculateRepositioning(fromTop)
             blue.pyos.synchro.SleepWallclock(1)
 
+    def GetLayerOffset(self):
+        return uicore.layer.abovemain.absoluteLeft
+
     def CalculateRepositioning(self, fromTop, *args):
-        mouseX = uicore.uilib.x - self.layerOffset
+        mouseX = uicore.uilib.x - self.GetLayerOffset()
         xDiff = mouseX - self.lastx
         uicore.uilib.SetCursor(uiconst.UICURSOR_NONE)
         self.top = max(self.minTop, uicore.uilib.y + fromTop)
@@ -66,7 +68,7 @@ class MessageParentClass(uiprimitives.Container):
         self.lastx = mouseX
 
     def DoAlignment(self, xDiff=0, *args):
-        layerOffset = self.layerOffset
+        layerOffset = self.GetLayerOffset()
         if self.myLayer.display:
             fullWidth, fullHeight = self.myLayer.GetAbsoluteSize()
         else:
@@ -168,6 +170,9 @@ class Message(MessageParentClass):
         self.allLabels = []
         self.pureText = ''
         return
+
+    def GetLayerOffset(self):
+        pass
 
     def GetDefaultAlignmentValues(self, *args):
         offset = sm.GetService('window').GetCameraLeftOffset(300, align=uiconst.CENTERTOP, left=0)
@@ -291,7 +296,6 @@ class CombatMessage(MessageParentClass):
         self.settingNameAlign = 'dmgnotifictions_alignment'
         self.defaultConfig = self.GetDefaultAlignmentValues()
         MessageParentClass.ApplyAttributes(self, attributes)
-        self.layerOffset = uicore.layer.target.absoluteLeft
         self.myLayer = uicore.layer.target
         self.minTop = -40
         self.scope = 'station_inflight'
@@ -300,6 +304,9 @@ class CombatMessage(MessageParentClass):
         self.noDamageDict = {}
         self.messageCounter = collections.deque([], maxlen=8 * numMessagePerSec)
         uthread.new(self.ShowMsg)
+
+    def GetLayerOffset(self):
+        return uicore.layer.target.absoluteLeft
 
     def GetDefaultAlignmentValues(self, *args):
         offset = sm.GetService('window').GetCameraLeftOffset(300, align=uiconst.CENTERTOP, left=0)
@@ -384,6 +391,10 @@ class CombatMessage(MessageParentClass):
 
             finally:
                 blue.pyos.synchro.SleepWallclock(self.messageSleepTime)
+
+    def AddActionMessage(self, text):
+        now = blue.os.GetWallclockTime()
+        self.messageList.append((now, text))
 
     def AddMessage(self, text, hitQuality, attackerID, *args):
         now = blue.os.GetWallclockTime()

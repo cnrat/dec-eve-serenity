@@ -19,6 +19,9 @@ class StructureGuests(service.Service):
                     self.guests = sm.RemoteSvc('structureGuests').GetGuests(session.structureid)
         return self.guests or {}
 
+    def IsGuest(self, charID):
+        return charID in self.GetGuests()
+
     def DoSessionChanging(self, isRemote, session, change):
         if 'structureid' in change:
             self.guests = None

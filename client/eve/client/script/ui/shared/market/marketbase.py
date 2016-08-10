@@ -2363,10 +2363,22 @@ class MarketData(uiprimitives.Container):
         self.loading = what
         headers = [self.buyheaders, self.sellheaders][what == 'sell']
         marketUtil = sm.GetService('marketutils')
+        marketQuoteSvc = sm.GetService('marketQuote')
         funcs = marketUtil.GetFuncMaps()
 
         def IsOrderASellWithinReach(order):
-            return what == 'sell' and (order.jumps <= order.range or eve.session.stationid and order.range == -1 and order.stationID == eve.session.stationid or eve.session.solarsystemid and order.jumps == 0)
+            if what != 'sell':
+                return False
+            dockedLocationID = session.stationid or session.structureid
+            if marketQuoteSvc.SkipBidDueToStructureRestrictions(order, dockedLocationID):
+                return False
+            if order.jumps <= order.range:
+                return True
+            if session.stationid and order.range == -1 and order.stationID == session.stationid:
+                return True
+            if session.solarsystemid and order.jumps == 0:
+                return True
+            return False
 
         usingFilters = self.GetFilters2()[0]
         foundCounter = 0

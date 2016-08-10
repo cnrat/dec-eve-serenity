@@ -68,6 +68,14 @@ def CreateMovementConnector(sourceObject, destObject):
     return connector
 
 
+def CreateOrbitConenctor(sourceObject, destObject):
+    lineController = lc.LineController.GetGlobalInstance()
+    connector = lineController.CreateConnector(lc.LINE_CONNECTOR_ORBIT, sourceObject, destObject)
+    connector.SetWidth(DEFAULT_LINE_WIDTH)
+    connector.SetColor(ColorCombination(COLOR_MOVE, ALPHA_MEDIUM))
+    return connector
+
+
 def CreateAgressionConnector(sourceObject, destObject):
     lineController = lc.LineController.GetGlobalInstance()
     connector = lineController.CreateConnector(lc.LINE_CONNECTOR_MOVING, sourceObject, destObject)

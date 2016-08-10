@@ -385,14 +385,20 @@ class MarketQuote(Service):
 
         return
 
-    def GetBestBid(self, typeID, locationID=None):
+    def GetBestBidWithStationID(self, item, locationID):
+        stationID = sm.GetService('invCache').GetStationIDOfItem(item)
+        return self.GetBestBid(item.typeID, locationID, stationID)
+
+    def GetBestBid(self, typeID, locationID, stationID=None):
         self.RefreshOrderCache(typeID)
         self.RefreshJumps(typeID, locationID=locationID)
         bids = self.orderCache[typeID][1]
-        if len(bids) > 0:
-            return bids[0]
-        else:
-            return None
+        for bid in bids:
+            if self.SkipBidDueToStructureRestrictions(bid, stationID):
+                continue
+            return bid
+
+        return None
 
     def GetSellCountEstimate(self, typeID, stationID, price, maxToSell):
         estimate = 0
@@ -422,18 +428,34 @@ class MarketQuote(Service):
             volIdx = bids.columns.index('volRemaining')
             staIdx = bids.columns.index('stationID')
             for x in bids:
-                if (x[jmpIdx] <= x[rngIdx] or x[rngIdx] == const.rangeStation and x[staIdx] == stationID) and (x[minIdx] <= amount or x[volIdx] < x[minIdx] and amount == x[volIdx]):
+                bidJumps = x[jmpIdx]
+                bidRange = x[rngIdx]
+                bidStationID = x[staIdx]
+                bidIsInRange = bidJumps <= bidRange or bidRange == const.rangeStation and bidStationID == stationID
+                bidMinAmount = x[minIdx]
+                bidVolRemaining = x[volIdx]
+                bidAmountIsOk = bidMinAmount <= amount or bidVolRemaining < bidMinAmount and amount >= bidVolRemaining
+                isGoodCandidate = bidIsInRange and bidAmountIsOk
+                if isGoodCandidate and not self.SkipBidDueToStructureRestrictions(x, stationID):
                     candidates.append(x)
 
             return candidates
+
+    def SkipBidDueToStructureRestrictions(self, bid, itemStationID):
+        if util.IsStation(itemStationID) and util.IsStation(bid.stationID):
+            return False
+        inStructure = itemStationID and not util.IsStation(itemStationID)
+        if inStructure and bid.stationID != itemStationID:
+            return True
+        return False
 
     def GetSolarSystemForMarketLocation(self, stationID):
         if util.IsStation(stationID):
             station = sm.GetService('ui').GetStation(stationID)
             return station.solarSystemID
         else:
-            structure = sm.GetService('invCache').GetInventoryFromId(stationID).GetItem()
-            return structure.locationID
+            structureInfo = sm.GetService('structureDirectory').GetStructureInfo(stationID)
+            return structureInfo.solarSystemID
 
     def GetBestMatchableBid(self, typeID, stationID, amount=1, solarSystemID=None):
         bids = self.GetMatchableBids(typeID, stationID, amount, solarSystemID=solarSystemID)

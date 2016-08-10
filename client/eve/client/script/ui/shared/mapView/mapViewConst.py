@@ -54,7 +54,8 @@ VIEWMODE_MARKERS_OPTIONS = [const.groupScannerProbe,
  const.groupSatellite,
  const.groupStargate,
  const.groupSovereigntyClaimMarkers,
- const.groupSun]
+ const.groupSun,
+ const.groupStructureCitadel]
 VIEWMODE_MARKERS_DEFAULT = VIEWMODE_MARKERS_OPTIONS + VIEWMODE_MARKERS_OPTIONS_CUSTOM
 VIEWMODE_MARKERS_OVERLAP_SORT_ORDER = [const.groupStargate,
  const.groupAsteroidBelt,

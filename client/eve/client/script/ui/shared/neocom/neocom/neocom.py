@@ -6,6 +6,7 @@ from eve.client.script.ui.control.resourceLoadingIndicator import ResourceLoadin
 from eve.client.script.ui.control.eveWindowUnderlay import BlurredSceneUnderlay
 from eve.client.script.ui.shared.neocom.neocom import neocomCommon
 from eve.client.script.ui.shared.neocom.neocom.neocomButtons import ButtonGroup
+from gametime.ingameclock import InGameClock
 import uiprimitives
 import uicontrols
 import util
@@ -17,6 +18,7 @@ import service
 import uiutil
 import trinity
 import telemetry
+from eve.client.script.ui.shared.neocom.neocom.neocomWalletUpdater import WalletUpdater
 
 class Neocom(uiprimitives.Container):
     __guid__ = 'neocom.Neocom'
@@ -27,7 +29,8 @@ class Neocom(uiprimitives.Container):
      'OnEveMenuClosed',
      'OnCameraDragStart',
      'OnCameraDragEnd',
-     'OnQuestCompletedClient']
+     'OnQuestCompletedClient',
+     'OnPersonalAccountChangedClient']
     default_name = 'Neocom'
     default_align = uiconst.TOLEFT
     default_state = uiconst.UI_NORMAL
@@ -36,10 +39,31 @@ class Neocom(uiprimitives.Container):
     NEOCOM_MINSIZE = 32
     NEOCOM_MAXSIZE = 64
 
+    def OnPersonalAccountChangedClient(self, originalBalance, transaction):
+        blue.synchro.Sleep(1)
+        if self.isShowingWalletPopup:
+            self.waitingTransactionMessages.append((originalBalance, transaction))
+        else:
+            self.ShowWalletPopup(originalBalance, transaction)
+
+    def ShowWalletPopup(self, originalBalance, transaction):
+        threshold = settings.char.ui.Get('iskNotifyThreshold', 0)
+        enabled = settings.char.ui.Get('walletShowBalanceUpdates', True)
+        if enabled and abs(transaction) >= threshold:
+            self.isShowingWalletPopup = True
+            updater = WalletUpdater(startBalance=originalBalance, transaction=transaction, finishedCallBack=self.OnWalletFinished)
+            updater.ShowBalanceChange(self)
+
+    def OnWalletFinished(self):
+        if len(self.waitingTransactionMessages) > 0:
+            balance, transaction = self.waitingTransactionMessages.pop(0)
+            self.ShowWalletPopup(balance, transaction)
+        else:
+            self.isShowingWalletPopup = False
+
     def ApplyAttributes(self, attributes):
         uiprimitives.Container.ApplyAttributes(self, attributes)
         sm.RegisterNotify(self)
-        self.updateClockThread = None
         self.autoHideActive = settings.char.ui.Get('neocomAutoHideActive', False)
         self.align = settings.char.ui.Get('neocomAlign', self.default_align)
         self.isHidden = False
@@ -48,6 +72,8 @@ class Neocom(uiprimitives.Container):
         self.updateSkillThread = None
         self.buttonDragOffset = None
         self.dragOverBtn = None
+        self.isShowingWalletPopup = False
+        self.waitingTransactionMessages = []
         self.width = settings.user.windows.Get('neocomWidth', self.default_width)
         self.resizeLineCont = uiprimitives.Container(parent=self, name='resizeLineCont', align=uiconst.TOALL)
         self.mainCont = uiprimitives.Container(parent=self, name='mainCont', align=uiconst.TOALL)
@@ -56,7 +82,7 @@ class Neocom(uiprimitives.Container):
         self._ConstructClock()
         self._ConstructCharCont()
         self.UpdateButtons()
-        self.UpdateClock()
+        self.clock.update_clock()
         if self.autoHideActive:
             self.HideNeocom()
         isElevated = eve.session.role & service.ROLEMASK_ELEVATEDPLAYER
@@ -214,23 +240,8 @@ class Neocom(uiprimitives.Container):
             self.CheckOverflow()
 
     def _ConstructClock(self):
-        clockMain = uiprimitives.Container(parent=self.clockCont, align=uiconst.TOALL)
+        self.clock = InGameClock(parent=self.clockCont, align=uiconst.TOALL, label_font_size=11)
         uiprimitives.Fill(parent=self.clockCont, color=self.COLOR_CORNERFILL)
-        self.clockLabel = uicontrols.Label(parent=clockMain, name='clockLabel', align=uiconst.CENTER, fontsize=11)
-
-    def UpdateClock(self):
-        if self.updateClockThread:
-            self.updateClockThread.kill()
-        self.updateClockThread = uthread.new(self._UpdateClock)
-
-    def _UpdateClock(self):
-        chinaOffset = 0
-        if boot.region == 'optic':
-            chinaOffset = 8 * const.HOUR
-        while not self.destroyed:
-            year, month, weekday, day, hour, minute, second, msec = blue.os.GetTimeParts(blue.os.GetTime() + chinaOffset)
-            self.clockLabel.text = '<b>%2.2i:%2.2i' % (hour, minute)
-            blue.synchro.SleepWallclock(5000)
 
     def GetMenu(self):
         return sm.GetService('neocom').GetMenu()

@@ -193,15 +193,16 @@ class ListWindow(uicontrols.Window):
     def AddEntry(self, info):
         confirmOnDblClick = self.minChoices == self.maxChoices == 1
         if self.listtype in ('character', 'corporation', 'alliance', 'faction', 'owner'):
+            name, itemID, typeID = info
             typeExists = False
-            if info[2]:
-                typeExists = evetypes.Exists(info[2])
+            if typeID:
+                typeExists = evetypes.Exists(typeID)
             if not typeExists:
-                owner = cfg.eveowners.GetIfExists(info[1])
+                owner = cfg.eveowners.GetIfExists(itemID)
                 if owner:
                     typeExists = evetypes.Exists(owner.typeID)
             if typeExists:
-                charID = info[1]
+                charID = itemID
                 if util.IsCharacter(charID) and util.IsNPC(charID):
                     entryType = 'AgentEntry'
                 else:
@@ -209,7 +210,8 @@ class ListWindow(uicontrols.Window):
                 return (40, listentry.Get(entryType, {'charID': charID,
                   'OnDblClick': self.DblClickEntry,
                   'OnClick': self.ClickEntry,
-                  'dblconfirm': confirmOnDblClick}))
+                  'dblconfirm': confirmOnDblClick,
+                  'charIndex': name}))
         else:
             if self.listtype in ('pickStation',):
                 data = info

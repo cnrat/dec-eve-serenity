@@ -13,6 +13,7 @@ from eve.client.script.ui.control.eveLabel import EveLabelMedium
 import carbonui.const as uiconst
 from eve.client.script.ui.control.themeColored import FillThemeColored
 from eve.client.script.ui.shared.infoPanels.infoPanelControls import InfoPanelHeaderBackground
+from eve.client.script.ui.shared.infoPanels.infoPanelConst import TASK_ENTRY_UNCHECKED_TEXTURE_PATH
 from localization import GetByLabel
 import uthread
 import blue
@@ -67,7 +68,6 @@ class AchievementTaskEntry(ContainerAutoSize):
     default_clipChildren = False
     default_alignMode = uiconst.TOTOP
     checkedTexturePath = 'res:/UI/Texture/Classes/InfoPanels/opportunitiesCheck.png'
-    uncheckedTexturePath = 'res:/UI/Texture/Classes/InfoPanels/opportunitiesIncompleteBox.png'
     tooltipPointer = uiconst.POINT_LEFT_2
     achievementGroup = None
     autoShowDetails = False
@@ -87,7 +87,7 @@ class AchievementTaskEntry(ContainerAutoSize):
         self.achievementTask = attributes.achievement
         self.achievementGroup = attributes.achievementGroup
         self.callbackTaskExpanded = attributes.callbackTaskExpanded
-        self.checkbox = Sprite(parent=self.headerContainer, texturePath=self.uncheckedTexturePath, pos=(4, 3, 14, 14))
+        self.checkbox = Sprite(parent=self.headerContainer, texturePath=TASK_ENTRY_UNCHECKED_TEXTURE_PATH, pos=(4, 3, 14, 14))
         self.achievementText = EveLabelMedium(name='achievementText', text=self.achievementTask.name, parent=self.headerContainer, padLeft=2 * self.checkbox.left + self.checkbox.width, align=uiconst.TOTOP, padTop=2)
         self.UpdateAchievementTaskState()
         newHeight = max(self.checkbox.height + 2 * self.checkbox.top, self.achievementText.textheight + 2 * self.achievementText.padTop)
@@ -119,11 +119,11 @@ class AchievementTaskEntry(ContainerAutoSize):
         if not self.autoShowDetails:
             return
         else:
-            self.detailsParent = ContainerAutoSize(align=uiconst.TOTOP, parent=self, clipChildren=True)
+            self.detailsParent = ContainerAutoSize(align=uiconst.TOTOP, parent=self, clipChildren=True, sate=uiconst.UI_NORMAL)
             if self.callbackTaskExpanded:
                 self.callbackTaskExpanded(self)
             self.detailsParent.DisableAutoSize()
-            label = EveLabelMedium(parent=self.detailsParent, text=self.achievementTask.description, align=uiconst.TOTOP, padding=(6, 3, 6, 2))
+            label = EveLabelMedium(parent=self.detailsParent, text=self.achievementTask.description, align=uiconst.TOTOP, padding=(6, 3, 6, 2), state=uiconst.UI_NORMAL)
             extraInfo = ACHIEVEMENT_TASK_EXTRAINFO.get(self.achievementTask.achievementID, None)
             if extraInfo:
                 grid = LayoutGrid(parent=self.detailsParent, align=uiconst.TOTOP, cellPadding=2, columns=2, padding=4)
@@ -185,7 +185,7 @@ class AchievementTaskEntry(ContainerAutoSize):
             else:
                 self.completedFill.opacity = 0.5
         else:
-            self.checkbox.SetTexturePath(self.uncheckedTexturePath)
+            self.checkbox.SetTexturePath(TASK_ENTRY_UNCHECKED_TEXTURE_PATH)
             uicore.animations.FadeTo(self.completedFill, startVal=self.completedFill.opacity, endVal=0.0)
 
     def LoadTooltipPanel(self, tooltipPanel, *args, **kwds):

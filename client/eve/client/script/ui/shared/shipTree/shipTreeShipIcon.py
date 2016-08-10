@@ -45,7 +45,7 @@ class ShipTreeShipIcon(Container):
             self.techIcon = None
         self.iconTransform = Transform(parent=self, align=uiconst.TOALL, scalingCenter=(0.5, 0.5))
         try:
-            texturePath = inventorycommon.typeHelpers.GetGraphic(self.typeID).isisIconPath
+            texturePath = inventorycommon.typeHelpers.GetHoloIconPath(self.typeID)
         except AttributeError as e:
             texturePath = None
             log.LogException(e)

@@ -62,7 +62,7 @@ class DockedPanel(Window):
         item = inv.GetItem()
         shipName = GetShowInfoLink(item.typeID, cfg.evelocations.Get(activeShipID).name, itemID=activeShipID)
         self.ownerLabel = EveLabelMedium(name='ownerLabel', parent=self.sr.main, text=shipName, padLeft=10, align=uiconst.TOTOP, state=uiconst.UI_NORMAL)
-        texturePath = evetypes.inventorycommon.typeHelpers.GetGraphic(item.typeID).isisIconPath
+        texturePath = evetypes.inventorycommon.typeHelpers.GetHoloIconPath(item.typeID)
         cont = Container(parent=self.sr.main, name='shipCont', align=uiconst.TOTOP, height=128)
         sprite = Sprite(name='shipSprite', parent=cont, pos=(0, 0, 128, 128), align=uiconst.CENTER, texturePath=texturePath)
         sprite.GetMenu = (self.GetShipMenu, item)

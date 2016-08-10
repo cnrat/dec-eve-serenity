@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\spaceToSpaceTransition.py
 import geo2
+import evecamera
 import uthread
 import viewstate
 
@@ -22,7 +23,7 @@ class SpaceToSpaceTransition(viewstate.Transition):
 
     def _GetSolarSystemScene(self, destSolarSystemID):
         sceneRes = self.sceneManager.GetSceneForSystem(destSolarSystemID)
-        return self.sceneManager.LoadScene(sceneRes, inflight=False, registerKey='default', setupCamera=True, applyScene=False)[0]
+        return self.sceneManager.LoadScene(sceneRes, registerKey='default', applyScene=False)[0]
 
     def _GetClosest(self, position, rowSet, maxDist):
         closestDist = float('inf')
@@ -47,14 +48,13 @@ class SpaceToSpaceTransition(viewstate.Transition):
         return
 
     def _GetSceneFromPath(self, path):
-        return self.sceneManager.LoadScene(path, inflight=False, registerKey='default', setupCamera=True, applyScene=False)[0]
+        return self.sceneManager.LoadScene(path, registerKey='default', applyScene=False)[0]
 
     def _ApplySceneInflightAttribs(self, scene, camera):
-        self.sceneManager.ApplyScene(scene, None, 'default')
+        self.sceneManager.ApplyScene(scene, 'default')
         self.sceneManager.ApplySolarsystemAttributes(scene, camera)
         self.sceneManager.ApplySceneInflightAttributes(scene, camera)
         self.sceneManager.AddPersistentSpaceObjects(scene)
-        return
 
     def _SetScene(self, scene):
         self.sceneManager.SetActiveScene(scene, 'default')

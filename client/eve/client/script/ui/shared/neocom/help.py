@@ -238,7 +238,7 @@ class HelpWindow(uicontrols.Window):
              'showlen': 0,
              'index': index,
              'state': 'locked',
-             'id': 'tutorialvideocat_%s' % index}
+             'id': ('tutorialvideo', 'tutorialvideocat_%s' % index)}
             scrolllist.append(listentry.Get('Group', data))
 
         scroll = uicontrols.Scroll(parent=panel, align=uiconst.TOALL)

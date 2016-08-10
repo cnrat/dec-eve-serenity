@@ -97,6 +97,9 @@ class ScannerToolsPalette(Container):
         self.resultScroll.HideBackground()
         self.resultScroll.OnSelectionChange = self.OnSelectionChange
         self.sortHeaders = ScrollColumnHeader(parent=self.resultScroll, settingsID='probescannerwindow_resultScrollList', idx=0, scroll=self.resultScroll, entryClass=ScanResultNew)
+        for header in self.sortHeaders.headers:
+            header.OnClick = (self.OnResultHeaderClicked, header)
+
         self.resultHeaderContent = LayoutGrid(parent=resultMenu.headerParent, align=uiconst.CENTERRIGHT, columns=2, cellPadding=(0, 0, 3, 0), left=1)
         BumpedUnderlay(bgParent=resultMenu.content, name='background')
         self.formationButtonsByID = {}
@@ -687,3 +690,7 @@ class ScannerToolsPalette(Container):
 
     def OnReconnectToProbesAvailable(self):
         self.CheckButtonStates()
+
+    def OnResultHeaderClicked(self, header):
+        self.LoadResultList()
+        self.sortHeaders.ClickHeader(header)

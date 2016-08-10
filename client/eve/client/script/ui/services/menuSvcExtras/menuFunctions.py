@@ -135,7 +135,8 @@ def TryLookAt(itemID, radius=None):
     isSiteBall = sm.GetService('sensorSuite').IsSiteBall(itemID)
     if not slimItem and not isSiteBall:
         return
-    sm.GetService('sceneManager').GetActiveCamera().LookAt(itemID, objRadius=radius)
+    camera = sm.GetService('sceneManager').GetActiveCamera()
+    camera.LookAt(itemID, objRadius=radius)
 
 
 def ToggleLookAt(itemID, radius=None):
@@ -441,6 +442,10 @@ def ActivateSkillInjector(itemID, quantity):
     key = 'ActivateSkillInjectorConfirmation'
     if eve.Message(key, parameters, uiconst.YESNO) == uiconst.ID_YES:
         sm.GetService('skills').ActivateSkillInjector(itemID, quantity)
+
+
+def OpenCrate(typeID, itemID, stacksize):
+    form.CrateWindow.Open(typeID=typeID, itemID=itemID, stacksize=stacksize)
 
 
 def AbortSelfDestructShip(pickid):

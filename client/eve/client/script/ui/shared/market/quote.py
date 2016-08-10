@@ -566,7 +566,6 @@ class MarketActionWindow(uicontrols.Window):
         self.clipChildren = 1
         self.scope = 'station_inflight'
         self.sr.currentOrder = None
-        self.sr.sellItem = None
         self.sr.stationID = None
         self.quantity = None
         self.remoteBuyLocation = None
@@ -608,10 +607,6 @@ class MarketActionWindow(uicontrols.Window):
         self.range = None
         self.useCorp = None
         return
-
-    def _OnClose(self, *args):
-        if self.sr.sellItem:
-            sm.StartService('invCache').UnlockItem(self.sr.sellItem.itemID)
 
     def FlushMain(self, fromObject):
         uiutil.FlushList(self.sr.main.children[fromObject:])
@@ -691,15 +686,7 @@ class MarketActionWindow(uicontrols.Window):
                 self.AddCombo(localization.GetByLabel('UI/Market/MarketQuote/Duration'), self.durations, duration2, 'duration', refName='duration')
             else:
                 self.AddCombo(localization.GetByLabel('UI/Market/MarketQuote/Duration'), self.durations[0:1], 0, 'duration', refName='duration')
-            if not session.stationid == locationID and (order or session.stationid is None or forceRange):
-                ranges = [self.ranges[0]]
-                if canRemoteTrade:
-                    for range in self.ranges[1:]:
-                        if range[1] <= limits['vis'] or limits['vis'] > self.ranges[-1][1]:
-                            ranges.append(range)
-
-            else:
-                ranges = self.ranges
+            ranges = self._GetAvailableRanges(canRemoteTrade, locationID, forceRange, limits, order)
             firstRange = const.rangeStation
             buySettings = settings.user.ui.Get('buydefault', {})
             if buySettings and buySettings.has_key('range'):
@@ -730,6 +717,23 @@ class MarketActionWindow(uicontrols.Window):
             self.UpdateTotals()
             return
 
+    def _GetAvailableRanges(self, canRemoteTrade, locationID, forceRange, limits, order):
+        atSelectedLocation = session.stationid == locationID or session.structureid == locationID
+        if atSelectedLocation:
+            return self.ranges
+        else:
+            notDocked = session.stationid is None and session.structureid is None
+            if order or notDocked or forceRange:
+                ranges = [self.ranges[0]]
+                if canRemoteTrade:
+                    for range in self.ranges[1:]:
+                        if range[1] <= limits['vis'] or limits['vis'] > self.ranges[-1][1]:
+                            ranges.append(range)
+
+            else:
+                ranges = self.ranges
+            return ranges
+
     def MakeCorpCheckboxMaybe(self):
         if session.corprole & (const.corpRoleAccountant | const.corpRoleTrader):
             n = sm.GetService('corp').GetMyCorpAccountName()
@@ -747,8 +751,6 @@ class MarketActionWindow(uicontrols.Window):
         if not ignoreAdvanced:
             settings.char.ui.Set('advancedBuyWnd', 0)
         self.remoteBuyLocation = None
-        if self.sr.sellItem:
-            sm.StartService('invCache').UnlockItem(self.sr.sellItem.itemID)
         self.SetMinSize([400, 220], 1)
         quote = sm.GetService('marketQuote')
         averagePrice = quote.GetAveragePrice(typeID)
@@ -1148,32 +1150,10 @@ class MarketActionWindow(uicontrols.Window):
 
     def OnChanged_quantityThread(self, quantity):
         try:
-            if self.loading == 'sell':
-                if quantity is None or len(quantity) == 0:
-                    quantity = 1
-                quantity = max(1, long(quantity))
-                quote = sm.GetService('marketQuote')
-                bestBid = quote.GetBestMatchableBid(self.typeID, self.sr.stationID, quantity)
-                if bestBid:
-                    if bestBid.price > self.sr.price.GetValue():
-                        self.sr.price.SetValue(bestBid.price)
-                    if self.sr.matchText:
-                        averagePrice = sm.GetService('marketQuote').GetAveragePrice(self.typeID)
-                        p = {'price': bestBid.price,
-                         'percentage': round(100 * (bestBid.price - averagePrice) / averagePrice, 2),
-                         'aboveBelow': localization.GetByLabel('UI/Market/MarketQuote/PercentBelow') if bestBid.price < averagePrice else localization.GetByLabel('UI/Market/MarketQuote/PercentAbove'),
-                         'volRemaining': int(bestBid.volRemaining)}
-                        self.sr.matchText.text = localization.GetByLabel('UI/Market/MarketQuote/BestBidDisplay', **p)
-                        self.CheckHeights(self.sr.matchText, 'matchText')
-                elif self.sr.matchText:
-                    self.sr.matchText.text = localization.GetByLabel('UI/Market/MarketQuote/NoMatchBid')
-                    self.CheckHeights(self.sr.matchText, 'matchText')
             self.UpdateTotals()
         except:
             log.LogException()
             sys.exc_clear()
-
-        return
 
     def OnEditChange(self, *args):
         if not self or self.destroyed:
@@ -1254,7 +1234,10 @@ class MarketActionWindow(uicontrols.Window):
                     sumTotal = price * quantity
                 color = 'green'
                 if sumTotal - tax - fee < 0.0:
-                    color = 'red'
+                    if sm.GetService('experimentClientSvc').IsMinorImprovementsEnabled():
+                        color = 'white'
+                    else:
+                        color = 'red'
                 self.sr.totalOrder.text = '<color=%s>' % color + util.FmtISK(abs(sumTotal - tax - fee))
                 self.CheckHeights(self.sr.totalOrder, 'totalOrder')
             if self.loading == 'buy':
@@ -1312,39 +1295,7 @@ class MarketActionWindow(uicontrols.Window):
                     self.sr.price_rightText.text = bestMatchText
                     self.CheckHeights(self.sr.price_rightText, 'price_rightText')
             elif self.loading == 'sell':
-                if not self.destroyed and hasattr(self, 'sr') and self.sr.Get('quoteText') and not self.sr.quoteText.destroyed:
-                    bestBidKey = (self.typeID, self.sr.solarSystemID)
-                    bestBid = self.bestBidDict.get(bestBidKey, -1)
-                    if bestBid == -1:
-                        bestBid = quote.GetBestBid(self.typeID, locationID=self.sr.solarSystemID)
-                        self.bestBidDict[bestBidKey] = bestBid
-                    if bestBid:
-                        jumps = max(bestBid.jumps - max(0, bestBid.range), 0)
-                        if jumps == 0 and self.sr.stationID == bestBid.stationID:
-                            jumpText = localization.GetByLabel('UI/Market/MarketQuote/ItemsInSameStation')
-                        else:
-                            jumpText = localization.GetByLabel('UI/Market/MarketQuote/JumpsFromThisSystem', jumps=jumps)
-                        p = {'minVolumeText': '',
-                         'price': bestBid.price,
-                         'volRemaining': long(bestBid.volRemaining),
-                         'jumpText': jumpText}
-                        if bestBid.minVolume > 1 and bestBid.volRemaining >= bestBid.minVolume:
-                            p['minVolumeText'] = localization.GetByLabel('UI/Market/MarketQuote/SimpleMinimumVolume', min=bestBid.minVolume)
-                        quoteText = localization.GetByLabel('UI/Market/MarketQuote/SellQuantity', **p)
-                    else:
-                        quoteText = localization.GetByLabel('UI/Market/MarketQuote/NoMatchBid')
-                    self.sr.quoteText.text = quoteText
-                    self.CheckHeights(self.sr.quoteText, 'quoteText')
-                if not self.destroyed and hasattr(self, 'sr') and self.sr.Get('price_rightText') and not self.sr.price_rightText.destroyed:
-                    self.sr.percentage = (price - averagePrice) / averagePrice
-                    p = {'colorText': colors[price < averagePrice],
-                     'percentage': 100 * self.sr.percentage,
-                     'aboveBelow': localization.GetByLabel('UI/Market/MarketQuote/PercentAbove'),
-                     'colorTextEnd': '</color>'}
-                    if price < averagePrice:
-                        p['aboveBelow'] = localization.GetByLabel('UI/Market/MarketQuote/PercentBelow')
-                    self.sr.price_rightText.text = localization.GetByLabel('UI/Market/MarketQuote/MarketSellPrice', **p)
-                    self.CheckHeights(self.sr.price_rightText, 'price_rightText')
+                log.LogException('TRYING TO USE OLD SELL WINDOW!!!')
             elif self.loading == 'modify':
                 if self.sr.currentOrder.bid:
                     colors.reverse()

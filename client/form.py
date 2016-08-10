@@ -16,6 +16,7 @@ from eve.client.script.ui.control.scenecontainer import SceneContainer
 from eve.client.script.ui.control.scenecontainer import SceneContainerBaseNavigation
 from eve.client.script.ui.control.scenecontainer import SceneContainerBrackets
 from eve.client.script.ui.control.scenecontainer import SceneWindowTest
+from eve.client.script.ui.crate.window import CrateWindow
 from eve.client.script.ui.extras.tourneyBanUI import TourneyBanUI
 from eve.client.script.ui.hacking.hackingWindow import hackingWindow as HackingWindow
 from eve.client.script.ui.inflight.actions import ActionPanel
@@ -131,10 +132,10 @@ from eve.client.script.ui.shared.neocom.channels import Channels
 from eve.client.script.ui.shared.neocom.charactersheet import CharacterSheetWindow as CharacterSheet
 from eve.client.script.ui.shared.neocom.charactersheet import CombatDetailsWnd
 from eve.client.script.ui.shared.neocom.compare import TypeCompare
-from eve.client.script.ui.shared.neocom.contracts.contracts import ContractDetailsWindow
-from eve.client.script.ui.shared.neocom.contracts.contracts import ContractsWindow
-from eve.client.script.ui.shared.neocom.contracts.contracts import CreateContract
-from eve.client.script.ui.shared.neocom.contracts.contracts import IgnoreListWindow
+from eve.client.script.ui.shared.neocom.contracts.contractsDetailsWnd import ContractDetailsWindow
+from eve.client.script.ui.shared.neocom.contracts.contractsWnd import ContractsWindow
+from eve.client.script.ui.shared.neocom.contracts.createContractWnd import CreateContractWnd
+from eve.client.script.ui.shared.neocom.contracts.ignoreListWnd import IgnoreListWindow
 from eve.client.script.ui.shared.neocom.contracts.contractsearch import ContractSearchWindow
 from eve.client.script.ui.shared.neocom.corporation.base_corporation_ui import CorporationWindow as Corporation
 from eve.client.script.ui.shared.neocom.corporation.corp_dlg_edit_member import EditMemberDialog

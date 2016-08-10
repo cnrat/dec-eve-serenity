@@ -22,8 +22,8 @@ COLOR_NUMBERVALUE_NEGATIVE = (1.0,
  0.1,
  0.1,
  1.0)
-COLOR_NUMBERVALUE_POSITIVE = (1.0,
- 0.1,
+COLOR_NUMBERVALUE_POSITIVE = (0.1,
+ 1.0,
  0.1,
  1.0)
 COLOR_FRAME_NORMAL = (0.75,
@@ -325,10 +325,12 @@ class TooltipPanel(PointerPanel):
     def AddCommandTooltip(self, command):
         label = command.GetName()
         shortcutStr = command.GetShortcutAsString()
-        self.AddLabelShortcut(label, shortcutStr)
+        l = self.AddLabelShortcut(label, shortcutStr)
         detailedDescription = command.GetDetailedDescription()
+        d = None
         if detailedDescription:
-            self.AddLabelMedium(text=detailedDescription, align=uiconst.TOPLEFT, wrapWidth=200, colSpan=self.columns, color=(0.6, 0.6, 0.6, 1))
+            d = self.AddLabelMedium(text=detailedDescription, align=uiconst.TOPLEFT, wrapWidth=200, colSpan=self.columns, color=(0.6, 0.6, 0.6, 1))
+        return (l, d)
 
     def AddShortcutCell(self, shortcut):
         ml, mt, mr, mb = self.margin

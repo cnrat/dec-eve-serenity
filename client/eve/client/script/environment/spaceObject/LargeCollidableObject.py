@@ -4,6 +4,12 @@ from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 
 class LargeCollidableObject(SpaceObject):
 
+    def GetDNA(self):
+        dna = SpaceObject.GetDNA(self)
+        if dna and ':class?' not in dna:
+            dna += ':class?stationary'
+        return dna
+
     def Assemble(self):
         self.SetStaticRotation()
         if getattr(self.model, 'ChainAnimationEx', None) is not None:

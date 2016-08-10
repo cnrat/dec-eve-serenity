@@ -65,6 +65,9 @@ class StructureController(BaseStationController):
     def CanTakeControl(self):
         return sm.GetService('structureControl').CanBoard(self.GetItemID())
 
+    def IsHqAllowed(self):
+        return False
+
     def IsControlable(self):
         return True
 

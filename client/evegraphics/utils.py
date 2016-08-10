@@ -1,16 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\evegraphics\utils.py
 import evetypes
-
-def GetResPathFromGraphicID(graphicID):
-    if graphicID is None:
-        return
-    else:
-        graphicInfo = cfg.graphics.GetIfExists(graphicID)
-        if graphicInfo is None:
-            return
-        return getattr(graphicInfo, 'graphicFile', None)
-
+import evegraphics.fsd.graphicIDs as fsdGraphicIDs
 
 def IsValidSOFDNA(dna):
     sp = dna.split(':')
@@ -41,12 +32,12 @@ def BuildSOFDNAFromGraphicID(graphicID, materialSetID=None):
     if graphicID is None:
         return
     else:
-        graphicInfo = cfg.graphics.GetIfExists(graphicID)
+        graphicInfo = fsdGraphicIDs.GetGraphic(graphicID)
         if graphicInfo is None:
             return
-        hull = getattr(graphicInfo, 'sofHullName', None)
-        faction = getattr(graphicInfo, 'sofFactionName', None)
-        race = getattr(graphicInfo, 'sofRaceName', None)
+        hull = fsdGraphicIDs.GetSofHullName(graphicInfo)
+        faction = fsdGraphicIDs.GetSofFactionName(graphicInfo)
+        race = fsdGraphicIDs.GetSofRaceName(graphicInfo)
         dnaAddition = None
         if hull is None or faction is None or race is None:
             return
@@ -93,7 +84,7 @@ def GetPreviewScenePath(raceID):
      const.raceGallente: 20411,
      const.raceAmarr: 20412}
     gfxID = sceneGraphicIDs.get(raceID, 20413)
-    return GetResPathFromGraphicID(gfxID)
+    return fsdGraphicIDs.GetGraphicFile(gfxID)
 
 
 class DummyGroup(object):

@@ -35,7 +35,7 @@ def GetItemIDFromTextLink(node, validTypeIDs, linkType=SHOW_INFO):
         typeIDAndItemID = url.replace(linkType, '')
         parts = typeIDAndItemID.split('//')
         typeID = int(parts[0])
-        if typeID not in validTypeIDs:
+        if validTypeIDs and typeID not in validTypeIDs:
             return
         itemID = int(parts[-1])
         return itemID
@@ -53,5 +53,4 @@ def GetValueFromTextLink(node, linkType=SHOW_INFO):
         typeIDAndItemID = url.replace(linkType, '')
         parts = typeIDAndItemID.split('//')
         typeID = int(parts[0])
-        print 'typeID = ', typeID
         return typeID

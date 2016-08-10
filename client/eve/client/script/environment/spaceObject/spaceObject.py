@@ -5,6 +5,7 @@ import math
 import types
 import blue
 import geo2
+from evegraphics.explosions.spaceObjectExplosionManager import SpaceObjectExplosionManager
 from signals.signal import Signal
 import trinity
 import decometaclass
@@ -21,6 +22,7 @@ import eveSpaceObject.spaceobjaudio as spaceobjaudio
 import eveSpaceObject.spaceobjanimation as spaceobjanimation
 import eve.common.lib.appConst as const
 from eve.client.script.environment.spaceObject.ExplosionManager import ExplosionManager
+import evegraphics.fsd.explosionBuckets as fsdExplosionBuckets
 BOOSTER_GFX_SND_RESPATHS = {eveSpaceObject.gfxRaceAmarr: ('res:/dx9/model/ship/booster/booster_amarr.red', 'ship_booster_amarr'),
  eveSpaceObject.gfxRaceCaldari: ('res:/dx9/model/ship/booster/booster_caldari.red', 'ship_booster_caldari'),
  eveSpaceObject.gfxRaceGallente: ('res:/dx9/model/ship/booster/booster_gallente.red', 'ship_booster_gallente'),
@@ -283,6 +285,8 @@ class SpaceObject(decometaclass.WrapBlueClass('destiny.ClientBall')):
                 else:
                     self.model.rotationCurve = trinity.TriRotationCurve()
                     self.model.rotationCurve.value = quat
+                    if self.animationStateObject is not None:
+                        self.animationStateObject.rotationCurve = self.model.rotationCurve
             return
 
     def _FindClosestBallDir(self, constgrp):
@@ -534,6 +538,13 @@ class SpaceObject(decometaclass.WrapBlueClass('destiny.ClientBall')):
             delayedRemove = delay
             self.explodedTime = blue.os.GetTime()
             if gfxsettings.Get(gfxsettings.UI_EXPLOSION_EFFECTS_ENABLED):
+                if SpaceObjectExplosionManager.USE_EXPLOSION_BUCKETS:
+                    explosionBucket = fsdExplosionBuckets.GetExplosionBucketByTypeID(self.typeData['typeID'])
+                    if explosionBucket:
+                        self.LogInfo('Exploding with explosion bucket')
+                        scene = sm.GetService('space').GetScene()
+                        wreckSwitchTime, _, __ = SpaceObjectExplosionManager.ExplodeBucketForBall(self, scene)
+                        return wreckSwitchTime
                 if managed:
                     gfx = self.explosionManager.GetExplosion(explosionURL, callback=self.ClearExplosion)
                 else:

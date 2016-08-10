@@ -650,7 +650,11 @@ class CoreService():
                 except StandardError:
                     log.LogException()
 
-                del boundObject.sessionConnections[sessionID]
+                try:
+                    del boundObject.sessionConnections[sessionID]
+                except KeyError:
+                    self.LogError('Hmmm, session', sessionID, 'missing from', boundObject.sessionConnections.keys(), 'disconnected?', connection.__disconnected__)
+
         except KeyError:
             self.LogError('Woot? Session', sessionID, "isn't in", boundObject.objectConnections.keys())
 

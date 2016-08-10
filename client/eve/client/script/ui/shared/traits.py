@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\traits.py
 import evetypes
+import infobubbles
 import localization
 import carbonui.const as uiconst
 import util
@@ -16,7 +17,7 @@ COLOR_TEXT_HILITE = (0.765, 0.914, 1.0, 1.0)
 COLOR_TEXT = (0.5, 0.5, 0.5, 1.0)
 
 def HasTraits(typeID):
-    return typeID in cfg.infoBubbleTypeBonuses
+    return infobubbles.has_traits(typeID)
 
 
 class TraitsContainer(ContainerAutoSize):
@@ -30,29 +31,27 @@ class TraitsContainer(ContainerAutoSize):
         if displayTraitAttributeIcons and self.typeID in cfg.infoBubbleTypeElements:
             self.AddCaption(localization.GetByLabel('UI/InfoWindow/ShipCharacteristics'))
             self.AddAttributeIcons(cfg.infoBubbleTypeElements[self.typeID])
-        if self.typeID not in cfg.infoBubbleTypeBonuses:
+        if not infobubbles.has_traits(self.typeID):
             return
-        typeBonuses = {int(k):v for k, v in cfg.infoBubbleTypeBonuses[self.typeID].items()}
-        for skillTypeID, skillData in typeBonuses.iteritems():
-            skillTypeID = int(skillTypeID)
-            if skillTypeID > 0:
-                self.AddCaption(localization.GetByLabel('UI/ShipTree/SkillNameCaption', skillName=evetypes.GetName(skillTypeID)))
-                self.AddBonusLabel(skillData)
+        for skillTypeID, bonuses in infobubbles.iter_ship_skill_bonuses(self.typeID):
+            self.AddCaption(localization.GetByLabel('UI/ShipTree/SkillNameCaption', skillName=evetypes.GetName(skillTypeID)))
+            self.AddBonusLabel(bonuses)
 
-        if ROLE_BONUS_TYPE in typeBonuses:
+        role_bonus = infobubbles.get_role_bonus(self.typeID)
+        if role_bonus:
             self.AddCaption(localization.GetByLabel('UI/ShipTree/RoleBonus'))
-            self.AddBonusLabel(typeBonuses[ROLE_BONUS_TYPE])
-        elif MISC_BONUS_TYPE in typeBonuses:
+            self.AddBonusLabel(role_bonus)
+        misc_bonus = infobubbles.get_misc_bonus(self.typeID)
+        if misc_bonus:
             self.AddCaption(text=localization.GetByLabel('UI/ShipTree/MiscBonus'))
-            self.AddBonusLabel(typeBonuses[MISC_BONUS_TYPE])
+            self.AddBonusLabel(misc_bonus)
 
     def AddCaption(self, text):
         Label(parent=self, text=text, align=uiconst.TOTOP, padTop=8 if self.children else 0, bold=True, color=COLOR_CAPTION)
 
-    def AddBonusLabel(self, data):
-        data = sorted([ (int(k), v) for k, v in data.iteritems() ])
-        for _, bonusData in data:
-            self._FormatBonusLine(bonusData)
+    def AddBonusLabel(self, bonuses):
+        for bonus in sorted(bonuses, key=lambda x: x['importance']):
+            self._FormatBonusLine(bonus)
 
     def AddAttributeIcons(self, data):
         rowCont = Container(parent=self, align=uiconst.TOTOP, padTop=3)

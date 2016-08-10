@@ -1,7 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\characterCustomizationView.py
+from eve.client.script.ui.services.viewStateSvc import View
 from eveaudio import EVE_INCARNA_BANKS
-from viewstate import View
 import uicls
 from sceneManager import SCENE_TYPE_CHARACTER_CREATION
 import localization

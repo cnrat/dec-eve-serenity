@@ -44,6 +44,9 @@ class KeyVal:
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
+    def update(self, other):
+        self.__dict__.update(other)
+
     def copy(self):
         ret = KeyVal()
         ret.__dict__.update(self.__dict__)

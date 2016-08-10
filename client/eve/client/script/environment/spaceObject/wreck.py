@@ -8,6 +8,7 @@ import trinity
 import geo2
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.environment.spaceObject.ExplosionManager import ExplosionManager
+from evegraphics.explosions.spaceObjectExplosionManager import SpaceObjectExplosionManager
 
 class Wreck(SpaceObject):
 
@@ -54,7 +55,13 @@ class Wreck(SpaceObject):
             self.SetRotation(ball.yaw, ball.pitch, ball.roll)
         ball.wreckID = self.id
         self.model.display = 0
-        _, (timeUntilDisplay, __) = ball.GetExplosionInfo()
+        timeUntilDisplay = -1
+        if SpaceObjectExplosionManager.USE_EXPLOSION_BUCKETS:
+            explosion = SpaceObjectExplosionManager.GetExplosionForBallID(ball.id)
+            if explosion:
+                timeUntilDisplay = explosion.modelSwitchDelayInMs
+        if timeUntilDisplay < 0:
+            _, (timeUntilDisplay, __) = ball.GetExplosionInfo()
         uthread.pool('Wreck::DisplayWreck', self.DisplayWreck, timeUntilDisplay)
         return
 

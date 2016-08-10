@@ -1,5 +1,8 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\structure\structureBrowser\browserAllStructures.py
+import gametime
+import uthread
+from carbon.common.script.util.timerstuff import AutoTimer
 from carbonui.primitives.container import Container
 from carbonui.util.bunch import Bunch
 from eve.client.script.ui.control.eveScroll import Scroll
@@ -25,6 +28,9 @@ class BrowserAllStructures(Container):
         self.controller = attributes.structureBrowserController
         self.ChangeSignalConnection(connect=True)
         self.isInitialized = False
+        self.serviceChangedTimer = None
+        self.serviceChangedTimestamp = gametime.GetWallclockTimeNow()
+        return
 
     def ChangeSignalConnection(self, connect=True):
         signalAndCallback = [(self.controller.on_change_location_range, self.OnLocationRangeChanged),
@@ -137,7 +143,21 @@ class BrowserAllStructures(Container):
         self.UpdateScroll()
 
     def OnServiceSettingsChanged(self):
+        uthread.new(self.OnServiceSettingsChanged_thread)
+
+    def OnServiceSettingsChanged_thread(self):
+        DELAY = 500
+        recentlyLoaded = gametime.GetTimeDiff(self.serviceChangedTimestamp, gametime.GetWallclockTimeNow()) / const.MSEC < DELAY
+        if recentlyLoaded:
+            self.serviceChangedTimer = AutoTimer(DELAY, self.DoUpdateScroll)
+        else:
+            self.DoUpdateScroll()
+
+    def DoUpdateScroll(self):
+        self.serviceChangedTimestamp = gametime.GetWallclockTimeNow()
+        self.serviceChangedTimer = None
         self.UpdateScroll()
+        return
 
     def OnOwnerValueChanged(self, value):
         self.UpdateScroll()

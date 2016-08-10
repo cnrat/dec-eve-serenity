@@ -281,7 +281,7 @@ class Form(service.Service):
         self.code = uicontrols.Combo(label='', parent=self.new, options=options, name=self.type.get('key', 'combo'), select=self.type.get('setvalue', ''), padding=(self.leftPush,
          2,
          0,
-         2), align=uiconst.TOTOP, callback=self.type.get('callback', None), labelleft=self.leftPush)
+         2), align=uiconst.TOTOP, callback=self.type.get('callback', None), labelleft=self.leftPush, prefskey=self.type.get('prefskey', None))
         self.new.height = self.code.height + self.code.padTop * 4
         width = self.type.get('width', None)
         if width:

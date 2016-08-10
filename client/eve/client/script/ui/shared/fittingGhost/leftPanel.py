@@ -333,7 +333,7 @@ class LeftPanel(Container):
             icon.LoadIconByTypeID(shipTypeID)
         else:
             self.shipCont.OnClick = self.LoadCurrentShip
-            hologramTexture = inventorycommon.typeHelpers.GetGraphic(shipTypeID).isisIconPath
+            hologramTexture = inventorycommon.typeHelpers.GetHoloIconPath(shipTypeID)
             icon.LoadTexture(hologramTexture)
         shipName = cfg.evelocations.Get(activeShip).name
         text = '%s<br>%s' % (evetypes.GetName(shipTypeID), shipName)

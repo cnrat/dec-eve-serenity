@@ -9,6 +9,7 @@ import eve.client.script.ui.control.entries as listentry
 import blue
 import uiutil
 import localization
+from eve.common.script.sys.eveCfg import InShipInSpace
 from .pinContainers.BasePinContainer import IconButton
 ICON_SIZE = 24
 
@@ -156,7 +157,7 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
         if groupID == const.groupCommandPins:
             planetID = sm.GetService('planetUI').planetID
             planetSolarSystemID = sm.GetService('map').GetPlanetInfo(planetID).solarSystemID
-            if session.solarsystemid != planetSolarSystemID:
+            if not InShipInSpace() or session.solarsystemid != planetSolarSystemID:
                 return (False, localization.GetByLabel('UI/PI/Common/CannotBuildLocation'))
             planetRows = sm.GetService('planetSvc').GetMyPlanets()
             skills = sm.GetService('skills').GetSkills()
@@ -171,7 +172,7 @@ class PlanetEditModeContainer(uicontrols.ContainerAutoSize):
                     return (False, hint)
             skillsRequired = sm.GetService('skills').GetRequiredSkills(structureTypeID)
             for skillTypeID, level in skillsRequired.iteritems():
-                skillRec = skill.get(skillTypeID, None)
+                skillRec = skills.get(skillTypeID, None)
                 myLevel = getattr(skillRec, 'skillLevel', -1)
                 if myLevel < level:
                     hint = localization.GetByLabel('UI/PI/Common/CannotBuildSkillNeeded', skillName=evetypes.GetName(skillTypeID), skillLevel=int(level))

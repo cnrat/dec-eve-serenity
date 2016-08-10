@@ -736,7 +736,8 @@ class HeatAttribute(Attribute):
         return self.currentValue
 
 
-NurfDenoms = [ math.exp((i / 2.67) ** 2.0) for i in xrange(10) ]
+MAX_NURF_SEQUENCE_LENGTH = 8
+NurfDenominators = [ math.exp((i / 2.67) ** 2.0) for i in xrange(MAX_NURF_SEQUENCE_LENGTH) ]
 
 def StackingOperator(valueDenomTuple):
     return (valueDenomTuple[0] - 1.0) * (1.0 / valueDenomTuple[1]) + 1.0
@@ -821,8 +822,7 @@ class StackingNurfedAttribute(Attribute):
             else:
                 factors = sorted([ dogmaOperator(1, modAttrib.GetValue()) for modAttrib in nurfedMods ])
                 splitPoint = bisect.bisect(factors, 1.0)
-                denoms = itertools.chain(NurfDenoms[:splitPoint], reversed(NurfDenoms[:len(factors) - splitPoint]))
-                val *= reduce(operator.mul, map(StackingOperator, zip(factors, denoms)))
+                val *= reduce(operator.mul, itertools.imap(StackingOperator, itertools.chain(itertools.izip(factors[:splitPoint], NurfDenominators), itertools.izip(reversed(factors[splitPoint:]), NurfDenominators))))
 
         return val
 

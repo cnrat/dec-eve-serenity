@@ -10,11 +10,6 @@ class SiegeMode(GenericEffect):
         shipBall = self.fxSequencer.GetBall(shipID)
         shipBall.TriggerAnimation('normal')
 
-    def Prepare(self):
-        shipID = self.ballIDs[0]
-        shipBall = self.fxSequencer.GetBall(shipID)
-        graphicsID = shipBall.typeData['graphicID']
-
     def Start(self, duration):
         shipID = self.ballIDs[0]
         shipBall = self.fxSequencer.GetBall(shipID)

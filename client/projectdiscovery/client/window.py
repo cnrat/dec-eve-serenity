@@ -22,7 +22,7 @@ from projectdiscovery.client.projects.subcellular.tutorial import Tutorial
 from projectdiscovery.client.util.dialogue import Dialogue
 from projectdiscovery.client.util.eventlistener import eventlistener, on_event
 from projectdiscovery.client.util.tutorialtooltips import TutorialTooltips
-from projectdiscovery.client.util.util import calculate_score_bar_length
+from projectdiscovery.client.util.util import calculate_score_bar_length, calculate_rank_band
 from projectdiscovery.common.const import INITIAL_PLAYER_SCORE, PLAYER_NOT_IN_DATABASE_ERROR_CODE
 from projectdiscovery.common.exceptions import NoConnectionToAPIError, MissingKeyError
 logger = logging.getLogger(__name__)
@@ -409,12 +409,7 @@ class WindowHeader(uiprimitives.Container):
         self.update_rank_values()
 
     def get_rank_icon_path(self):
-        rank_band = int(math.ceil(float(self.rank) / 10 + 0.1))
-        if rank_band < 1:
-            rank_band = 1
-        elif rank_band > 11:
-            rank_band = 11
-        return 'res:/UI/Texture/classes/ProjectDiscovery/rankIcon' + str(rank_band) + '.png'
+        return const.rank_paths[calculate_rank_band(self.rank)]
 
     def update_rank_values(self):
         self.rankIcon.SetTexturePath(self.get_rank_icon_path())

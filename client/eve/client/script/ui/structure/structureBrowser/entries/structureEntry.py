@@ -47,7 +47,7 @@ class StructureEntry(BaseListEntryCustomColumns):
             gs = StructureServiceIcon(name=data.name, parent=column, texturePath=data.iconID, pos=(left,
              0,
              ICONSIZE,
-             ICONSIZE), hint=data.label, opacity=opacity, serviceName=data.name, controller=self.controller)
+             ICONSIZE), hintHeader=data.label, opacity=opacity, serviceName=data.name, controller=self.controller, serviceID=data.serviceID)
             gs.DelegateEvents(self)
 
     def AddExtraColumns(self):
@@ -147,4 +147,21 @@ class StructureServiceIcon(GlowSprite):
     def ApplyAttributes(self, attributes):
         GlowSprite.ApplyAttributes(self, attributes)
         self.controller = attributes.controller
-        self.serviceID = attributes.serviceName
+        self.hintHeader = attributes.hintHeader
+        self.serviceName = attributes.serviceName
+        self.serviceID = attributes.serviceID
+
+    def GetHint(self):
+        hint = self.hintHeader
+        textHelper = ExtraColumnProvider()
+        extraHeader = GetHeaderForService(self.serviceName)
+        extraText = textHelper.GetColumnText(self.controller, self.serviceName)
+        if extraHeader and extraText and extraText != textHelper.NO_VALUE_FOUND_CHAR:
+            hint += '<br>%s: %s' % (extraHeader, extraText)
+        return hint
+
+
+class StructureServiceIconMyCorp(StructureServiceIcon):
+
+    def GetHint(self):
+        return self.hintHeader

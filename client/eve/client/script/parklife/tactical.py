@@ -1,11 +1,11 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\tactical.py
-import math
 from math import sqrt
 import dogma.effects
 from dogma.const import falloffEffectivnessModuleGroups
 from eve.client.script.parklife import tacticalConst
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
+from eve.client.script.ui.view.viewStateConst import ViewState
 import evecamera
 import evetypes
 import service
@@ -13,8 +13,6 @@ import uicontrols
 import util
 import blue
 from eveDrones.droneDamageTracker import InBayDroneDamageTracker
-import trinity
-import geo2
 import uix
 import uiutil
 import carbonui.const as uiconst
@@ -66,8 +64,9 @@ class TacticalSvc(service.Service):
      'OnEwarOnConnect',
      'OnContactChange',
      'OnCrimewatchEngagementUpdated',
-     'DoBallsRemove']
-    __startupdependencies__ = ['settings']
+     'DoBallsRemove',
+     'OnCombatMessage']
+    __startupdependencies__ = ['settings', 'tacticalNavigation']
     __dependencies__ = ['clientDogmaStaticSvc',
      'state',
      'bracket',
@@ -93,10 +92,12 @@ class TacticalSvc(service.Service):
 
     def __init__(self):
         service.Service.__init__(self)
+        self._clearModuleTasklet = None
+        return
 
     def Run(self, *etc):
         service.Service.Run(self, *etc)
-        self.tacticalOverlay = tacticalOverlay.TacticalOverlay(self)
+        self.tacticalOverlay = tacticalOverlay.TacticalOverlay(self, self.tacticalNavigation)
         self.logme = 0
         self.jammers = {}
         self.jammersByJammingType = {}
@@ -114,12 +115,18 @@ class TacticalSvc(service.Service):
         self.AssureSetup()
         if util.InSpace():
             if self.IsTacticalOverlayActive():
-                self.Init()
+                self.tacticalOverlay.Initialize()
             self.Open()
 
     def Stop(self, *etc):
         service.Service.Stop(self, *etc)
         self.CleanUp()
+
+    def OnCombatMessage(self, messageName, messageArgs):
+        if 'specialObject' in messageArgs:
+            objectName = sm.GetService('bracket').GetBracketName2(messageArgs['specialObject'])
+            messageArgs['specialObject'] = objectName
+        sm.GetService('logger').AddCombatMessage(messageName, messageArgs)
 
     @telemetry.ZONE_METHOD
     def OnBallparkCall(self, eventName, argTuple):
@@ -208,7 +215,7 @@ class TacticalSvc(service.Service):
             self.AssureSetup()
             self.Open()
             if self.IsTacticalOverlayActive():
-                self.Init()
+                self.tacticalOverlay.Initialize()
             self.CheckInitDrones()
             self.MarkFlagsAsDirty()
             if 'shipid' in change:
@@ -361,22 +368,15 @@ class TacticalSvc(service.Service):
         else:
             if self.logme:
                 self.LogInfo('Tactical::OnStateChange', itemID, flag, true, *args)
-            if not getattr(self, 'inited', 0):
-                return
-            if flag == state.selected and true:
-                self.ShowDirectionTo(itemID)
-            if self.tacticalOverlay and self.tacticalOverlay.useNewOverlay:
-                self.tacticalOverlay.CheckInterest(itemID, flag, true)
+            self.tacticalOverlay.CheckState(itemID, flag, true)
             return
 
     def OnTacticalPresetChange(self, label, set):
-        if self.inited:
-            uthread.new(self.InitConnectors).context = 'tactical::OnTacticalPresetChange-->InitConnectors'
+        uthread.new(self.InitConnectors).context = 'tactical::OnTacticalPresetChange-->InitConnectors'
 
     def OnStateSetupChange(self, what):
         self.MarkFlagsAsDirty()
-        if self.inited:
-            self.InitConnectors()
+        self.InitConnectors()
 
     def Toggle(self):
         pass
@@ -412,24 +412,15 @@ class TacticalSvc(service.Service):
         if self.logme:
             self.LogInfo('Tactical::CleanUp')
         self.sr = None
-        self.numberShader = None
-        self.planeShader = None
-        self.circleShader = None
-        self.lines = None
         self.targetingRanges = None
-        self.updateDirectionTimer = None
-        self.genericUpdateTimer = None
         self.toggling = 0
         self.setupAssured = 0
         self.lastFactor = None
         self.groupList = None
         self.groupIDs = []
-        self.direction = None
-        self.direction2 = None
         self.intersections = []
         self.threats = {}
         self.attackers = {}
-        self.maxConnectorDist = 150000.0
         self.TearDownOverlay()
         uicore.layer.tactical.Flush()
         self.dronesInited = 0
@@ -544,85 +535,6 @@ class TacticalSvc(service.Service):
         if util.InSpace():
             sm.GetService('bracket').RenewSingleFlag(charID)
 
-    def ShowDirectionTo(self, itemID):
-        if self.tacticalOverlay.useNewOverlay:
-            self.tacticalOverlay.ShowDirectionTo(itemID)
-            return
-        else:
-            if self.logme:
-                self.LogInfo('Tactical::ShowDirectionTo', itemID)
-            if self.direction is None:
-                return
-            scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-            self.direction.display = False
-            if self.directionCurveSet is not None:
-                self.usedCurveSets.remove(self.directionCurveSet)
-                scene.curveSets.remove(self.directionCurveSet)
-                self.directionCurveSet = None
-            ballpark = sm.GetService('michelle').GetBallpark()
-            if ballpark is None:
-                return
-            ball = ballpark.GetBall(itemID)
-            if ball is None or getattr(ball, 'model', None) is None or ball.IsCloaked():
-                return
-            meball = ballpark.GetBall(eve.session.shipid)
-            if not meball or not meball.model:
-                return
-            distVec = geo2.Vector(ball.x - meball.x, ball.y - meball.y, ball.z - meball.z)
-            if geo2.Vec3Length(distVec) >= 200000.0:
-                return
-            set = trinity.TriCurveSet()
-            vs = trinity.TriVectorSequencer()
-            vc = trinity.TriVectorCurve()
-            vc.value = (1.0, 1.0, 1.0)
-            vs.functions.append(ball)
-            vs.functions.append(vc)
-            bind = trinity.TriValueBinding()
-            bind.destinationObject = self.direction
-            bind.destinationAttribute = 'scaling'
-            bind.sourceObject = vs
-            bind.sourceAttribute = 'value'
-            set.curves.append(vs)
-            set.curves.append(vc)
-            set.bindings.append(bind)
-            set.name = str(ball.id) + '_direction'
-            set.Play()
-            scene.curveSets.append(set)
-            self.usedCurveSets.append(set)
-            self.directionCurveSet = set
-            self.direction.display = True
-            self.UpdateDirection()
-            return
-
-    def UpdateDirection(self):
-        if self.logme:
-            self.LogInfo('Tactical::UpdateDirection')
-        if self.direction is None or not self.direction.display:
-            return
-        else:
-            scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-            ballpark = sm.GetService('michelle').GetBallpark()
-            if ballpark is None:
-                return
-            ball = ballpark.GetBall(sm.GetService('state').GetExclState(state.selected))
-            if ball is None:
-                return
-            meball = ballpark.GetBall(eve.session.shipid)
-            if not meball:
-                return
-            distVec = geo2.Vector(ball.x - meball.x, ball.y - meball.y, ball.z - meball.z)
-            if ball.IsCloaked() or geo2.Vec3Length(distVec) > 200000.0:
-                self.updateDirectionTimer = None
-                self.direction.display = False
-                if self.directionCurveSet is not None:
-                    self.usedCurveSets.remove(self.directionCurveSet)
-                    scene.curveSets.remove(self.directionCurveSet)
-                    self.directionCurveSet = None
-                    return
-            if self.updateDirectionTimer is None:
-                self.updateDirectionTimer = base.AutoTimer(111, self.UpdateDirection)
-            return
-
     def GetAllColumns(self):
         return self.ALL_COLUMNS.keys()
 
@@ -696,7 +608,7 @@ class TacticalSvc(service.Service):
         current = self.IsTacticalOverlayActive()
         if not current:
             self.ShowTacticalOverlay()
-        elif self.inited:
+        elif self.tacticalOverlay.IsInitialized():
             self.HideTacticalOverlay()
 
     def HideTacticalOverlay(self):
@@ -718,7 +630,7 @@ class TacticalSvc(service.Service):
         if not self.IsTacticalOverlayAllowed():
             return
         self._SetTacticalOverlayActive(True)
-        self.Init()
+        self.tacticalOverlay.Initialize()
         sm.ScatterEvent('OnTacticalOverlayChange')
 
     def IsTacticalOverlayAllowed(self):
@@ -729,10 +641,10 @@ class TacticalSvc(service.Service):
 
     def IsTacticalOverlayActive(self):
         if IsNewCameraActive():
-            cam = sm.GetService('sceneManager').GetActiveSpaceCamera()
-            if cam.cameraID == evecamera.CAM_TACTICAL:
+            cameraID = sm.GetService('viewState').GetView(ViewState.Space).GetRegisteredCameraID()
+            if cameraID == evecamera.CAM_TACTICAL:
                 return settings.user.overview.Get('viewTactical_camTactical', True)
-            elif cam.cameraID == evecamera.CAM_SHIPPOV:
+            elif cameraID == evecamera.CAM_SHIPPOV:
                 return False
             else:
                 return settings.user.overview.Get('viewTactical', False)
@@ -741,216 +653,39 @@ class TacticalSvc(service.Service):
 
     def CheckInit(self):
         if util.InSpace() and self.IsTacticalOverlayActive():
-            self.Init()
-
-    def ToggleNewTacticalOverlay(self, enable):
-        inited = self.inited
-        if inited:
-            self.ToggleOnOff()
-        self.tacticalOverlay.useNewOverlay = enable
-        if inited:
-            self.ToggleOnOff()
+            self.tacticalOverlay.Initialize()
 
     def TearDownOverlay(self):
-        if self.tacticalOverlay.useNewOverlay:
-            if self.targetingRanges:
-                self.targetingRanges.KillTimer()
-            self.tacticalOverlay.TearDown()
-            self.inited = False
-            return
-        else:
-            connectors = getattr(self, 'connectors', None)
-            if connectors:
-                del connectors.children[:]
-            self.connectors = None
-            self.TargetingRange = None
-            self.OptimalRange = None
-            self.FalloffRange = None
-            self.OffsetRange = None
-            self.direction = None
-            self.directionCurveSet = None
-            self.updateDirectionTimer = None
-            self.circles = None
-            arena = getattr(self, 'arena', None)
-            self.arena = None
-            self.inited = False
-            scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-            if scene and arena and arena in scene.objects:
-                scene.objects.remove(arena)
-                scene.objects.remove(self.rootTransform)
-            usedCurves = getattr(self, 'usedCurveSets', None)
-            if scene is not None and usedCurves is not None:
-                for cs in self.usedCurveSets:
-                    scene.curveSets.remove(cs)
+        if self.targetingRanges:
+            self.targetingRanges.KillTimer()
+        self.tacticalOverlay.TearDown()
 
-            self.usedCurveSets = []
-            return
-
-    def AddCircleToLineSet(self, set, radius, color):
-        tessSteps = int(math.sqrt(radius))
-        for t in range(0, tessSteps):
-            alpha0 = 2.0 * math.pi * float(t) / tessSteps
-            alpha1 = 2.0 * math.pi * float(t + 1) / tessSteps
-            x0 = radius * math.cos(alpha0)
-            y0 = radius * math.sin(alpha0)
-            x1 = radius * math.cos(alpha1)
-            y1 = radius * math.sin(alpha1)
-            set.AddLine((x0, 0.0, y0), color, (x1, 0.0, y1), color)
-
-    def InitDistanceCircles(self):
-        if self.circles is None:
-            return
-        else:
-            self.circles.ClearLines()
-            colorDark = (50.0 / 255.0,
-             50.0 / 255.0,
-             50.0 / 255.0,
-             255.0 / 255.0)
-            colorBright = (150.0 / 255.0,
-             150.0 / 255.0,
-             150.0 / 255.0,
-             255.0 / 255.0)
-            self.AddCircleToLineSet(self.circles, 5000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 10000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 20000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 30000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 40000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 50000.0, colorBright)
-            self.AddCircleToLineSet(self.circles, 75000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 100000.0, colorBright)
-            self.AddCircleToLineSet(self.circles, 150000.0, colorDark)
-            self.AddCircleToLineSet(self.circles, 200000.0, colorDark)
-            self.circles.SubmitChanges()
-            return
-
-    def InitDirectionLines(self):
-        if self.direction is None:
-            return
-        else:
-            self.direction.ClearLines()
-            color = (0.2, 0.2, 0.2, 1.0)
-            self.direction.AddLine((0.0, 0.0, 0.0), color, (1.0, 1.0, 1.0), color)
-            self.direction.display = False
-            self.direction.SubmitChanges()
-            return
-
-    def Init(self):
-        if self.tacticalOverlay.useNewOverlay:
-            self.tacticalOverlay.Initialize()
-            self.inited = True
-            return
-        else:
-            if self.logme:
-                self.LogInfo('Tactical::Init')
-            if not self.inited:
-                rm = []
-                scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-                if scene is None:
-                    return
-                for each in scene.objects:
-                    if getattr(each, 'name', None) == 'TacticalMap':
-                        rm.append(each)
-
-                for each in rm:
-                    scene.objects.remove(each)
-
-                self.arena = trinity.Load('res:/UI/Inflight/tactical/TacticalMap.red')
-                self.arena.name = 'TacticalMap'
-                self.usedCurveSets = []
-                self.directionCurveSet = None
-                self.updateDirectionTimer = None
-                ball = sm.GetService('michelle').GetBall(session.shipid)
-                if not ball:
-                    return
-                for child in self.arena.children:
-                    if child.name == 'connectors':
-                        self.connectors = child
-                    elif child.name == 'TargetingRange':
-                        self.TargetingRange = child
-                    elif child.name == 'OptimalRange':
-                        self.OptimalRange = child
-                    elif child.name == 'OffsetRange':
-                        self.OffsetRange = child
-                    elif child.name == 'FalloffRange':
-                        self.FalloffRange = child
-                    elif child.name == 'circleLineSet':
-                        self.circles = child
-                    elif child.name == 'directionLineSet':
-                        self.direction = child
-
-                self.rootTransform = trinity.EveRootTransform()
-                self.rootTransform.children.append(self.OffsetRange)
-                self.arena.children.remove(self.OffsetRange)
-                self.InitDistanceCircles()
-                self.InitDirectionLines()
-                scene.objects.append(self.arena)
-                scene.objects.append(self.rootTransform)
-                self.inited = True
-                self.InitConnectors()
-                self.UpdateTargetingRanges()
-            return
-
-    def GetOverlay(self, curve=None):
+    def GetOverlay(self):
         return self.tacticalOverlay
 
-    def UpdateTargetingRanges(self, module=None, charge=None):
-        if self.tacticalOverlay.useNewOverlay:
-            self.tacticalOverlay.UpdateTargetingRanges(module, charge)
+    def ShowModuleRange(self, module, charge=None):
+        if self._clearModuleTasklet is not None:
+            self._clearModuleTasklet.kill()
+        self._clearModuleTasklet = None
+        self.tacticalOverlay.UpdateModuleRange(module, charge)
+        return
+
+    def ClearModuleRange(self):
+
+        def _task():
+            blue.synchro.SleepSim(500)
+            if self._clearModuleTasklet is not None:
+                self._clearModuleTasklet = None
+                self.tacticalOverlay.UpdateModuleRange()
             return
-        elif not self or not self.inited or self.TargetingRange is None:
-            self.targetingRanges = None
-            return
-        else:
-            self.targetingRanges = None
-            self.intersections = []
-            if not eve.session.shipid:
-                self.FalloffRange.display = False
-                self.OptimalRange.display = False
-                self.OffsetRange.display = False
-                self.rootTransform.translationCurve = self.rootTransform.rotationCurve = None
-                self.TargetingRange.display = False
-                self.UpdateDirection()
-                return
-            ship = sm.GetService('godma').GetItem(eve.session.shipid)
-            maxTargetRange = ship.maxTargetRange * 2
-            self.TargetingRange.display = True
-            self.TargetingRange.scaling = (maxTargetRange, maxTargetRange, maxTargetRange)
-            self.OffsetRange.translation = (0.0, 0.0, 0.0)
-            self.OffsetRange.display = False
-            self.intersections = [ship.maxTargetRange]
-            if module is None:
-                self.FalloffRange.display = False
-                self.OptimalRange.display = False
-            else:
-                maxRange, falloffDist, bombRadius = self.FindMaxRange(module, charge)
-                if falloffDist > 1.0:
-                    falloff = (maxRange + falloffDist) * 2
-                    self.FalloffRange.scaling = (falloff, falloff, falloff)
-                    self.FalloffRange.display = True
-                else:
-                    self.FalloffRange.display = False
-                optimal = 0
-                if bombRadius:
-                    aoeRad = bombRadius * 2
-                    ball = sm.GetService('michelle').GetBall(session.shipid)
-                    if ball:
-                        self.rootTransform.translationCurve = self.rootTransform.rotationCurve = ball
-                        self.OffsetRange.translation = (0, 0, maxRange)
-                        self.OffsetRange.scaling = (aoeRad, aoeRad, aoeRad)
-                        self.OffsetRange.display = True
-                else:
-                    optimal = maxRange * 2
-                if optimal:
-                    self.OptimalRange.scaling = (optimal, optimal, optimal)
-                    self.OptimalRange.display = True
-                self.intersections += [module.maxRange, module.maxRange + module.falloff]
-            self.UpdateDirection()
-            return
+
+        self._clearModuleTasklet = uthread.new(_task)
 
     def FindMaxRange(self, module, charge, dogmaLocation=None, *args):
         maxRange = 0
         falloffDist = 0
         bombRadius = 0
+        cynoRadius = 0
         if not dogmaLocation:
             dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
         try:
@@ -960,23 +695,24 @@ class TacticalSvc(service.Service):
         else:
             effect = self.clientDogmaStaticSvc.GetEffect(effectID)
             if effect.rangeAttributeID is not None:
-                attributeName = cfg.dgmattribs.Get(effect.rangeAttributeID).attributeName
                 maxRange = dogmaLocation.GetAccurateAttributeValue(module.itemID, effect.rangeAttributeID)
                 if module.groupID in falloffEffectivnessModuleGroups:
                     falloffDist = dogmaLocation.GetAccurateAttributeValue(module.itemID, const.attributeFalloffEffectiveness)
                 else:
                     falloffDist = dogmaLocation.GetAccurateAttributeValue(module.itemID, const.attributeFalloff)
 
+        if module.groupID == const.groupCynosuralField:
+            cynoRadius = dogmaLocation.GetAccurateAttributeValue(module.itemID, const.attributeCynosuralFieldSpawnRadius)
         excludedChargeGroups = [const.groupScannerProbe, const.groupSurveyProbe]
         if not maxRange and charge and charge.groupID not in excludedChargeGroups:
             flightTime = dogmaLocation.GetAccurateAttributeValue(charge.itemID, const.attributeExplosionDelay)
             velocity = dogmaLocation.GetAccurateAttributeValue(charge.itemID, const.attributeMaxVelocity)
             bombRadius = dogmaLocation.GetAccurateAttributeValue(charge.itemID, const.attributeEmpFieldRange)
             maxRange = flightTime * velocity / 1000.0
-        return (maxRange, falloffDist, bombRadius)
-
-    def ResetTargetingRanges(self):
-        self.targetingRanges = base.AutoTimer(5000, self.UpdateTargetingRanges)
+        return (maxRange,
+         falloffDist,
+         bombRadius,
+         cynoRadius)
 
     def GetPanelForUpdate(self, what):
         panel = self.GetPanel(what)
@@ -1009,54 +745,9 @@ class TacticalSvc(service.Service):
     def InitConnectors(self):
         if self.logme:
             self.LogInfo('Tactical::InitConnectors')
-        if not self.inited:
+        if not self.tacticalOverlay.IsInitialized():
             return
-        elif self.tacticalOverlay.useNewOverlay:
-            self.tacticalOverlay.InitConnectors()
-            return
-        else:
-            if self.connectors:
-                del self.connectors.children[:]
-            ballpark = sm.GetService('michelle').GetBallpark()
-            if ballpark is None:
-                return
-            selected = None
-            filtered = self.GetFilteredStatesFunctionNames()
-            alwaysShown = self.GetAlwaysShownStatesFunctionNames()
-            for itemID, ball in ballpark.balls.items():
-                if itemID < 0 or itemID == eve.session.shipid:
-                    continue
-                if ballpark is None:
-                    break
-                slimItem = ballpark.GetInvItem(itemID)
-                if slimItem and self.WantIt(slimItem, filtered, alwaysShown):
-                    self.AddConnector(ball, 0)
-                selected = sm.GetService('state').GetStates(itemID, [state.selected])
-                if selected:
-                    selected = itemID
-
-            if selected:
-                self.ShowDirectionTo(selected)
-            if self.genericUpdateTimer is None:
-                self.genericUpdateTimer = base.AutoTimer(1000, self.GenericUpdate)
-            return
-
-    def GenericUpdate(self):
-        if not self or not self.connectors:
-            self.genericUpdateTimer = None
-            return
-        else:
-            for connector in self.connectors.children:
-                try:
-                    ballID = int(connector.name)
-                except:
-                    sys.exc_clear()
-                    continue
-
-                if connector.name == 'footprint':
-                    connector.display = geo2.Vec3Length(connector.translation) < 200000.0
-
-            return
+        self.tacticalOverlay.InitConnectors()
 
     def WantIt(self, slimItem, filtered=None, alwaysShown=None, isBracket=False):
         if not slimItem:
@@ -1125,8 +816,7 @@ class TacticalSvc(service.Service):
                         checkDrones = 1
                 if not self.WantIt(each[1], filtered, alwaysShown):
                     continue
-                if self.inited:
-                    self.AddConnector(each[0])
+                self.tacticalOverlay.AddConnector(each[0])
 
             if checkDrones:
                 droneview = self.GetPanel('droneview')
@@ -1167,101 +857,10 @@ class TacticalSvc(service.Service):
             return
 
     def DoBallRemoveThread(self, ball, slimItem, terminal):
-        if self.inited:
-            self.ClearConnector(ball.id)
-            if util.GetAttrs(self, 'direction', 'object', 'dest') and ball == self.direction.object.dest.translationCurve or util.GetAttrs(self, 'direction', 'object', 'source') and ball == self.direction.object.source.translationCurve:
-                self.direction.object.dest.translationCurve = None
-                self.direction.object.source.translationCurve = None
-                self.direction.display = 0
-                self.direction2.display = 0
+        self.tacticalOverlay.RemoveConnector(ball.id)
         droneview = self.GetPanel('droneview')
         if droneview and slimItem.categoryID == const.categoryDrone and slimItem.ownerID == eve.session.charid:
             droneview.CheckDrones()
-        return
-
-    def ClearConnector(self, ballID):
-        if self.tacticalOverlay.useNewOverlay:
-            self.tacticalOverlay.RemoveConnector(ballID)
-            return
-        if self.logme:
-            self.LogInfo('Tactical::ClearConnector', ballID)
-        for connector in self.connectors.children[:]:
-            if connector.name.startswith(str(ballID)):
-                self.connectors.children.remove(connector)
-
-    def GetIntersection(self, dist, planeDist):
-        if self.logme:
-            self.LogInfo('Tactical::GetIntersection', dist, planeDist)
-        return sqrt(abs(dist ** 2 - planeDist ** 2))
-
-    def AddConnector(self, ball, update=1):
-        if self.tacticalOverlay.useNewOverlay:
-            self.tacticalOverlay.AddConnector(ball)
-            return
-        else:
-            if self.logme:
-                self.LogInfo('Tactical::AddConnector', ball, update)
-            if self.connectors is None:
-                return
-            connector = trinity.Load('res:/UI/Inflight/tactical/footprint.red')
-            connector.name = str(ball.id)
-            connector.display = True
-            scene = sm.GetService('sceneManager').GetRegisteredScene('default')
-            verticalLine = None
-            footprintPlane = None
-            for child in connector.children:
-                if child.name == 'verticalLine':
-                    verticalLine = child
-                if child.name == 'footprint':
-                    footprintPlane = child
-
-            if verticalLine is not None:
-                verticalLine.ClearLines()
-                verticalLine.AddLine((0.0, 0.0, 0.0), (0.2, 0.2, 0.2, 1.0), (1.0, 1.0, 1.0), (0.2, 0.2, 0.2, 1.0))
-                verticalLine.SubmitChanges()
-                verticalLine.translationCurve = ball
-                set = trinity.TriCurveSet()
-                vs = trinity.TriVectorSequencer()
-                vc = trinity.TriVectorCurve()
-                vc.value = (0.0, -1.0, 0.0)
-                vs.functions.append(ball)
-                vs.functions.append(vc)
-                bind = trinity.TriValueBinding()
-                bind.destinationObject = verticalLine
-                bind.destinationAttribute = 'scaling'
-                bind.sourceObject = vs
-                bind.sourceAttribute = 'value'
-                set.curves.append(vs)
-                set.curves.append(vc)
-                set.bindings.append(bind)
-                set.name = str(ball.id) + '_vline'
-                set.Play()
-                scene.curveSets.append(set)
-                self.usedCurveSets.append(set)
-            if footprintPlane is not None:
-                set = trinity.TriCurveSet()
-                vs = trinity.TriVectorSequencer()
-                vc = trinity.TriVectorCurve()
-                vc.value = (1.0, 0.0, 1.0)
-                vs.functions.append(ball)
-                vs.functions.append(vc)
-                bind = trinity.TriValueBinding()
-                bind.destinationObject = footprintPlane
-                bind.destinationAttribute = 'translation'
-                bind.sourceObject = vs
-                bind.sourceAttribute = 'value'
-                set.curves.append(vs)
-                set.curves.append(vc)
-                set.bindings.append(bind)
-                set.name = str(ball.id) + '_fprint'
-                set.Play()
-                scene.curveSets.append(set)
-                self.usedCurveSets.append(set)
-                connector.display = geo2.Vec3Length(footprintPlane.translation) < 200000.0
-            self.connectors.children.append(connector)
-            if ball.id == sm.GetService('state').GetExclState(state.selected):
-                self.ShowDirectionTo(ball.id)
-            return
 
     def OnEwarStart(self, sourceBallID, moduleID, targetBallID, jammingType):
         if not jammingType:

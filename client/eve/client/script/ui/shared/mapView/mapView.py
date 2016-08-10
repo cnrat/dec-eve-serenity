@@ -101,7 +101,8 @@ class MapView(Container):
         self.camera.SetCallback(self.OnCameraMoved)
         if attributes.starColorMode:
             self.SetViewColorMode(attributes.starColorMode, updateColorMode=False)
-        uthread.new(self.InitMap, interestID=attributes.interestID)
+        zoomToItem = attributes.get('zoomToItem', True)
+        uthread.new(self.InitMap, interestID=attributes.interestID, zoomToItem=zoomToItem)
         sm.RegisterNotify(self)
         uthread.new(uicore.registry.SetFocus, self)
         self.showDebugInfo = attributes.Get('showDebugInfo', self.showDebugInfo)
@@ -203,7 +204,7 @@ class MapView(Container):
         if currentLineMode != self.lineMode:
             self.UpdateLines(hint='OnMapViewSettingChanged')
 
-    def InitMap(self, interestID=None):
+    def InitMap(self, interestID=None, zoomToItem=True):
         if self.destroyed:
             return
         else:
@@ -243,7 +244,7 @@ class MapView(Container):
             if self.destroyed:
                 return
             if interestID:
-                self.SetActiveItemID(interestID, zoomToItem=True)
+                self.SetActiveItemID(interestID, zoomToItem=zoomToItem)
             else:
                 if self.mapViewID:
                     self.camera.LoadRegisteredCameraSettings(self.mapViewID)
@@ -677,7 +678,6 @@ class MapView(Container):
                 minCameraDistanceFromInterest = mapViewConst.MIN_CAMERA_DISTANCE
                 sm.GetService('audio').SendUIEvent('map_system_zoom_play')
                 activeMarkers.append(itemID)
-                constellationMapData = mapViewData.GetKnownConstellation(mapData.constellationID)
                 activeMarkers += mapData.neighbours
                 activeObjects.solarSystemID = itemID
                 activeObjects.constellationID = mapData.constellationID

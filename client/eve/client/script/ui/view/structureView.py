@@ -8,7 +8,7 @@ class StructureView(View):
     __guid__ = 'viewstate.StructureView'
     __suppressedOverlays__ = {'shipui', 'target'}
     __overlays__ = {'sidePanels'}
-    __notifyevents__ = []
+    __notifyevents__ = ['OnBallparkSetState']
     __dependencies__ = ['cameraClient', 'autoPilot']
     __layerClass__ = StructureLayer
 
@@ -16,6 +16,11 @@ class StructureView(View):
         self.cameraClient.Enable()
         self.autoPilot.SetOff()
         settings.user.ui.Set('defaultStructureView', ViewState.Structure)
+        sm.GetService('sceneManager').SetPrimaryCamera('shiporbit')
 
     def HideView(self):
         self.cameraClient.Disable()
+
+    def OnBallparkSetState(self):
+        if self.IsActive():
+            sm.GetService('sceneManager').SetPrimaryCamera('shiporbit')

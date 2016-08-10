@@ -4,7 +4,7 @@ import math
 import audio2
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.baseCamera import Camera
-from eve.client.script.ui.camera.cameraUtil import IsBobbingEnabled, GetCameraMaxLookAtRange, GetBallPosition, GetBall, IsAutoTrackingEnabled
+from eve.client.script.ui.camera.cameraUtil import IsBobbingEnabled, GetCameraMaxLookAtRange, GetBallPosition, GetBall, IsAutoTrackingEnabled, FOV_MIN, FOV_MAX
 import evecamera
 from evecamera.animation import AnimationController
 from evecamera.shaker import ShakeController
@@ -102,15 +102,18 @@ class BaseSpaceCamera(Camera):
         self.ResetAnchorPos()
 
     def Track(self, itemID):
-        self.LookAt(itemID)
+        pass
 
     def OnAutoTrackingChanged(self):
-        if IsAutoTrackingEnabled():
-            itemID = sm.GetService('state').GetExclState(states.selected)
-            self.Track(itemID)
+        if not self.isActive:
+            return
         else:
-            self.Track(None)
-        return
+            if IsAutoTrackingEnabled():
+                itemID = sm.GetService('state').GetExclState(states.selected)
+                self.Track(itemID)
+            else:
+                self.Track(None)
+            return
 
     def GetCameraParent(self):
         return self.trackTarget
@@ -231,3 +234,18 @@ class BaseSpaceCamera(Camera):
 
     def OnBallRemoved(self, ball):
         pass
+
+    def GetDynamicFovByDistance(self, dist):
+        prop = max(0.0, min(dist / self.minZoom, 1.0))
+        return FOV_MIN + prop ** 0.35 * (FOV_MAX - FOV_MIN)
+
+    def GetDynamicFov(self):
+        if self._atTransitOffset:
+            atPos = geo2.Vec3Subtract(self.atPosition, self._atTransitOffset)
+        else:
+            atPos = self.atPosition
+        dist = geo2.Vec3Distance(self.eyePosition, atPos)
+        return self.GetDynamicFovByDistance(dist)
+
+    def ResetFOV(self):
+        self.SetFovTarget(self.default_fov)

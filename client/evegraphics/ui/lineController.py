@@ -5,6 +5,7 @@ LINE_CONNECTOR_ATTACKING = 'attacking'
 LINE_CONNECTOR_LOCKING = 'locking'
 LINE_CONNECTOR_MOVING = 'moving'
 LINE_CONNECTOR_RANGE = 'range'
+LINE_CONNECTOR_ORBIT = 'orbit'
 LINE_CONNECTOR_RANGE_SPHERE = 'rangeSphere'
 LINE_CONNECTOR_ANCHOR_SPHERE = 'anchorSphere'
 LINE_CONNECTOR_ANCHOR_STRAIGHT = 'anchorStraight'
@@ -12,6 +13,7 @@ LINE_CONNECTOR_POINT_TO_POINT = 'pointToPoint'
 _LINE_CONNECTORS = {LINE_CONNECTOR_ATTACKING: 'res:/dx9/model/ui/lineConnectorAttacking.red',
  LINE_CONNECTOR_LOCKING: 'res:/dx9/model/ui/lineConnectorLocking.red',
  LINE_CONNECTOR_MOVING: 'res:/dx9/model/ui/lineConnectorMoving.red',
+ LINE_CONNECTOR_ORBIT: 'res:/dx9/model/ui/lineConnectorMoving.red',
  LINE_CONNECTOR_RANGE: 'res:/dx9/model/ui/lineConnectorGeneric.red',
  LINE_CONNECTOR_RANGE_SPHERE: 'res:/dx9/model/ui/lineConnectorGeneric.red',
  LINE_CONNECTOR_ANCHOR_SPHERE: 'res:/dx9/model/ui/lineConnectorGeneric.red',
@@ -21,7 +23,8 @@ _LINE_CONNECTOR_TYPE = {LINE_CONNECTOR_RANGE: trinity.EveConnectorStyle.XZ_Circl
  LINE_CONNECTOR_RANGE_SPHERE: trinity.EveConnectorStyle.XZ_Circle,
  LINE_CONNECTOR_ANCHOR_SPHERE: trinity.EveConnectorStyle.CurvedAnchor,
  LINE_CONNECTOR_ANCHOR_STRAIGHT: trinity.EveConnectorStyle.StraightAnchor,
- LINE_CONNECTOR_POINT_TO_POINT: trinity.EveConnectorStyle.PointToPoint}
+ LINE_CONNECTOR_POINT_TO_POINT: trinity.EveConnectorStyle.PointToPoint,
+ LINE_CONNECTOR_ORBIT: trinity.EveConnectorStyle.Orbit}
 
 class LineSet:
 
@@ -222,7 +225,6 @@ class LineController:
         else:
             sm.GetService('sceneManager').RegisterPersistentSpaceObject((LineController, 0), self._connectorContainer)
             sm.GetService('sceneManager').RegisterPersistentSpaceObject((LineController, 1), self._freeformLineSet)
-        self._debugShowSpheredNavRange = True
         return
 
     def AddSpaceObjectConnector(self, source, dest, lineType):
@@ -247,9 +249,6 @@ class LineController:
 
     def CreateLineSet(self):
         return LineSet(self._freeformLineSet)
-
-    def DebugShowSpheredNavRange(self):
-        return self._debugShowSpheredNavRange
 
     @staticmethod
     def GetGlobalInstance(scene=None):

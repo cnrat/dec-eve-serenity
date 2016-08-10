@@ -150,6 +150,7 @@ corporationDivisionFromFlag = dict(stationCorporationFlags.items() + structureCo
 stationFlagFromDivision = {v:k for k, v in stationCorporationFlags.items()}
 structureFlagFromDivision = {v:k for k, v in structureCorporationFlags.items()}
 corpAssetSafetyFlagsFromDivision = {v:k for k, v in corpAssetSafetyFlags.iteritems()}
+flagsObservedByStructureController = (flagStructureFuel, flagCargo, flagFighterBay)
 jettisonableFlags = [flagCargo,
  flagSpecializedOreHold,
  flagSpecializedMineralHold,
@@ -619,6 +620,7 @@ groupFWAmarrEmpireCruiser = 1179
 groupFWAmarrEmpireBattlecruiser = 1183
 groupHybridPolymers = 974
 groupMissileGuidanceComputer = 1396
+groupMobileDecoyUnit = 1274
 groupMobilePowerCore = 414
 groupMobileProjectileSentry = 426
 groupMobileReactor = 438
@@ -627,6 +629,7 @@ groupMobileSentryGun = 336
 groupMobileShieldGenerator = 418
 groupMobileStorage = 364
 groupMobileMicroJumpDisruptor = 1149
+groupMobileVault = 1297
 groupMobileWarpDisruptor = 361
 groupMoney = 17
 groupMoon = 8
@@ -814,6 +817,7 @@ groupSecondarySun = 995
 groupGameTime = 943
 groupWorldSpace = 935
 groupSalvager = 1122
+groupObservatoryDeployable = 1312
 groupOrbitalTarget = 1198
 groupMaterialsAndCompounds = 530
 groupMobileHomes = 1246
@@ -833,6 +837,13 @@ groupBoss = 1530
 groupLightFighter = 1652
 groupHeavyFighter = 1653
 groupStructureCitadel = 1657
+groupStructureStargate = 1408
+groupStructureAdministrationHub = 1409
+groupStructureAdvertisementCenter = 1410
+groupStructureIndustrialArray = 1404
+groupStructureLaboratory = 1405
+groupStructureDrillingPlatform = 1406
+groupStructureObservatoryArray = 1407
 groupApparelAugmentations = 1670
 groupApparelBottoms = 1090
 groupApparelEyewear = 1083
@@ -1379,6 +1390,15 @@ typeCapitalFlexShieldHardenerII = 41528
 typeTrueSanshaCapitalFlexShieldHardener = 41529
 typeDreadGuristasCapitalFlexShieldHardener = 41530
 typeDominationCapitalFlexShieldHardener = 41531
+typeFighterSupportUnitI = 24283
+typeFighterSupportUnitII = 41415
+typeHermesCompactFighterSupportUnit = 41414
+typeSentientFighterSupportUnit = 41417
+typeCapitalRemoteCapacitorTransmitterI = 12219
+typeCapitalInductiveCompactRemoteCapacitorTransmitter = 41566
+typeCapitalRadiativeScopedRemoteCapacitorTransmitter = 41565
+typeCapitalRemoteCapacitorTransmitterII = 12223
+typeCONCORDCapitalRemoteCapacitorTransmitter = 3575
 typeAmarrBattlecruiser = 33095
 typeAmarrBattleship = 3339
 typeAmarrCarrier = 24311
@@ -1611,10 +1631,10 @@ packagedVolumesPerType = {typeGiantSecureContainer: 300,
  typeSmallAuditLogSecureContainer: 10,
  typeEnormousFreightContainer: 2500,
  typeGiantFreightContainer: 1200,
- typeHugeFreightContainer: 5000,
- typeLargeFreightContainer: 1000,
- typeMediumFreightContainer: 500,
- typeSmallFreightContainer: 100,
+ typeHugeFreightContainer: 500,
+ typeLargeFreightContainer: 100,
+ typeMediumFreightContainer: 50,
+ typeSmallFreightContainer: 10,
  typeLargeStandardContainer: 65,
  typeMediumStandardContainer: 33,
  typeSmallStandardContainer: 10,
@@ -1817,6 +1837,15 @@ packagedVolumesPerType = {typeGiantSecureContainer: 300,
  typeTrueSanshaCapitalFlexShieldHardener: 1000,
  typeDreadGuristasCapitalFlexShieldHardener: 1000,
  typeDominationCapitalFlexShieldHardener: 1000,
+ typeFighterSupportUnitI: 1000,
+ typeFighterSupportUnitII: 1000,
+ typeHermesCompactFighterSupportUnit: 1000,
+ typeSentientFighterSupportUnit: 1000,
+ typeCapitalRemoteCapacitorTransmitterI: 1000,
+ typeCapitalInductiveCompactRemoteCapacitorTransmitter: 1000,
+ typeCapitalRadiativeScopedRemoteCapacitorTransmitter: 1000,
+ typeCapitalRemoteCapacitorTransmitterII: 1000,
+ typeCONCORDCapitalRemoteCapacitorTransmitter: 1000,
  typePhalaricaThermalLance: 2000,
  typeGeiravorExplosiveLance: 2000,
  typeGuillotineThermalReaper: 2000,

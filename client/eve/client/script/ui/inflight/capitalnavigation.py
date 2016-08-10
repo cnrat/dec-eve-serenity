@@ -1,6 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\inflight\capitalnavigation.py
-from eve.common.script.sys.eveCfg import InStructure
+from eve.common.script.sys.eveCfg import InShipInSpace
 import evetypes
 import uiprimitives
 import uicontrols
@@ -153,7 +153,7 @@ class CapitalNav(uicontrols.Window):
 
     def JumpTo(self, entry, *args):
         m = []
-        if entry.sr.node.itemID != session.solarsystemid2 and not InStructure():
+        if entry.sr.node.itemID != session.solarsystemid2 and InShipInSpace():
             m = [(uiutil.MenuLabel('UI/CapitalNavigation/CapitalNavigationWindow/JumpTo'), self._JumpTo, (entry.sr.node.itemID, entry.sr.node.beaconID))]
         return m
 
@@ -162,7 +162,7 @@ class CapitalNav(uicontrols.Window):
 
     def BridgeTo(self, entry, *args):
         m = []
-        if entry.sr.node.itemID != session.solarsystemid2:
+        if entry.sr.node.itemID != session.solarsystemid2 and InShipInSpace():
             m = [(uiutil.MenuLabel('UI/CapitalNavigation/CapitalNavigationWindow/BridgeTo'), self._BridgeTo, (entry.sr.node.itemID, entry.sr.node.beaconID))]
         return m
 

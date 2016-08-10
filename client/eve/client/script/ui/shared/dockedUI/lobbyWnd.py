@@ -258,7 +258,7 @@ class LobbyWnd(Window):
         if serviceData is None:
             return
         else:
-            for stationServiceID in serviceData.serviceIDs:
+            for stationServiceID in serviceData.maskServiceIDs:
                 result = self.controller.PerformAndGetErrorForStandingCheck(stationServiceID)
                 if result is not None:
                     raise result
@@ -462,13 +462,15 @@ class LobbyWnd(Window):
             btns = []
             officeExists = self.controller.DoesOfficeExist()
             canRent = self.controller.CanRent()
+            canUnrent = self.controller.CanUnrent()
             canMoveHQ = self.controller.CanMoveHQ()
+            hqAllowed = self.controller.IsHqAllowed()
             if canRent and not officeExists:
                 rentLabel = GetByLabel('UI/Station/Lobby/RentOffice')
                 btns.append([rentLabel, self.RentOffice, None])
-            if canMoveHQ and officeExists:
+            if canUnrent and officeExists:
                 btns.append([GetByLabel('UI/Station/Hangar/UnrentOffice'), self.UnrentOffice, None])
-            if canMoveHQ:
+            if canMoveHQ and hqAllowed:
                 isHQHere = self.controller.IsMyHQ()
                 if not isHQHere:
                     hqLabel = GetByLabel('UI/Station/Lobby/MoveHeadquartersHere')
@@ -762,12 +764,13 @@ class LobbyWnd(Window):
             return False
         return True
 
-    def OnProcessStationServiceItemChange(self, stationID, solarSystemID, serviceID, stationServiceItemID, isEnabled):
+    def OnProcessStationServiceItemChange(self, stationID, solarSystemID, maskServiceID, stationServiceItemID, isEnabled):
         if not self.IsLobbyBeAvailable():
             return
         for icon in self.serviceButtons.children:
-            if hasattr(icon, 'stationServiceIDs') and serviceID in icon.stationServiceIDs:
-                self.SetServiceButtonState(icon, [serviceID])
+            if hasattr(icon, 'maskStationServiceIDs') and maskServiceID in icon.maskStationServiceIDs:
+                serviceID = stationServiceConst.serviceIdByMaskId[maskServiceID]
+                self.SetServiceButtonState(icon, serviceID)
 
     def OnStructureServiceUpdated(self):
         self.ReloadServiceButtons()
@@ -781,7 +784,7 @@ class LobbyWnd(Window):
             self.ShowAgents()
 
     def OnCorporationChanged(self, corpID, change):
-        blue.pyos.synchro.Yield()
+        blue.pyos.synchro.Sleep(750)
         self.LoadButtons()
 
     def OnCorporationMemberChanged(self, corporationID, memberID, change):

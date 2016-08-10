@@ -24,6 +24,7 @@ from fighters import TARGET_MODE_POINTTARGETED, TARGET_MODE_UNTARGETED, TARGET_M
 from fighters.client import GetFighterTubesForShip
 import gametime
 from localization import GetByLabel
+from utillib import KeyVal
 SelectedFighterTuple = namedtuple('SelectedFighterTuple', ['fighterItemID', 'tubeFlagID', 'squadron'])
 SQUADRON_WIDTH = 80
 BUTTONCONT_WIDTH = 36
@@ -465,7 +466,7 @@ class FighterDragButton(ButtonIcon):
     isDragObject = True
 
     def GetDragData(self, *args):
-        return ['fakeDragData']
+        return [KeyVal(__guid__='fakeDragData')]
 
     def PrepareDrag(self, dragContainer, dragSource):
         settings.user.ui.Set('detachFighterUI', True)

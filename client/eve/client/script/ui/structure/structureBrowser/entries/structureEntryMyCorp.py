@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\structure\structureBrowser\entries\structureEntryMyCorp.py
 from collections import defaultdict
+import structures
 from carbon.common.script.util.commonutils import StripTags
 from carbon.common.script.util.format import FmtDate
 from carbonui.control.menuLabel import MenuLabel
@@ -11,10 +12,11 @@ from eve.client.script.ui.control.eveIcon import ItemIcon
 from eve.client.script.ui.control.eveLabel import Label
 from eve.client.script.ui.control.glowSprite import GlowSprite
 from eve.client.script.ui.eveFontConst import EVE_MEDIUM_FONTSIZE
+from eve.client.script.ui.services.menuSvcExtras.openFunctions import OpenProfileSettingsForStructure
 from eve.client.script.ui.station import stationServiceConst
 from eve.client.script.ui.structure import ChangeSignalConnect
 from eve.client.script.ui.structure.structureBrowser.controllers.structureEntryController import StructureEntryController
-from eve.client.script.ui.structure.structureBrowser.entries.structureEntry import StructureServiceIcon
+from eve.client.script.ui.structure.structureBrowser.entries.structureEntry import StructureServiceIconMyCorp
 from eve.client.script.ui.structure.structureBrowser.structureState import StructureStateIcon
 from eve.client.script.ui.structure.structureSettings.schedule.smallSchedule import SmallSchedule
 from localization import GetByLabel
@@ -92,13 +94,16 @@ class StructureEntryMyCorp(BaseListEntryCustomColumns):
         serviceData = stationServiceConst.serviceData
         for i, data in enumerate(serviceData):
             left = i * ICONSIZE
-            isAvailable = data in availableServices
+            isAvailable = self.IsThisServiceAvailable(data, availableServices)
             opacity = 1.0 if isAvailable else 0.1
-            s = StructureServiceIcon(name=data.name, parent=self.servicesColumn, texturePath=data.iconID, pos=(left,
+            s = StructureServiceIconMyCorp(name=data.name, parent=self.servicesColumn, texturePath=data.iconID, pos=(left,
              0,
              ICONSIZE,
-             ICONSIZE), hint=data.label, opacity=opacity, serviceName=data.name, controller=self.controller)
+             ICONSIZE), hintHeader=data.label, opacity=opacity, serviceName=data.name, controller=self.controller, serviceID=data.serviceID)
             s.DelegateEvents(self)
+
+    def IsThisServiceAvailable(self, data, availableServices):
+        return data in availableServices or data.serviceID == stationServiceConst.serviceIDAlwaysPresent or data.serviceID == structures.SERVICE_FITTING
 
     def PopulateJumpColumns(self):
         self.jumpColumn.Flush()
@@ -157,9 +162,13 @@ class StructureEntryMyCorp(BaseListEntryCustomColumns):
             setProfileMenu = MenuLabel('UI/StructureBrowser/SetProfileMany', {'numSelected': numSelectedNodes})
         else:
             setProfileMenu = MenuLabel('UI/StructureBrowser/SetProfile')
+        m += self.GetMenuToFindProfile(itemID)
         m += [[setProfileMenu, ('isDynamic', self._GetProfilesMenu, (selectedNodes,))]]
         m += sm.GetService('menu').GetMenuFormItemIDTypeID(itemID=itemID, typeID=typeID)
         return m
+
+    def GetMenuToFindProfile(self, itemID):
+        return []
 
     def _GetModifyMenuOptions(self, selectedNodes):
         selectedControllers = [ x.controller for x in selectedNodes ]
@@ -276,6 +285,9 @@ class StructureEntryMyCorpAllProfiles(StructureEntryMyCorp):
         self.profileNameColumn.Flush()
         profileName = self._GetProfileName(self.slimProfileController)
         Label(parent=self.profileNameColumn, text=profileName, align=uiconst.CENTERLEFT, left=6)
+
+    def GetMenuToFindProfile(self, itemID):
+        return [[MenuLabel('UI/Commands/EditProfileForStructure'), OpenProfileSettingsForStructure, (itemID,)]]
 
     @staticmethod
     def _GetProfileName(slimProfileController):

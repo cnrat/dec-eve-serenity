@@ -5,6 +5,7 @@ from eve.client.script.ui.station.undockQuestions import IsOkToUndockWithMissing
 from eve.client.script.ui.station.assembleModularShip import AssembleShip
 from eveSpaceObject import spaceobjanimation
 import evetypes
+from evegraphics.fsd.graphicIDs import GetSofFactionName
 from inventorycommon.util import IsModularShip
 import turretSet
 import sys
@@ -321,10 +322,8 @@ class StationSvc(service.Service):
         else:
             self.refreshingfitting = True
             activeShip = util.GetActiveShip()
-            graphicInfo = cfg.graphics.GetIfExists(evetypes.GetGraphicID(self.activeShipTypeID))
-            if graphicInfo is None:
-                return
-            turretSet.TurretSet.FitTurrets(activeShip, self.activeshipmodel, getattr(graphicInfo, 'sofFactionName', None))
+            sofFactionName = GetSofFactionName(evetypes.GetGraphicID(self.activeShipTypeID))
+            turretSet.TurretSet.FitTurrets(activeShip, self.activeshipmodel, sofFactionName)
             self.refreshingfitting = False
             return
 

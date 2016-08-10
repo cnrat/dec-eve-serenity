@@ -522,13 +522,14 @@ class DefenceStructureButton(uiprimitives.Container):
             eve.Message('NeocomButtonEnter')
             self.ShowAccuracy()
             self.sr.accuracyTimer = base.AutoTimer(1000, self.ShowAccuracy)
-            uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', sm.GetService('tactical').UpdateTargetingRanges, self.moduleinfo)
+            uthread.new(sm.GetService('tactical').ShowModuleRange, self.moduleinfo)
             return
 
     def OnMouseExit(self, *args):
         log.LogInfo('Module.OnMouseExit', self.sr.sourceID)
         self.HiliteOff()
         self.sr.accuracyTimer = None
+        uthread.new(sm.GetService('tactical').ClearModuleRange)
         self.OnMouseUp(None)
         return
 

@@ -34,6 +34,8 @@ class StructureDocking(service.Service):
                 if e.msg == 'ShipContrabandWarningUndock':
                     if eve.Message(e.msg, e.dict, uiconst.OKCANCEL, suppress=uiconst.ID_OK) == uiconst.ID_OK:
                         TryUndockOnServer(doIgnoreContraband=True)
+                else:
+                    raise
 
             self.CloseStationWindows()
             return

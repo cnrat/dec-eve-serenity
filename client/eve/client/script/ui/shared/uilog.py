@@ -1,5 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\uilog.py
+import actionLog.client.formatters as messageFormatters
 import evetypes
 import uicontrols
 import blue
@@ -29,6 +30,8 @@ class Logger(service.Service):
     __exportedcalls__ = {'AddMessage': [],
      'AddCombatMessage': [],
      'AddText': [],
+     'AddBountyMessage': [],
+     'AddMiningMessage': [],
      'GetLog': [service.ROLE_SERVICE]}
     __guid__ = 'svc.logger'
     __notifyevents__ = ['ProcessSessionChange']
@@ -163,6 +166,17 @@ class Logger(service.Service):
             return 'No hit quality message for level %s' % hitQuality
 
         return localization.GetByLabel(label)
+
+    def AddMiningMessage(self, oreTypeID, volume, amount):
+        if sm.GetService('experimentClientSvc').IsMinorImprovementsEnabled() and amount > 0:
+            if settings.user.ui.Get('actionMessagesMining', True):
+                self.SayMessage(messageFormatters.FormatMiningMessage(normalFontSize=self.notificationFontSize, oreTypeID=oreTypeID, volume=volume, amount=amount))
+
+    def AddBountyMessage(self, bountyPayout, payoutTime, enemyTypeID):
+        if sm.GetService('experimentClientSvc').IsMinorImprovementsEnabled() and bountyPayout > 0:
+            if settings.user.ui.Get('actionMessagesBounty', True):
+                blue.synchro.Sleep(1000)
+                self.SayMessage(messageFormatters.FormatBountyMessage(normalFontSize=self.notificationFontSize, bounty=bountyPayout))
 
     @telemetry.ZONE_METHOD
     def AddCombatMessageFromDict(self, damageMessagesArgs):
@@ -321,13 +335,20 @@ class Logger(service.Service):
          min,
          sec)
 
+    def SayMessage(self, text):
+        message = self._MakeOrGetMessageUI()
+        message.AddActionMessage(text)
+
     def Say(self, msgtext, hitQuality, attackerID, *args):
+        message = self._MakeOrGetMessageUI()
+        message.AddMessage(msgtext, hitQuality, attackerID)
+
+    def _MakeOrGetMessageUI(self):
         message = getattr(uicore.layer.target, 'message', None)
         if not message or message.destroyed:
             message = uicontrols.CombatMessage(parent=uicore.layer.target, name='combatMessage', state=uiconst.UI_PICKCHILDREN)
             uicore.layer.target.message = message
-        message.AddMessage(msgtext, hitQuality, attackerID)
-        return
+        return message
 
     def ShowMessage(self, msgtype):
         return settings.user.ui.Get('show%slogmessages' % msgtype, 1)
@@ -599,6 +620,14 @@ class LoggerWindow(uicontrols.Window):
           'UI/SystemMenu/GeneralSettings/Inflight/ShowTacticalNotificationTooltip'),
          ('UI/SystemMenu/GeneralSettings/Inflight/DamageNotifications',
           'damageMessages',
+          True,
+          None),
+         ('UI/SystemMenu/GeneralSettings/Inflight/ShowBountyNotifications',
+          'actionMessagesBounty',
+          True,
+          None),
+         ('UI/SystemMenu/GeneralSettings/Inflight/ShowMiningNotification',
+          'actionMessagesMining',
           True,
           None),
          ('UI/SystemMenu/GeneralSettings/Inflight/MissedHitNotifications',

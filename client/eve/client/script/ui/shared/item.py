@@ -3,7 +3,7 @@
 from carbonui.control.scrollentries import SE_BaseClassCore
 from carbonui.util.color import Color
 from eve.client.script.ui.control.eveWindowUnderlay import ListEntryUnderlay
-from eve.client.script.ui.services.menuSvcExtras.menuFunctions import ActivatePlex, ActivateMultiTraining, ActivateCharacterReSculpt, ActivateSkillExtractor, ActivateSkillInjector
+from eve.client.script.ui.services.menuSvcExtras.menuFunctions import ActivatePlex, ActivateMultiTraining, ActivateCharacterReSculpt, ActivateSkillExtractor, ActivateSkillInjector, OpenCrate
 from eve.client.script.ui.shared.fitting.ghostFittingHelpers import TryGhostFitItemOnMouseAction
 from eve.client.script.ui.shared.market.sellMulti import SellItems
 from eve.common.script.util import industryCommon
@@ -24,6 +24,7 @@ import const
 from eve.client.script.ui.shared.inventory.invWindow import Inventory as InventoryWindow
 from eve.client.script.ui.shared.industry.industryWnd import Industry
 import inventorycommon.typeHelpers
+import crates
 COLOR_ACTIVESHIP = (0.0,
  0.6,
  0.0,
@@ -460,6 +461,8 @@ class InvItem(uicontrols.SE_BaseClassCore):
                 ActivateSkillExtractor(self.rec)
             elif self.isStructure:
                 sm.GetService('structureDeployment').Deploy(self.rec)
+            elif self.typeID in crates.CrateStorage():
+                OpenCrate(self.typeID, self.rec.itemID, self.rec.stacksize)
         return
 
     def OnMouseDown(self, *args):
@@ -619,6 +622,8 @@ class InvItem(uicontrols.SE_BaseClassCore):
             stateMgr = sm.StartService('godma').GetStateManager()
             dogmaLocation = sm.GetService('clientDogmaIM').GetDogmaLocation()
             singletons = []
+            if len(mergeToMe) > 1 and shift:
+                raise UserError('CannotPerformOnMultipleItems')
             for invItem in mergeToMe:
                 if invItem.stacksize == 1:
                     quantity = 1

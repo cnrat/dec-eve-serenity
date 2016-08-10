@@ -919,7 +919,7 @@ class ModuleButton(uiprimitives.Container):
             self.SetHilite()
             tacticalSvc = sm.GetService('tactical')
             bracketMgr = sm.GetService('bracket')
-            maxRange, falloffDist, bombRadius = tacticalSvc.FindMaxRange(self.moduleinfo, self.charge)
+            maxRange, falloffDist, bombRadius, _ = tacticalSvc.FindMaxRange(self.moduleinfo, self.charge)
             if maxRange > 0:
                 bracketMgr.ShowModuleRange(self.moduleinfo.itemID, maxRange + falloffDist)
                 bracketMgr.ShowHairlinesForModule(self.moduleinfo.itemID)
@@ -930,7 +930,7 @@ class ModuleButton(uiprimitives.Container):
                     self.tooltipPanelClassInfo = TooltipModuleWrapper()
             else:
                 self.tooltipPanelClassInfo = None
-            uthread.pool('ShipMobuleButton::OnMouseEnter-->UpdateTargetingRanges', tacticalSvc.UpdateTargetingRanges, self.moduleinfo, self.charge)
+            uthread.new(tacticalSvc.ShowModuleRange, self.moduleinfo, self.charge)
             return
 
     def GetTooltipDelay(self):
@@ -941,6 +941,7 @@ class ModuleButton(uiprimitives.Container):
         sm.GetService('bracket').StopShowingModuleRange(self.moduleinfo.itemID)
         self.OverloadHiliteOff()
         log.LogInfo('Module.OnMouseExit', self.id)
+        uthread.new(sm.GetService('tactical').ClearModuleRange)
         self.OnMouseUp(None)
         return
 

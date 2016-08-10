@@ -29,6 +29,9 @@ class CameraBase(object):
     def IsLocked(self):
         return False
 
+    def _Update(self):
+        pass
+
     def _ErrorListener(self, *args):
 
         def _threaded():

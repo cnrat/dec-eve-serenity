@@ -200,7 +200,7 @@ class DictLoader(object):
         return self.get(key, None)
 
     def itervalues(self):
-        for key, (offset, size) in self.footer:
+        for key, (offset, size) in self.footer.iteritems():
             yield self.__GetItemFromOffset__(key, offset)
 
     def iterkeys(self):

@@ -6,6 +6,7 @@ from eve.client.script.environment.invControllers import ShipCargo
 from eve.client.script.ui.camera.cameraUtil import IsAutoTrackingEnabled
 from eve.client.script.ui.inflight.radialMenuCamera import RadialMenuCamera
 from eve.client.script.ui.inflight.radialMenuScanner import RadialMenuScanner
+from eve.client.script.ui.view.viewStateConst import ViewState
 import evecamera
 from localization import GetByLabel
 import uthread
@@ -42,7 +43,9 @@ class LeftSideButton(uiprimitives.Container):
         if self.cmdName:
             tooltipPanel.LoadGeneric2ColumnTemplate()
             cmd = uicore.cmd.commandMap.GetCommandByName(self.cmdName)
-            tooltipPanel.AddCommandTooltip(cmd)
+            return tooltipPanel.AddCommandTooltip(cmd)
+        else:
+            return (None, None)
 
     def LoadIcon(self, iconPath):
         self.icon.LoadIcon(iconPath)
@@ -119,7 +122,8 @@ class LeftSideButtonCargo(LeftSideButton):
 class LeftSideButtonStructureAmmoHold(LeftSideButton):
     default_name = 'inFlightStructureAmmoBtn'
     default_texturePath = 'res:/UI/Texture/icons/44_32_10.png'
-    cmdName = 'OpenStructureCargo'
+    cmdName = 'OpenCargoHoldOfActiveShip'
+    cmdDescription_override = 'Tooltips/Hud/CargoHoldStructure_description'
 
     def OnClick(self, *args):
         LeftSideButton.OnClick(self)
@@ -127,6 +131,12 @@ class LeftSideButtonStructureAmmoHold(LeftSideButton):
 
     def OnDropData(self, dragObj, nodes):
         ShipCargo().OnDropData(nodes)
+
+    def LoadTooltipPanel(self, tooltipPanel, *args):
+        l, d = LeftSideButton.LoadTooltipPanel(self, tooltipPanel)
+        if d:
+            detailedDescription = GetByLabel(self.cmdDescription_override)
+            d.text = detailedDescription
 
 
 class LeftSideButtonCamera(LeftSideButton):
@@ -299,7 +309,7 @@ class LeftSideButtonCameraBase(LeftSideButton):
             self.busy.state = uiconst.UI_HIDDEN
 
     def IsActive(self):
-        cameraID = sm.GetService('sceneManager').GetActivePrimarySpaceCam()
+        cameraID = sm.GetService('viewState').GetView(ViewState.Space).GetRegisteredCameraID()
         return cameraID == self.cameraID
 
 

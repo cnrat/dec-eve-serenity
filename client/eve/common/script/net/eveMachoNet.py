@@ -175,8 +175,7 @@ class EveMachoNetService(macho.MachoNetService):
             raise
 
     def _GetNodeFromAddressFromDB(self, myNodeID, serviceMapping, address, suggestedNodeID, expectedLoadValue, serviceMask):
-        if serviceMapping == 2 and (address < const.minSolarSystem or address > const.maxSolarSystem):
-            log.LogException()
+        if serviceMapping == const.cluster.SERVICE_BEYONCE and (address < const.minSolarSystem or address > const.maxSolarSystem):
             raise RuntimeError('Address is not a solar system (%s)' % address)
         return svc.machoNet._GetNodeFromAddressFromDB(self, myNodeID, serviceMapping, address, suggestedNodeID, expectedLoadValue, serviceMask)
 
@@ -312,7 +311,7 @@ class EveMachoNetService(macho.MachoNetService):
                         nodeIDs = self.transportIDbyProxyNodeID.iterkeys()
                         done = 1
                     elif idtype == 'structureid':
-                        solarSystemID = cfg.evelocations.Get(address.narrowcast[0]).solarSystemID
+                        solarSystemID = sm.GetService('structureDirectory').GetStructureInfo_(address.narrowcast[0]).solarSystemID
                         nodeID = self.CheckAddressCache('beyonce', solarSystemID, lazyGetIfNotFound=True)
                         if self.GetNodeID() == nodeID:
                             if scattered:

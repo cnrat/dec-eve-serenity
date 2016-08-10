@@ -34,3 +34,19 @@ def IsDustCharacter(characterID):
 
 def IsDustType(typeID):
     return typeID > const.minDustTypeID
+
+
+def IsNewbieSystem(itemID):
+    default = [30002547,
+     30001392,
+     30002715,
+     30003489,
+     30005305,
+     30004971,
+     30001672,
+     30002505,
+     30000141,
+     30003410,
+     30005042,
+     30001407]
+    return itemID in default

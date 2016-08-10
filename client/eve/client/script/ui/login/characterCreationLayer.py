@@ -39,6 +39,7 @@ from eve.client.script.ui.login.charcreation.steps.characterBloodlineSelection i
 from eve.client.script.ui.login.charcreation.steps.characterCustomization import CharacterCustomization
 from eve.client.script.ui.login.charcreation.steps.characterNaming import CharacterNaming
 from eve.client.script.ui.login.charcreation.steps.characterPortrait import CharacterPortrait
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 MINSIDESIZE = 200
 LEFTSIZE = 200
 RIGHTSIZE = 350
@@ -1533,8 +1534,8 @@ class CharacterCreationLayer(uicls.LayerCore):
 
     @telemetry.ZONE_METHOD
     def UpdateLights(self):
-        lightsPath = cfg.graphics.Get(self.lightingID).graphicFile
-        lightColorPath = cfg.graphics.Get(self.lightColorID).graphicFile
+        lightsPath = GetGraphicFile(self.lightingID)
+        lightColorPath = GetGraphicFile(self.lightColorID)
         lightScene = trinity.Load(lightsPath)
         lightColorScene = trinity.Load(lightColorPath)
         ccUtil.SetupLighting(self.scene, lightScene, lightColorScene, self.lightIntensity)
@@ -1883,7 +1884,10 @@ class CharacterCreationLayer(uicls.LayerCore):
             sm.GetService('viewState').CloseSecondaryView()
         else:
             self.OnCloseView()
-            change = {'stationid': (None, session.stationid)}
+            if session.structureid:
+                change = {'structureid': (None, session.structureid)}
+            else:
+                change = {'stationid': (None, session.stationid)}
             sm.GetService('gameui').OnSessionChanged(isRemote=False, session=session, change=change)
         return
 

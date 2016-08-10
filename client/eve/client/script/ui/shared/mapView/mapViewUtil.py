@@ -238,17 +238,17 @@ def ToggleMap(*args, **kwds):
             viewSvc.ActivateView('starmap', **kwds)
 
 
-def OpenMap(interestID=None, hightlightedSolarSystems=None, drawRoute=None, starColorMode=None, **kwds):
+def OpenMap(interestID=None, hightlightedSolarSystems=None, drawRoute=None, starColorMode=None, zoomToItem=True, **kwds):
     if IsMapBetaPrimary():
         from eve.client.script.ui.shared.mapView.mapViewPanel import MapViewPanel
         mapPanel = MapViewPanel.GetPanel()
         if mapPanel:
             if interestID:
-                mapPanel.SetActiveItemID(interestID, zoomToItem=True)
+                mapPanel.SetActiveItemID(interestID, zoomToItem=zoomToItem)
             if starColorMode:
                 mapPanel.SetViewColorMode(starColorMode)
         else:
-            mapView = MapViewPanel.OpenPanel(parent=uicore.layer.main, interestID=interestID, starColorMode=starColorMode)
+            mapView = MapViewPanel.OpenPanel(parent=uicore.layer.main, interestID=interestID, starColorMode=starColorMode, zoomToItem=zoomToItem)
     else:
         sm.GetService('viewState').ActivateView('starmap', interestID=interestID, hightlightedSolarSystems=hightlightedSolarSystems, drawRoute=drawRoute, starColorMode=starColorMode)
 

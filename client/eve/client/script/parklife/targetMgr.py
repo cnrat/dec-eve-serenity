@@ -1154,6 +1154,7 @@ class TargetMgr(service.Service):
             if self.origin is not None and not self.origin.destroyed:
                 self.origin.Close()
                 self.origin = None
+            sm.GetService('state').SetState(tid, state.activeTarget, 0)
         for rowKey, row in self.rowDict.iteritems():
             if tid in row:
                 row.remove(tid)

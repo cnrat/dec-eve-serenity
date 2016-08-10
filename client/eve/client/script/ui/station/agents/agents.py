@@ -345,7 +345,8 @@ class Agents(service.Service):
             self.windows[agentID] = agentDialogueWindow
             agentDialogueWindow.sr.main.opacity = 0.0
             if agentID not in self.GetTutorialAgentIDs() and agentInfo is not None and agentInfo.agentTypeID != const.agentTypeAura:
-                uthread.pool('agents::confirm', eve.Message, 'AgtMissionOfferWarning')
+                if not sm.GetService('experimentClientSvc').IsMinorImprovementsEnabled():
+                    uthread.pool('agents::confirm', eve.Message, 'AgtMissionOfferWarning')
         self.__Interact(agentDialogueWindow)
         if not agentDialogueWindow.destroyed:
             agentDialogueWindow.sr.main.opacity = 1.0

@@ -25,6 +25,7 @@ class SellItems(SellBuyItemsWindow):
     tradeForCorpSettingConfig = 'sellUseCorp'
     tradeTextPath = 'UI/Market/MarketQuote/CommandSell'
     orderCap = 'MultiSellOrderCap'
+    badDeltaWarningPath = 'UI/Market/MarketQuote/MultiSellTypesBelowAverage'
 
     def ApplyAttributes(self, attributes):
         SellBuyItemsWindow.ApplyAttributes(self, attributes)
@@ -88,7 +89,7 @@ class SellItems(SellBuyItemsWindow):
         solarSystemID = self._GetSolarSystemIDForItem(item)
         marketQuote = sm.GetService('marketQuote')
         bestPrice = marketQuote.GetBestPrice(item.typeID, item, item.stacksize, solarSystemID)
-        bestBid = marketQuote.GetBestBid(item.typeID, locationID=solarSystemID)
+        bestBid = marketQuote.GetBestBidWithStationID(item, locationID=solarSystemID)
         stationID = sm.GetService('invCache').GetStationIDOfItem(item)
         itemEntry = SellItemContainer(item=item, editFunc=self.OnEntryEdit, align=uiconst.TOTOP, parentFunc=self.RemoveItem, bestPrice=bestPrice, bestBid=bestBid, stationID=stationID, solarSystemID=solarSystemID)
         return itemEntry
@@ -234,7 +235,7 @@ class SellItems(SellBuyItemsWindow):
         unitCount = self.GetUnitCount()
         allItems = self.GetItems()
         if unitCount == 0:
-            return
+            uicore.Message('uiwarning03')
         if eve.Message('ConfirmSellingItems', {'noOfItems': int(unitCount)}, uiconst.OKCANCEL, suppress=uiconst.ID_OK) != uiconst.ID_OK:
             return
         self.errorItemList = []
@@ -243,13 +244,17 @@ class SellItems(SellBuyItemsWindow):
         for item in allItems:
             if duration == 0:
                 if item.bestBid:
-                    self.ValidateItem(item)
+                    validatedItem = self.GetValidatedItem(item)
                 else:
                     continue
             else:
-                self.ValidateItem(item)
+                validatedItem = self.GetValidatedItem(item)
+            if validatedItem:
+                self.sellItemList.append(validatedItem)
 
         if not len(self.sellItemList):
+            return
+        if not self.ContinueAfterWarning(self.sellItemList):
             return
         sm.GetService('marketQuote').SellMulti(self.sellItemList, useCorp, duration)
         self.Close()
@@ -259,23 +264,23 @@ class SellItems(SellBuyItemsWindow):
         isImmediate = self.durationCombo.GetValue() == 0
         for item in self.itemList:
             if isImmediate:
-                unitCount += item.GetSellCountEstimate()
+                unitCount += item.estimatedSellCount
             else:
-                unitCount += item.GetQty()
+                unitCount += item.GetQtyToSell()
 
         return unitCount
 
-    def ValidateItem(self, item):
+    def GetValidatedItem(self, item):
         price = round(item.GetPrice(), 2)
         if price > self.MAX_PRICE:
             return
         if self.durationCombo.GetValue() == 0:
             if not item.bestBid:
                 return
-        qty = item.GetQty()
+        qty = item.GetQtyToSell()
         mq = sm.GetService('marketQuote')
-        validatedItem = KeyVal(stationID=int(item.stationID), typeID=int(item.typeID), itemID=item.itemID, price=price, quantity=int(qty), located=mq.GetOfficeFolderInfo(item))
-        self.sellItemList.append(validatedItem)
+        validatedItem = KeyVal(stationID=int(item.stationID), typeID=int(item.typeID), itemID=item.itemID, price=price, quantity=int(qty), located=mq.GetOfficeFolderInfo(item), delta=item.GetDelta())
+        return validatedItem
 
     def IsAllowedGuid(self, guid):
         if guid not in INVENTORY_GUIDS:
@@ -283,13 +288,11 @@ class SellItems(SellBuyItemsWindow):
         return True
 
     def OnDurationChange(self, *args):
-        settings.user.ui.Set(self.durationSettingConfig, self.durationCombo.GetValue())
+        newDuration = self.durationCombo.GetValue()
+        settings.user.ui.Set(self.durationSettingConfig, newDuration)
         self.UpdateNumbers()
         for item in self.GetItems():
-            if self.durationCombo.GetValue() == 0:
-                item.ShowNoSellOrders()
-            else:
-                item.HideNoSellOrders()
+            item.OnDurationChanged(newDuration)
 
     def UpdateOrderCount(self):
         self.orderCountLabel.text = GetByLabel('UI/Market/MarketQuote/OpenOrdersRemaining', orders=FmtAmt(self.maxCount - self.myOrderCount), maxOrders=FmtAmt(self.maxCount))
@@ -306,3 +309,11 @@ class SellItems(SellBuyItemsWindow):
     def GetCurrentOrderCount(self):
         myOrders = self.marketQuoteSvc.GetMyOrders()
         return len(myOrders)
+
+    def GetItemsWithBadDelta(self, buyItemList):
+        lowItems = []
+        for item in buyItemList:
+            if item.delta < -0.5:
+                lowItems.append((item.delta, item))
+
+        return lowItems

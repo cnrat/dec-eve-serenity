@@ -62,17 +62,17 @@ class PositionalControl:
 
     def _GetMoveOrigin(self, activeIDs):
         lookAtID = self._cameraController.GetCamera().GetLookAtItemID()
-        if lookAtID == session.shipid:
-            return
-        balls = []
         michelle = sm.GetService('michelle')
+        if lookAtID == session.shipid:
+            return michelle.GetBall(session.shipid)
+        balls = []
         for fighterID in activeIDs:
             ball = michelle.GetBall(fighterID)
             if ball is not None:
                 balls.append(ball)
 
         if len(balls) == 0:
-            return
+            return michelle.GetBall(session.shipid)
         elif len(balls) == 1:
             return balls[0]
         else:
@@ -84,6 +84,7 @@ class PositionalControl:
         if shipSelected:
             activeIDs.append(session.shipid)
         activeIDs.extend(fighterIDs)
+        self._activeIDs = activeIDs
         if len(activeIDs) < 1:
             return
         else:
@@ -195,6 +196,8 @@ class PositionalControl:
             return
         else:
             GoToPoint(destination)
+            tn = sm.GetService('tacticalNavigation')
+            tn.IndicateMoveCommand(self._activeIDs, destination)
             return
 
     def AddPoint(self):

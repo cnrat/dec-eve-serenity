@@ -56,7 +56,7 @@ class View(object):
             self.layer.ZoomBy(amount)
 
     def IsActive(self):
-        sm.GetService('viewState').IsViewActive(self.name)
+        return sm.GetService('viewState').IsViewActive(self.name)
 
     def GetProgressText(self, **kwargs):
         if self.__progressMessageLabel__:
@@ -70,6 +70,9 @@ class View(object):
 
     def CheckShouldReopen(self, newKwargs, cachedKwargs):
         return newKwargs == cachedKwargs
+
+    def LoadCamera(self, cameraID=None):
+        pass
 
     def __repr__(self):
         return '%s(name=%s)' % (self.__class__.__name__, self.name)
@@ -141,6 +144,9 @@ class Transition(object):
         if layer.display:
             self.animatedOut.add(layer)
             layer.display = False
+
+    def GetCameraID(self):
+        return None
 
 
 class ViewType:
@@ -250,6 +256,7 @@ class ViewStateSvc(Service):
                         self.activeTransition = transition
                         try:
                             self.activeTransition.StartTransition(oldInfo.view if oldInfo else None, newInfo.view)
+                            cameraID = self.activeTransition.GetCameraID()
                         except:
                             log.LogException()
 
@@ -286,9 +293,9 @@ class ViewStateSvc(Service):
                                     self._CloseView(self.primaryInfo)
                         self.activeViewInfo = newInfo
                         if newInfo.GetViewType() == ViewType.Primary:
-                            self._OpenPrimaryView(newInfo, reopen=reopen, **kwargs)
+                            self._OpenPrimaryView(newInfo, reopen=reopen, cameraID=cameraID, **kwargs)
                         else:
-                            self._OpenView(newInfo, reopen=reopen, **kwargs)
+                            self._OpenView(newInfo, reopen=reopen, cameraID=cameraID, **kwargs)
                         self.UpdateOverlays()
                         if progressText is not None:
                             sm.GetService('loading').ProgressWnd(progressText, '', 2, 2)
@@ -334,13 +341,13 @@ class ViewStateSvc(Service):
 
         self.LogInfo('All dependant services started for view', viewInfo.name)
 
-    def _OpenPrimaryView(self, viewInfo, reopen=False, **kwargs):
+    def _OpenPrimaryView(self, viewInfo, reopen=False, cameraID=None, **kwargs):
         blue.SetCrashKeyValues(u'ViewState', unicode(viewInfo.name))
         blue.statistics.SetTimelineSectionName(viewInfo.name)
         memorySnapshot.AutoMemorySnapshotIfEnabled(viewInfo.name)
-        self._OpenView(viewInfo, reopen=reopen, **kwargs)
+        self._OpenView(viewInfo, reopen=reopen, cameraID=cameraID, **kwargs)
 
-    def _OpenView(self, viewInfo, reopen=False, **kwargs):
+    def _OpenView(self, viewInfo, reopen=False, cameraID=None, **kwargs):
         self.LogInfo('Re-open view' if reopen else 'Opening view', viewInfo, 'with kwargs', kwargs)
         self.StartDependantServices(viewInfo)
         showView = True
@@ -372,6 +379,7 @@ class ViewStateSvc(Service):
             if showView:
                 self.LogInfo('Showing view', viewInfo.name)
                 viewInfo.view.ShowView(**kwargs)
+            viewInfo.view.LoadCamera(cameraID)
         except:
             log.LogException()
 
@@ -570,6 +578,9 @@ class ViewStateSvc(Service):
             return
         else:
             return self.activeTransition.transitionReason
+
+    def GetActiveTransition(self):
+        return self.activeTransition
 
     def OnShowUI(self):
         self.UpdateOverlays()

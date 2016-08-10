@@ -7,6 +7,7 @@ import random
 import math
 import evegraphics.settings as gfxSettings
 import trinity.evePostProcess as evePostProcess
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 
 class AsteroidEnvironment(object):
     _cloudfieldPath = 'res:/dx9/scene/asteroidcloudfield.red'
@@ -142,8 +143,7 @@ class Asteroid(SpaceObject):
             graphicIDs = groupGraphics.typeIDs.get(typeID, None).graphicIDs
             variationID = self.id % len(graphicIDs)
             graphicID = graphicIDs[variationID]
-        graphic = cfg.graphics.get(graphicID, None)
-        graphicFile = getattr(graphic, 'graphicFile', None)
+        graphicFile = GetGraphicFile(graphicID)
         if graphicFile:
             SpaceObject.LoadModel(self, fileName=graphicFile)
             Asteroid._asteroidEnvironment.Add(self)

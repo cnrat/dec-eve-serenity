@@ -24,6 +24,7 @@ import industry
 import remotefilecache
 import uthread
 import carbon.common.script.sys.cfg as sysCfg
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 from inventorycommon.util import IsNPC, IsPlayerItem
 import pytelemetry.zoning as telemetry
 import collections
@@ -36,8 +37,8 @@ import fsd.schemas.binaryLoader as fsdBinaryLoader
 import spacecomponents.common.factory
 from spacecomponents.common.helper import HasCargoBayComponent
 import evewar.util
+from eve.common.script.sys.idCheckers import IsCelestial, IsConstellation, IsRegion, IsSolarSystem, IsStation, IsNPCCorporation, IsNewbieSystem
 import eve.common.script.sys.idCheckers as idCheckers
-from eve.common.script.sys.idCheckers import IsCelestial, IsConstellation, IsRegion, IsSolarSystem, IsStation, IsNPCCorporation
 OWNER_AURA_IDENTIFIER = -1
 OWNER_SYSTEM_IDENTIFIER = -2
 
@@ -805,7 +806,7 @@ class EveConfig(sysCfg.Config):
             raise RuntimeError('GetLocationsLocalBySystem::Non-clientbased call made!!')
         solarSystemObjectRowDescriptor = blue.DBRowDescriptor((('groupID', const.DBTYPE_I4),
          ('typeID', const.DBTYPE_I4),
-         ('itemID', const.DBTYPE_I4),
+         ('itemID', const.DBTYPE_I8),
          ('itemName', const.DBTYPE_WSTR),
          ('locationID', const.DBTYPE_I4),
          ('orbitID', const.DBTYPE_I4),
@@ -1054,10 +1055,6 @@ def GetStrippedEnglishMessage(messageID):
         return ''
 
 
-def CfgGraphics():
-    return cfg.graphics
-
-
 def CfgFsdDustIcons():
     return cfg.fsdDustIcons
 
@@ -1303,22 +1300,6 @@ def IsControlBunker(itemID):
 
 def IsFakeItem(itemID):
     return itemID > const.minFakeItem
-
-
-def IsNewbieSystem(itemID):
-    default = [30002547,
-     30001392,
-     30002715,
-     30003489,
-     30005305,
-     30004971,
-     30001672,
-     30002505,
-     30000141,
-     30003410,
-     30005042,
-     30001407]
-    return itemID in default
 
 
 def IsStarbase(categoryID):
@@ -1841,56 +1822,46 @@ def IsFlagSubSystem(flag):
     return flag >= const.flagSubSystemSlot0 and flag <= const.flagSubSystemSlot7
 
 
-def GetShipFlagLocationName(flag):
-    if flag >= const.flagHiSlot0 and flag <= const.flagHiSlot7:
-        locationName = localization.GetByLabel('UI/Ship/HighSlot')
-    elif flag >= const.flagMedSlot0 and flag <= const.flagMedSlot7:
-        locationName = localization.GetByLabel('UI/Ship/MediumSlot')
-    elif flag >= const.flagLoSlot0 and flag <= const.flagLoSlot7:
-        locationName = localization.GetByLabel('UI/Ship/LowSlot')
-    elif flag >= const.flagRigSlot0 and flag <= const.flagRigSlot7:
-        locationName = localization.GetByLabel('UI/Ship/RigSlot')
-    elif flag >= const.flagSubSystemSlot0 and flag <= const.flagSubSystemSlot7:
-        locationName = localization.GetByLabel('UI/Ship/Subsystem')
-    elif flag == const.flagCargo:
-        locationName = localization.GetByLabel('UI/Ship/CargoHold')
-    elif flag == const.flagDroneBay:
-        locationName = localization.GetByLabel('UI/Ship/DroneBay')
-    elif flag == const.flagShipHangar:
-        locationName = localization.GetByLabel('UI/Ship/ShipMaintenanceBay')
-    elif flag == const.flagHangar or flag >= const.flagCorpSAG1 and flag <= const.flagCorpSAG7:
-        locationName = localization.GetByLabel('UI/Corporations/Common/CorporateHangar')
-    elif flag == const.flagSpecializedFuelBay:
-        locationName = localization.GetByLabel('UI/Ship/FuelBay')
-    elif flag == const.flagSpecializedOreHold:
-        locationName = localization.GetByLabel('UI/Ship/OreHold')
-    elif flag == const.flagSpecializedGasHold:
-        locationName = localization.GetByLabel('UI/Ship/GasHold')
-    elif flag == const.flagSpecializedMineralHold:
-        locationName = localization.GetByLabel('UI/Ship/MineralHold')
-    elif flag == const.flagSpecializedSalvageHold:
-        locationName = localization.GetByLabel('UI/Ship/SalvageHold')
-    elif flag == const.flagSpecializedShipHold:
-        locationName = localization.GetByLabel('UI/Ship/ShipHold')
-    elif flag == const.flagSpecializedSmallShipHold:
-        locationName = localization.GetByLabel('UI/Ship/SmallShipHold')
-    elif flag == const.flagSpecializedMediumShipHold:
-        locationName = localization.GetByLabel('UI/Ship/MediumShipHold')
-    elif flag == const.flagSpecializedLargeShipHold:
-        locationName = localization.GetByLabel('UI/Ship/LargeShipHold')
-    elif flag == const.flagSpecializedIndustrialShipHold:
-        locationName = localization.GetByLabel('UI/Ship/IndustrialShipHold')
-    elif flag == const.flagSpecializedAmmoHold:
-        locationName = localization.GetByLabel('UI/Ship/AmmoHold')
-    elif flag == const.flagSpecializedCommandCenterHold:
-        locationName = localization.GetByLabel('UI/Ship/CommandCenterHold')
-    elif flag == const.flagSpecializedPlanetaryCommoditiesHold:
-        locationName = localization.GetByLabel('UI/Ship/PlanetaryCommoditiesHold')
-    elif flag == const.flagSpecializedMaterialBay:
-        locationName = localization.GetByLabel('UI/Ship/MaterialBay')
+locationPathByFlagID = {const.flagCargo: 'UI/Ship/CargoHold',
+ const.flagDroneBay: 'UI/Ship/DroneBay',
+ const.flagShipHangar: 'UI/Ship/ShipMaintenanceBay',
+ const.flagSpecializedFuelBay: 'UI/Ship/FuelBay',
+ const.flagSpecializedOreHold: 'UI/Ship/OreHold',
+ const.flagSpecializedGasHold: 'UI/Ship/GasHold',
+ const.flagSpecializedMineralHold: 'UI/Ship/MineralHold',
+ const.flagSpecializedSalvageHold: 'UI/Ship/SalvageHold',
+ const.flagSpecializedShipHold: 'UI/Ship/ShipHold',
+ const.flagSpecializedSmallShipHold: 'UI/Ship/SmallShipHold',
+ const.flagSpecializedMediumShipHold: 'UI/Ship/MediumShipHold',
+ const.flagSpecializedLargeShipHold: 'UI/Ship/LargeShipHold',
+ const.flagSpecializedIndustrialShipHold: 'UI/Ship/IndustrialShipHold',
+ const.flagSpecializedAmmoHold: 'UI/Ship/AmmoHold',
+ const.flagSpecializedCommandCenterHold: 'UI/Ship/CommandCenterHold',
+ const.flagSpecializedPlanetaryCommoditiesHold: 'UI/Ship/PlanetaryCommoditiesHold',
+ const.flagSpecializedMaterialBay: 'UI/Ship/MaterialBay',
+ const.flagFighterBay: 'UI/Ship/FighterBay'}
+
+def GetShipFlagLocationName(flagID):
+    if flagID in const.hiSlotFlags:
+        locationPath = 'UI/Ship/HighSlot'
+    elif flagID in const.medSlotFlags:
+        locationPath = 'UI/Ship/MediumSlot'
+    elif flagID in const.loSlotFlags:
+        locationPath = 'UI/Ship/LowSlot'
+    elif flagID in const.rigSlotFlags:
+        locationPath = 'UI/Ship/RigSlot'
+    elif flagID in const.subSystemSlotFlags:
+        locationPath = 'UI/Ship/Subsystem'
+    elif flagID in (const.flagHangar, const.flagCorpSAG1) or flagID in const.flagCorpSAGs:
+        locationPath = 'UI/Corporations/Common/CorporateHangar'
+    elif flagID in const.fighterTubeFlags:
+        locationPath = 'UI/Ship/FighterLaunchTube'
     else:
-        locationName = ''
-    return locationName
+        locationPath = locationPathByFlagID.get(flagID, '')
+    if locationPath:
+        return localization.GetByLabel(locationPath)
+    else:
+        return ''
 
 
 def GetPlanetWarpInPoint(ballID, position, radius):
@@ -1925,13 +1896,6 @@ def GetWarpInPoint(ballID, position, radius):
     y = position[1] + p * radius - 7500.0
     z = position[2] - (radius + offset) * math.sin(radius)
     return (x, y, z)
-
-
-def GraphicFile(graphicID):
-    try:
-        return cfg.graphics.Get(graphicID).graphicFile
-    except Exception:
-        return ''
 
 
 def IconFile(iconID):

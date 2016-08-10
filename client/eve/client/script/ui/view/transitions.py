@@ -1,5 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\transitions.py
+from eve.client.script.ui.camera.cameraUtil import GetBall, GetBallWaitForModel, IsDynamicCameraMovementEnabled
 from eve.client.script.ui.view.viewStateConst import ViewState
 import evecamera
 import uiprimitives
@@ -167,7 +168,7 @@ class SpaceToStationTransition(Transition):
 
     def __init__(self, **kwargs):
         Transition.__init__(self, **kwargs)
-        self.hangarDock = FadeToBlackLiteTransition(500)
+        self.hangarDock = ToHangarTransition()
         self.cqDock = FadeToCQTransition(fadeTimeMS=200, fallbackView=ViewState.Hangar, allowReopen=False)
         self.cloning = DeathTransition()
 
@@ -220,3 +221,78 @@ class SpaceToStructureTransition(Transition):
         else:
             self.dock.EndTransition(fromView, toView)
         Transition.EndTransition(self, fromView, toView)
+
+
+class StationToSpaceTransition(FadeToBlackTransition):
+
+    def EndTransition(self, fromView, toView):
+        GetBallWaitForModel(session.shipid)
+        blue.synchro.SleepWallclock(10)
+        FadeToBlackTransition.EndTransition(self, fromView, toView)
+
+    def GetCameraID(self):
+        currCamID = sm.GetService('viewState').GetView(ViewState.Space).GetRegisteredCameraID()
+        if IsDynamicCameraMovementEnabled() and currCamID == evecamera.CAM_SHIPORBIT:
+            return evecamera.CAM_UNDOCK
+
+
+class CharSelectCreateToSpaceTransition(Transition):
+
+    def __init__(self, fadeTimeMS=1000, fadeInTimeMS=250, fadeOutTimeMS=2000, **kwargs):
+        Transition.__init__(self, **kwargs)
+        self.fadeInTimeMS = fadeInTimeMS or fadeTimeMS
+        self.fadeOutTimeMS = fadeOutTimeMS or fadeTimeMS
+
+    def StartTransition(self, fromView, toView):
+        Transition.StartTransition(self, fromView, toView)
+        sm.GetService('loading').FadeIn(self.fadeInTimeMS)
+
+    def EndTransition(self, fromView, toView):
+        Transition.EndTransition(self, fromView, toView)
+        uthread.new(self._EndTransition)
+
+    def _EndTransition(self):
+        GetBallWaitForModel(session.shipid)
+        sm.ScatterEvent('OnCurrSessionSpaceEnteredFirstTime')
+        sm.GetService('loading').FadeOut(self.fadeOutTimeMS, opacityStart=1.0)
+
+    def GetCameraID(self):
+        cameraID = sm.GetService('viewState').GetView(ViewState.Space).GetRegisteredCameraID()
+        if IsDynamicCameraMovementEnabled() and cameraID == evecamera.CAM_SHIPORBIT:
+            return evecamera.CAM_ENTERSPACE
+
+
+class ToHangarTransition(FadeToBlackTransition):
+
+    def __init__(self, fadeTimeMS=500, fadeInTimeMS=500, fadeOutTimeMS=2000, **kwargs):
+        FadeToBlackTransition.__init__(self, fadeTimeMS, fadeInTimeMS, fadeOutTimeMS, **kwargs)
+
+    def EndTransition(self, fromView, toView):
+        sm.GetService('viewState').GetView(ViewState.Hangar).OnDocking()
+        FadeToBlackTransition.EndTransition(self, fromView, toView)
+
+
+class ToCharCreationFromStructureTransition(FadeToBlackTransition):
+
+    def StartTransition(self, fromView, toView):
+        FadeToBlackTransition.StartTransition(self, fromView, toView)
+        sm.GetService('michelle').RemoveBallpark()
+
+
+class ToStructureFromCharCreationTransition(FadeToBlackTransition):
+
+    def EndTransition(self, fromView, toView):
+        self._LoadSceneForCurrentSolarSystem()
+        FadeToBlackTransition.EndTransition(self, fromView, toView)
+
+    def _LoadSceneForCurrentSolarSystem(self):
+        sceneManager = sm.GetService('sceneManager')
+        sceneRes = sceneManager.GetSceneForSystem(session.solarsystemid)
+        sceneManager.LoadScene(sceneRes, registerKey='default', applyScene=False)
+
+
+class HangarToHangarTransition(FadeToBlackLiteTransition):
+
+    def EndTransition(self, fromView, toView):
+        sm.GetService('viewState').GetView(ViewState.Hangar).OnHangarToHangar()
+        FadeToBlackLiteTransition.EndTransition(self, fromView, toView)

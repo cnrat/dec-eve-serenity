@@ -55,5 +55,5 @@ class GroupInfoWnd(Window):
 
 def GetGroupInfo(groupID):
     accessGroupsController = sm.GetService('structureControllers').GetAccessGroupController()
-    groupInfo = accessGroupsController.GetGroupInfoWithAdmins(groupID)
+    groupInfo = accessGroupsController.GetGroupInfoFromID(groupID)
     return groupInfo

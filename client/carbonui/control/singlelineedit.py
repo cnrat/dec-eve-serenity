@@ -80,6 +80,7 @@ class SinglelineEditCore(Container):
         self.maxHistoryShown = 5
         self.numericControlsCont = None
         self.updateNumericInputThread = None
+        self.draggedValue = None
         self.OnChange = None
         self.OnFocusLost = None
         self.OnReturn = None
@@ -502,6 +503,7 @@ class SinglelineEditCore(Container):
         return
 
     def SetValue(self, text, add=0, keepSelection=0, updateIndex=1, docallback=1):
+        self.draggedValue = None
         text = text or ''
         isString = isinstance(text, basestring)
         if isString:

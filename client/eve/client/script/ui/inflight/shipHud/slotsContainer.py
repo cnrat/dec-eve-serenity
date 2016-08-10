@@ -656,7 +656,7 @@ class SlotsContainer(Container):
     def ChangeOpacityForRange(self, currentRange, *args):
         curveSet = None
         for module in self.modulesByID.itervalues():
-            maxRange, falloffDist, bombRadius = sm.GetService('tactical').FindMaxRange(module.moduleinfo, module.charge)
+            maxRange, falloffDist, bombRadius, _ = sm.GetService('tactical').FindMaxRange(module.moduleinfo, module.charge)
             if maxRange == 0:
                 continue
             animationDuration = GetTiDiAdjustedAnimationTime(normalDuation=0.1, minTiDiValue=0.1, minValue=0.01)

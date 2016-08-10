@@ -1,8 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\camera\cameraUtil.py
 import math
-from eve.client.script.ui.shared.systemMenu import betaOptions
-from eve.common.script.sys.eveCfg import IsDockedInStructure
 from evecamera import LOOKATRANGE_MAX, LOOKATRANGE_MAX_NEW
 from evegraphics import settings as gfxsettings
 import geo2
@@ -13,6 +11,8 @@ import blue
 import destiny
 from evecamera.utils import GetARZoomMultiplier
 import uthread
+FOV_MIN = 0.55
+FOV_MAX = 1.1
 
 def IsNewCameraActive():
     return True
@@ -122,12 +122,37 @@ def GetBallPosition(ball):
     return (vec.x, vec.y, vec.z)
 
 
+def GetSpeedDirection(ball):
+    if getattr(ball, 'model', None) and hasattr(ball.model.rotationCurve, 'value'):
+        quat = ball.model.rotationCurve.value
+    else:
+        quat = ball.GetQuaternionAt(blue.os.GetSimTime())
+        quat = (quat.x,
+         quat.y,
+         quat.z,
+         quat.w)
+    return geo2.QuaternionTransformVector(quat, (0, 0, 1))
+
+
 def GetBall(itemID):
     bp = sm.GetService('michelle').GetBallpark()
     if not bp:
         return None
     else:
         return bp.GetBall(itemID)
+
+
+def GetBallWaitForModel(ballID):
+    ball = None
+    while ball is None:
+        ball = GetBall(ballID)
+        blue.synchro.Yield()
+
+    while not getattr(ball, 'model', None):
+        blue.synchro.Yield()
+
+    blue.synchro.Yield()
+    return ball
 
 
 def GetBallMaxZoom(ball, nearClip):
@@ -145,6 +170,10 @@ def IsBallWarping(itemID):
 
 def IsAutoTrackingEnabled():
     return settings.char.ui.Get('orbitCameraAutoTracking', False)
+
+
+def IsDynamicCameraMovementEnabled():
+    return gfxsettings.Get(gfxsettings.UI_CAMERA_DYNAMIC_CAMERA_MOVEMENT)
 
 
 def CheckShowModelTurrets(ball):
@@ -166,6 +195,24 @@ def IsInfVector3(values):
             return True
 
     return False
+
+
+def SolveQuadratic(a, b, c):
+    d = math.sqrt(b ** 2 - 4 * a * c)
+    x1 = -2 * c / (b + d)
+    x2 = -2 * c / (b - d)
+    return max(x1, x2)
+
+
+def GetInitialLookAtDistance(maxZoom, minZoom, objRadius=None):
+    kPower = 0.95
+    a = 1.0 / minZoom ** kPower
+    b = FOV_MIN / 2.0
+    r = objRadius or maxZoom
+    r = max(objRadius, maxZoom)
+    c = -r
+    radius = SolveQuadratic(a, b, c)
+    return radius
 
 
 class Vector3Chaser(object):

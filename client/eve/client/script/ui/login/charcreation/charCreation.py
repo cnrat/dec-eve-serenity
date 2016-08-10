@@ -529,6 +529,7 @@ class BitSlider(uiprimitives.Container):
             diff = targetWidth - (bit.left + bit.width)
             bit.width += diff
         self.bitParent.width = targetWidth
+        self.width = targetWidth
         if attributes.setvalue is not None:
             self.SetValue(attributes.setvalue)
         self.onSetValueCallback = attributes.OnSetValue

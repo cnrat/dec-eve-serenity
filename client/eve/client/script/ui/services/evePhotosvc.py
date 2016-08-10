@@ -89,8 +89,11 @@ def GetRenderPath(graphicID, size, blueprint):
         fileName = '%s_%s_%s.png' % (graphicID, 64, 'BP')
     else:
         fileName = '%s_%s.png' % (graphicID, size)
-    fileName = os.path.join('res:/UI/Texture/Icons/renders/', fileName)
-    return fileName
+    iconFolder = graphicIDs.GetIconFolder(graphicID)
+    if iconFolder is not None:
+        return iconFolder + '/' + fileName
+    else:
+        return fileName
 
 
 def DoLogIt(path):

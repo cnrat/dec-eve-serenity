@@ -5,13 +5,13 @@ from carbonui.util.bunch import Bunch
 from eve.client.script.ui.control.eveScroll import Scroll
 from eve.client.script.ui.structure.accessGroups.auditLogEntry import AuditLogEntryBase, AuditLogChangedText, AuditLogMemberChanges, AuditLogGroupChanges
 from eve.client.script.ui.structure.accessGroups.ownerGroupUtils import ConvertDBRowToBundle
-from ownergroups.ownergroupConst import GROUP_CREATED, GROUP_DELETED, GROUP_NAME_CHANGED, GROUP_DESCRIPTION_CHANGED, GROUP_MEMBER_REMOVED, GROUP_MEMBER_ADDED, GROUP_TYPE_CHANGED
+from ownergroups.ownergroupConst import GROUP_CREATED, GROUP_DELETED, GROUP_NAME_CHANGED, GROUP_DESCRIPTION_CHANGED, GROUP_MEMBER_REMOVED, GROUP_MEMBER_ADDED, GROUP_MEMBERTYPE_CHANGED
 
 class AuditLogCont(Container):
     entryDict = {GROUP_CREATED: AuditLogGroupChanges,
      GROUP_DELETED: AuditLogGroupChanges,
      GROUP_MEMBER_ADDED: AuditLogMemberChanges,
-     GROUP_TYPE_CHANGED: AuditLogMemberChanges,
+     GROUP_MEMBERTYPE_CHANGED: AuditLogMemberChanges,
      GROUP_MEMBER_REMOVED: AuditLogMemberChanges,
      GROUP_NAME_CHANGED: AuditLogChangedText,
      GROUP_DESCRIPTION_CHANGED: AuditLogChangedText}

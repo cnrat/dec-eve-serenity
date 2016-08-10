@@ -10,11 +10,11 @@ SHIP_LAST_CHARACTER = ']'
 OFFLINE_INDICATOR = '/offline'
 CHARGE_SEPARATOR = ','
 MULTIPLIER_SEPARATOR = ' x'
-EMPTY_TEMPLATE_STRING = '[Empty %s slot]'
-emptySlotDict = {EMPTY_TEMPLATE_STRING % 'Low'.lower(): 'flagLoSlot',
- EMPTY_TEMPLATE_STRING % 'Med'.lower(): 'flagMedSlot',
- EMPTY_TEMPLATE_STRING % 'High'.lower(): 'flagHiSlot',
- EMPTY_TEMPLATE_STRING % 'Rig'.lower(): 'flagRigSlot'}
+EMPTY_TEMPLATE_STRING = '[empty %s slot]'
+emptySlotDict = {EMPTY_TEMPLATE_STRING % 'low': 'flagLoSlot',
+ EMPTY_TEMPLATE_STRING % 'med': 'flagMedSlot',
+ EMPTY_TEMPLATE_STRING % 'high': 'flagHiSlot',
+ EMPTY_TEMPLATE_STRING % 'rig': 'flagRigSlot'}
 slotDict = {dogmaConst.effectRigSlot: 'flagRigSlot',
  dogmaConst.effectHiPower: 'flagHiSlot',
  dogmaConst.effectMedPower: 'flagMedSlot',
@@ -168,7 +168,7 @@ class ImportFittingUtil(object):
 
 
 def IsShipLine(text):
-    return text.startswith(SHIP_FIRST_CHARACTER) and text[-1] == SHIP_LAST_CHARACTER and text not in emptySlotDict
+    return text.startswith(SHIP_FIRST_CHARACTER) and text[-1] == SHIP_LAST_CHARACTER and text.lower() not in emptySlotDict
 
 
 def GetItemLines(text):

@@ -12,6 +12,7 @@ import eve.common.lib.appConst as const
 import eve.common.script.sys.eveCfg as util
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 import inventorycommon.typeHelpers
+from evegraphics.fsd.graphicIDs import GetGraphic, GetGraphicFile
 PLANET_SIZE_SCALE = 1000000.0
 PLANET_DISTRICTS_COUNT = 10
 PLANET_DISTRICT_RADIUS_RATIO = 5000000
@@ -125,7 +126,7 @@ class Planet(SpaceObject):
             self.attributes = self._GetPlanetAttributes(self.itemID)
         presetPath = self.modelPath
         if self.__GetShaderPreset() is not None:
-            presetPath = util.GraphicFile(self.__GetShaderPreset())
+            presetPath = GetGraphicFile(self.__GetShaderPreset())
         self.presetPath = presetPath
         if self.largeTextures:
             presetPath = presetPath.replace('/Template/', '/Template_HI/')
@@ -241,7 +242,7 @@ class Planet(SpaceObject):
     def AddExplosion(self, uniqueName, explosionGfxID, spreadOut):
         if uniqueName not in self.districts:
             self.LogError('Could not find district ' + str(uniqueName) + ' for planet with id ' + str(self.itemID))
-        graphics = cfg.graphics.GetIfExists(explosionGfxID)
+        graphics = GetGraphic(explosionGfxID)
         if graphics is None:
             self.LogError('Explosion graphicsID ' + str(explosionGfxID) + " doesn't exist!")
             return
@@ -416,11 +417,11 @@ class Planet(SpaceObject):
             if self.__GetHeightMap1() is not None and self.__GetHeightMap2() is not None:
                 param1 = trinity.TriTextureParameter()
                 param1.name = 'NormalHeight1'
-                self.heightMapResPath1 = util.GraphicFile(self.__GetHeightMap1())
+                self.heightMapResPath1 = GetGraphicFile(self.__GetHeightMap1())
                 self.effectHeight.resources.append(param1)
                 param2 = trinity.TriTextureParameter()
                 param2.name = 'NormalHeight2'
-                self.heightMapResPath2 = util.GraphicFile(self.__GetHeightMap2())
+                self.heightMapResPath2 = GetGraphicFile(self.__GetHeightMap2())
                 self.effectHeight.resources.append(param2)
                 param3 = trinity.Tr2FloatParameter()
                 param3.name = 'Random'
@@ -586,8 +587,8 @@ class Planet(SpaceObject):
                 cloudCapMapIDs = (3960, 3961, 3962, 3963)
             cloudMapIdx = r.randint(0, 3)
             cloudCapMapIdx = r.randint(0, 3)
-            cloudCapTexResPath = util.GraphicFile(cloudCapMapIDs[cloudCapMapIdx])
-            cloudTexResPath = util.GraphicFile(cloudMapIDs[cloudMapIdx])
+            cloudCapTexResPath = GetGraphicFile(cloudCapMapIDs[cloudCapMapIdx])
+            cloudTexResPath = GetGraphicFile(cloudMapIDs[cloudMapIdx])
             if self.largeTextures:
                 cloudCapTexResPath = cloudCapTexResPath.replace('.dds', '_HI.dds')
                 cloudTexResPath = cloudTexResPath.replace('.dds', '_HI.dds')

@@ -73,14 +73,14 @@ class ContractEntry(uicontrols.SE_BaseClassCore):
         if c.startSolarSystemID and c.startSolarSystemID != eve.session.solarsystemid2:
             m.append((uiutil.MenuLabel('UI/Generic/ShowRoute'), self.ShowRoute, (node,)))
         if c.startStationID:
-            typeID = sm.GetService('ui').GetStation(c.startStationID).stationTypeID
+            typeID = self.GetStationType(c.startStationID)
             m += [(uiutil.MenuLabel('UI/Contracts/ContractEntry/PickupStation'), ('isDynamic', sm.GetService('menu').CelestialMenu, (c.startStationID,
                 None,
                 None,
                 0,
                 typeID)))]
         if c.endStationID and c.endStationID != c.startStationID:
-            typeID = sm.GetService('ui').GetStation(c.endStationID).stationTypeID
+            typeID = self.GetStationType(c.endStationID)
             m += [(uiutil.MenuLabel('UI/Contracts/ContractEntry/DropOffStation'), ('isDynamic', sm.GetService('menu').CelestialMenu, (c.endStationID,
                 None,
                 None,
@@ -109,6 +109,12 @@ class ContractEntry(uicontrols.SE_BaseClassCore):
             m.append(('GM - contractID: %s' % node.contract.contractID, blue.pyos.SetClipboardData, (str(node.contract.contractID),)))
             m.append(('GM - issuerID: %s' % node.contract.issuerID, blue.pyos.SetClipboardData, (str(node.contract.issuerID),)))
         return m
+
+    @staticmethod
+    def GetStationType(stationID):
+        if util.IsStation(stationID):
+            return sm.GetService('ui').GetStation(stationID).stationTypeID
+        return sm.GetService('structureDirectory').GetStructureInfo(stationID).typeID
 
     def NoEvent(self, *args):
         pass
@@ -232,12 +238,11 @@ class ContractEntrySmall(ContractEntry):
         self.sr.claiming = 0
         self.sr.node.name = name
         self.hint = ''
-        loc = ''
         jmps = None
         hintList = []
         if c.startSolarSystemID > 0:
             n = sm.GetService('clientPathfinderService').GetAutopilotJumpCount(session.solarsystemid2, c.startSolarSystemID)
-            if c.startStationID == eve.session.stationid:
+            if c.startStationID in {eve.session.stationid, eve.session.structureid}:
                 jmps = localization.GetByLabel('UI/Generic/CurrentStation')
             elif c.startSolarSystemID == eve.session.solarsystemid2:
                 jmps = localization.GetByLabel('UI/Generic/CurrentSystem')
@@ -437,7 +442,7 @@ class ContractEntrySearch(ContractEntry):
             self.sr.techIcon.state = uiconst.UI_HIDDEN
         numJumpsTxt = ''
         if numJumps == 0:
-            if c.startStationID == session.stationid:
+            if c.startStationID in {session.stationid, session.structureid}:
                 numJumpsTxt = localization.GetByLabel('UI/Generic/CurrentStation')
             elif c.startSolarSystemID == session.solarsystemid2:
                 numJumpsTxt = localization.GetByLabel('UI/Generic/CurrentSystem')

@@ -1,7 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\maps\map2D.py
 import sys
-import evecamera
 import evetypes
 import uicontrols
 import uiprimitives
@@ -13,7 +12,6 @@ import carbon.client.script.util.lg as lg
 import trinity
 import base
 import uthread
-import util
 import math
 from math import pi
 import uicls
@@ -1086,6 +1084,14 @@ def GetMap2DItemsForSolarSystem(solarSystemID):
         return []
 
     sm.GetService('map').GetSolarsystemItems(solarSystemID)
+    primables = ssContents.stargates.keys() + ssContents.planets.keys()
+    for planet in ssContents.planets.itervalues():
+        moons = getattr(planet, 'moons', {})
+        primables += getattr(planet, 'asteroidBelts', {}).keys() + getattr(planet, 'npcStations', {}).keys() + moons.keys()
+        for moon in moons.itervalues():
+            primables += getattr(moon, 'asteroidBelts', {}).keys() + getattr(moon, 'npcStations', {}).keys()
+
+    cfg.evelocations.Prime(primables)
     for stargateID, stargate in ssContents.stargates.iteritems():
         items.append(Map2DCelestialItemInfoType(itemID=stargateID, orbitID=1, orbitIndex=1, locationID=solarSystemID, celestialIndex=0, itemName=cfg.evelocations.Get(stargateID).locationName, groupID=const.groupStargate, typeID=stargate.typeID, x=stargate.position.x, y=stargate.position.y, z=stargate.position.z))
 

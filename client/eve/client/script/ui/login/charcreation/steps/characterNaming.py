@@ -69,7 +69,8 @@ class CharacterNaming(BaseCharacterCreationStep):
          padding,
          padding))
         topCont = uiprimitives.Container(name='topCont', parent=sub, align=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN, pos=(0, 30, 0, 78))
-        text = uicls.CCLabel(parent=sub, text=localization.GetByLabel('UI/CharacterCreation/AncestrySelection'), fontsize=20, align=uiconst.TOPLEFT, letterspace=1, idx=1, pos=(0, -6, 0, 0), uppercase=1, color=ccConst.COLOR50)
+        text = uicls.CCLabel(state=uiconst.UI_NORMAL, parent=sub, text=localization.GetByLabel('UI/CharacterCreation/AncestrySelection'), fontsize=20, align=uiconst.TOPLEFT, letterspace=1, idx=1, pos=(0, -6, 0, 0), uppercase=1, color=ccConst.COLOR50)
+        text.hint = localization.GetByLabel('UI/CharacterCreation/HelpTexts/chooseAncestryHint')
         self.ancestryTextCont = textCont = uiprimitives.Container(name='textCont', parent=sub, align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         self.sr.ancestryNameText = uicls.CCLabel(parent=textCont, text='', fontsize=14, align=uiconst.TOPLEFT, letterspace=1, idx=1, pos=(0, 0, 0, 0), color=ccConst.COLOR50)
         self.sr.ancestryDescrText = uicls.CCLabel(parent=textCont, text='', fontsize=10, align=uiconst.TOTOP, letterspace=0, idx=1, padTop=20, shadowOffset=(0, 0), bold=0, color=ccConst.COLOR50)
@@ -128,7 +129,8 @@ class CharacterNaming(BaseCharacterCreationStep):
          padding,
          padding))
         topCont = uiprimitives.Container(name='topCont', parent=sub, align=uiconst.TOTOP, state=uiconst.UI_PICKCHILDREN, pos=(0, 30, 0, 78))
-        text = uicls.CCLabel(parent=sub, text=localization.GetByLabel('UI/CharacterCreation/EducationSelection'), fontsize=20, align=uiconst.TOPLEFT, letterspace=1, idx=1, pos=(0, -6, 0, 0), uppercase=1, color=ccConst.COLOR50)
+        text = uicls.CCLabel(state=uiconst.UI_NORMAL, parent=sub, text=localization.GetByLabel('UI/CharacterCreation/EducationSelection'), fontsize=20, align=uiconst.TOPLEFT, letterspace=1, idx=1, pos=(0, -6, 0, 0), uppercase=1, color=ccConst.COLOR50)
+        text.hint = localization.GetByLabel('UI/CharacterCreation/HelpTexts/chooseEducationHint')
         self.schoolTextCont = textCont = uiprimitives.Container(name='textCont', parent=sub, align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         self.sr.schoolNameText = uicls.CCLabel(parent=textCont, text='', fontsize=14, align=uiconst.TOPLEFT, letterspace=1, idx=1, pos=(0, 0, 0, 0), color=ccConst.COLOR50)
         self.sr.schoolDescrText = uicls.CCLabel(parent=textCont, text='', fontsize=10, align=uiconst.TOTOP, letterspace=0, idx=1, padTop=20, shadowOffset=(0, 0), bold=0, color=ccConst.COLOR50)

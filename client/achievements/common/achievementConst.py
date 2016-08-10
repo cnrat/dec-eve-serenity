@@ -1,6 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\achievements\common\achievementConst.py
-
+MESSAGE_ON_ACHIEVEMENT_EVENT_UPDATE = 'onAchievementEventUpdate'
 
 class AchievementSettingConst:
     AURA_DISABLE_CONFIG = 'opportunities_disableAura'
@@ -74,6 +74,7 @@ class AchievementEventConst:
     FITTING_FIT_MEDSLOT_COUNT = 'fitMedSlotCount'
     FITTING_FIT_LOSLOT_COUNT = 'fitLoSlotCount'
     FITTING_FIT_PROBE_LAUNCHER = 'fitProbeLauncher'
+    SITE_COMPLETED = 'siteComplete'
 
 
 class AchievementConsts:
@@ -140,3 +141,5 @@ class AchievementConsts:
     ENTER_WORMHOLE = 78
     BOOKMARK_WORMHOLE = 79
     CAREER_AGENT = 81
+    KILL_NPC_MULTI = 93
+    LOOT_MULTI_NPC_WRECK = 94

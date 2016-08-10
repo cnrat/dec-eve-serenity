@@ -42,8 +42,7 @@ UI_CAMERA_OFFSET = (SETTINGS_GROUP_UI, 'cameraOffset')
 UI_OFFSET_UI_WITH_CAMERA = (SETTINGS_GROUP_UI, 'offsetUIwithCamera')
 UI_CAMERA_SHAKE_ENABLED = (SETTINGS_GROUP_UI, 'cameraShakeEnabled')
 UI_CAMERA_BOBBING_ENABLED = (SETTINGS_GROUP_UI, 'cameraBobbingEnabled')
-UI_CAMERA_CENTER_OFFSET = (SETTINGS_GROUP_UI, 'cameraSpeedOffset')
-UI_CAMERA_DYNAMIC_FOV = (SETTINGS_GROUP_UI, 'cameraDynamicFov')
+UI_CAMERA_DYNAMIC_CAMERA_MOVEMENT = (SETTINGS_GROUP_UI, 'cameraDynamicMovement')
 UI_ADVANCED_CAMERA = (SETTINGS_GROUP_UI, 'advancedCamera')
 UI_INVERT_CAMERA_ZOOM = (SETTINGS_GROUP_UI, 'invertCameraZoom')
 UI_CAMERA_INVERT_Y = (SETTINGS_GROUP_UI, 'cameraInvertY')
@@ -161,8 +160,7 @@ defaultCommonSettings = {SETTINGS_GROUP_DEVICE: {MISC_RESOURCE_CACHE_ENABLED: 0,
                      UI_OFFSET_UI_WITH_CAMERA: 0,
                      UI_CAMERA_SHAKE_ENABLED: 1,
                      UI_CAMERA_BOBBING_ENABLED: 1,
-                     UI_CAMERA_DYNAMIC_FOV: 1,
-                     UI_CAMERA_CENTER_OFFSET: 1,
+                     UI_CAMERA_DYNAMIC_CAMERA_MOVEMENT: 1,
                      UI_ADVANCED_CAMERA: 0,
                      UI_INVERT_CAMERA_ZOOM: 0,
                      UI_CAMERA_INVERT_Y: 0,

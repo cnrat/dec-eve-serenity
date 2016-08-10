@@ -136,7 +136,7 @@ class ModuleButtonTooltip(TooltipPanel):
             typeText = '<b>%s</b>' % typeText
             self.AddTypeAndIcon(label=typeText, typeID=self.moduleInfoItem.typeID, moduleShortcut=self.moduleShortcut, moduleDamageAmount=moduleDamageAmount)
             self.UpdateChargesCont(chargeInfoItem, chargesQty)
-            maxRange, falloffDist, bombRadius = sm.GetService('tactical').FindMaxRange(self.moduleInfoItem, chargeInfoItem, self.dogmaLocation)
+            maxRange, falloffDist, bombRadius, _ = sm.GetService('tactical').FindMaxRange(self.moduleInfoItem, chargeInfoItem, self.dogmaLocation)
             if maxRange > 0:
                 self.AddRangeInfo(self.moduleInfoItem.typeID, optimalRange=maxRange, falloff=falloffDist)
             if chargesQty is not None:
@@ -477,15 +477,19 @@ class ModuleButtonTooltip(TooltipPanel):
         iconID = cfg.dgmattribs.Get(attributeID).iconID
         self.AddRowWithIconAndText(text=text, iconID=iconID)
 
-    def AddAttributeInfo(self, itemID, attributeID, labelPath, labelKeyword):
+    def AddAttributeInfo(self, itemID, attributeID, labelPath, labelKeyword, skipZeroValue=False):
         value = self.GetEffectiveAttributeValue(itemID, attributeID)
+        if value == 0 and skipZeroValue:
+            return
         tokenDict = {labelKeyword: value}
         text = localization.GetByLabel(labelPath, **tokenDict)
         iconID = cfg.dgmattribs.Get(attributeID).iconID
         self.AddRowWithIconAndText(text=text, iconID=iconID)
 
-    def AddAttributeInfoWithAttributeName(self, itemID, attributeID, labelPath):
+    def AddAttributeInfoWithAttributeName(self, itemID, attributeID, labelPath, skipZeroValue=False):
         activeValue = self.GetEffectiveAttributeValue(itemID, attributeID)
+        if activeValue == 0 and skipZeroValue:
+            return
         attributeName = cfg.dgmattribs.Get(attributeID).displayName
         text = localization.GetByLabel(labelPath, activeValue=activeValue, activeName=attributeName)
         iconID = cfg.dgmattribs.Get(attributeID).iconID
@@ -615,7 +619,7 @@ class ModuleButtonTooltip(TooltipPanel):
             strength = self.GetEffectiveAttributeValue(itemID, attrID)
             if strength is not None and strength != 0:
                 attributeName = cfg.dgmattribs.Get(attrID).displayName
-                rows.append(localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText', activeValue=strength, activeName=attributeName))
+                rows.append(localization.GetByLabel('UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', activeValue=strength, activeName=attributeName))
 
         text = '<br>'.join(rows)
         if text:
@@ -625,23 +629,29 @@ class ModuleButtonTooltip(TooltipPanel):
     def AddSensorDamperInfo(self, itemID, chargeInfoItem):
         bonus = self.GetEffectiveAttributeValue(itemID, const.attributeScanResolutionBonus)
         if bonus != 0:
-            self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeScanResolutionBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+            self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeScanResolutionBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName')
         bonus = self.GetEffectiveAttributeValue(itemID, const.attributeMaxTargetRangeBonus)
         if bonus != 0:
-            self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMaxTargetRangeBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+            self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMaxTargetRangeBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName')
         self.AddECCMInfo(itemID, chargeInfoItem)
 
     def AddTargetBreakerInfo(self, itemID, chargeInfoItem):
-        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeScanResolutionMultiplier, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeScanResolutionMultiplier, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName')
 
     def AddTargetPainterInfo(self, itemID, chargeInfoItem):
-        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeSignatureRadiusBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeSignatureRadiusBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName')
 
     def AddTrackingDisruptorInfo(self, itemID, chargeInfoItem):
-        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeFalloffBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeFalloffBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMaxRangeBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeTrackingSpeedBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMissileVelocityBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeExplosionDelayBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeAoeVelocityBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeAoeCloudSizeBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName', skipZeroValue=True)
 
     def AddCloakingDeviceInfo(self, itemID, chargeInfoItem):
-        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMaxVelocityBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ResistanceActiveBonusText')
+        self.AddAttributeInfoWithAttributeName(itemID=itemID, attributeID=const.attributeMaxVelocityBonus, labelPath='UI/Inflight/ModuleRacks/Tooltips/ValuePercentageWithAttributeName')
 
     def AddTractorBeamInfo(self, itemID, chargeInfoItem):
         attributeID = const.attributeMaxTractorVelocity

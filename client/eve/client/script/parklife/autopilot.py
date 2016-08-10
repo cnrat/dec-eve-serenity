@@ -21,7 +21,10 @@ class AutoPilot(service.Service):
      'SetOff': [],
      'GetState': []}
     __notifyevents__ = ['OnBallparkCall', 'OnSessionChanged', 'OnRemoteMessage']
-    __dependencies__ = ['michelle', 'starmap', 'clientPathfinderService']
+    __dependencies__ = ['michelle',
+     'starmap',
+     'clientPathfinderService',
+     'structureDirectory']
 
     def __init__(self):
         service.Service.__init__(self)
@@ -164,7 +167,7 @@ class AutoPilot(service.Service):
                     return
                 if self.gotoCount == 0:
                     waypoints = sm.GetService('starmap').GetWaypoints()
-                    if waypoints and util.IsStation(waypoints[-1]):
+                    if waypoints and self.IsStationOrStructure(waypoints[-1]):
                         return
                 self.SetOff(functionName + str(args))
                 self.LogInfo('Autopilot stopped gotocount is ', self.gotoCount)
@@ -185,6 +188,12 @@ class AutoPilot(service.Service):
         self.gotoCount = 0
         self.updateTimer = base.AutoTimer(2000, self.Update)
 
+    def IsStationOrStructure(self, itemID):
+        if util.IsSolarSystem(itemID):
+            return False
+        else:
+            return util.IsStation(itemID) or self.structureDirectory.GetStructureInfo(itemID) is not None
+
     def GetGateOrStation(self, bp, destinationID):
         for solarsystemItem in sm.GetService('map').GetSolarsystemItems(session.solarsystemid2, False):
             ballID = solarsystemItem.itemID
@@ -203,7 +212,7 @@ class AutoPilot(service.Service):
             self.KillTimer()
             return
         elif self.ignoreTimerCycles > 0:
-            self.ignoreTimerCycles = self.ignoreTimerCycles - 1
+            self.ignoreTimerCycles -= 1
             return
         elif not session.IsItSafe():
             self.LogInfo('returning as it is not safe')
@@ -296,58 +305,56 @@ class AutoPilot(service.Service):
                     self.ignoreTimerCycles = 5
 
                 return
-            elif jumpingToCelestial and util.IsStation(destID) and shipDestDistance < const.maxDockingDistance:
-                if not sm.GetService('machoNet').GetGlobalConfig().get('newAutoNavigationKillSwitch', False):
-                    if self.__navigateSystemDestinationItemID != destID:
-                        if shipDestDistance > 2500:
-                            sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotApproachingStation_play')
-                        sm.GetService('menu').Dock(destID)
-                        self.ignoreTimerCycles = 5
-                else:
-                    if shipDestDistance > 2500 and self.approachAndTryTarget != destID:
+            if jumpingToCelestial and shipDestDistance < const.maxDockingDistance and self.IsStationOrStructure(destID):
+                if self.__navigateSystemDestinationItemID != destID:
+                    if shipDestDistance > 2500:
                         sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotApproachingStation_play')
                     sm.GetService('menu').Dock(destID)
-                return
+                    self.ignoreTimerCycles = 5
             elif shipDestDistance < const.minWarpDistance:
                 if ship.mode == destiny.DSTBALL_FOLLOW and ship.followId == destID:
                     return
-                self.CancelSystemNavigation()
-                park = sm.GetService('michelle').GetRemotePark()
-                park.CmdSetSpeedFraction(1.0)
-                if uicore.layer.shipui.isopen:
-                    uicore.layer.shipui.SetSpeed(1.0)
-                park.CmdFollowBall(destID, 0.0)
-                eve.Message('AutoPilotApproaching')
-                if not (jumpingToCelestial and util.IsStation(destID)):
-                    sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotApproaching_play')
-                self.LogInfo('Autopilot: approaching')
-                self.ignoreTimerCycles = 2
-                return
-            try:
-                sm.GetService('space').WarpDestination(celestialID=destID)
-                sm.GetService('michelle').GetRemotePark().CmdWarpToStuffAutopilot(destID)
-                eve.Message('AutoPilotWarpingTo', {'what': jumpToLocationName})
-                if jumpingToCelestial:
-                    if util.IsStation(destID):
-                        sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotWarpingToStation_play')
-                    self.LogInfo('Autopilot: warping to celestial object', destID)
-                else:
-                    sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotWarpingTo_play')
-                    self.LogInfo('Autopilot: warping to gate')
-                sm.ScatterEvent('OnAutoPilotWarp')
-                self.ignoreTimerCycles = 2
-            except UserError as e:
-                sys.exc_clear()
-                item = sm.GetService('godma').GetItem(session.shipid)
-                if item.warpScrambleStatus > 0:
-                    self.SetOff('Autopilot cannot warp while warp scrambled.')
-                if 'WarpDisrupted' in e.msg:
-                    self.SetOff('Autopilot cannot warp while warp scrambled by bubble.')
-            except Exception as e:
-                self.SetOff('Unknown error')
+                self.AP_ApproachDestID(destID, jumpingToCelestial)
+            else:
+                self.AP_WarpToDestID(destID, jumpToLocationName, jumpingToCelestial)
+            return
 
-            return
-            return
+    def AP_ApproachDestID(self, destinationID, isFinal):
+        self.CancelSystemNavigation()
+        park = sm.GetService('michelle').GetRemotePark()
+        park.CmdSetSpeedFraction(1.0)
+        if uicore.layer.shipui.isopen:
+            uicore.layer.shipui.SetSpeed(1.0)
+        park.CmdFollowBall(destinationID, 0.0)
+        eve.Message('AutoPilotApproaching')
+        if not (isFinal and self.IsStationOrStructure(destinationID)):
+            sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotApproaching_play')
+        self.LogInfo('Autopilot: approaching')
+        self.ignoreTimerCycles = 2
+
+    def AP_WarpToDestID(self, destinationID, name, isFinal):
+        try:
+            sm.GetService('space').WarpDestination(celestialID=destinationID)
+            sm.GetService('michelle').GetRemotePark().CmdWarpToStuffAutopilot(destinationID)
+            eve.Message('AutoPilotWarpingTo', {'what': name})
+            if isFinal:
+                if self.IsStationOrStructure(destinationID):
+                    sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotWarpingToStation_play')
+                self.LogInfo('Autopilot: warping to celestial object', destinationID)
+            else:
+                sm.GetService('audio').SendUIEvent('wise:/msg_AutoPilotWarpingTo_play')
+                self.LogInfo('Autopilot: warping to gate')
+            sm.ScatterEvent('OnAutoPilotWarp')
+            self.ignoreTimerCycles = 2
+        except UserError as e:
+            sys.exc_clear()
+            item = sm.GetService('godma').GetItem(session.shipid)
+            if item.warpScrambleStatus > 0:
+                self.SetOff('Autopilot cannot warp while warp scrambled.')
+            if 'WarpDisrupted' in e.msg:
+                self.SetOff('Autopilot cannot warp while warp scrambled by bubble.')
+        except StandardError:
+            self.SetOff('Unknown error')
 
     def NavigateSystemTo(self, itemID, interactionRange, commandFunc, *args, **kwargs):
         self.LogInfo('Navigate to item', itemID, 'range', interactionRange, 'and execute', commandFunc)
@@ -534,8 +541,11 @@ class AutoPilot(service.Service):
 
                 solarSystemToStations = defaultdict(list)
                 for i, waypoint in enumerate(waypoints):
-                    if util.IsStation(waypoint):
-                        solarSystemID = cfg.stations.Get(waypoint).solarSystemID
+                    if self.IsStationOrStructure(waypoint):
+                        if util.IsStation(waypoint):
+                            solarSystemID = cfg.stations.Get(waypoint).solarSystemID
+                        else:
+                            solarSystemID = self.structureDirectory.GetStructureInfo(waypoint).solarSystemID
                         solarSystemToStations[solarSystemID].append(waypoint)
                         waypoints[i] = solarSystemID
 

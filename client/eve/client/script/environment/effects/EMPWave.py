@@ -8,6 +8,7 @@ import util
 import evetypes
 import blue
 import geo2
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 
 class EMPWave(GenericEffect):
     __guid__ = 'effects.EMPWave'
@@ -44,7 +45,7 @@ class EMPWave(GenericEffect):
         graphicID = evetypes.GetGraphicID(self.moduleTypeID)
         if graphicID is None:
             raise RuntimeError('EMPWave: no graphic ID')
-        gfxString = util.GraphicFile(graphicID)
+        gfxString = GetGraphicFile(graphicID)
         self.gfx = trinity.Load(gfxString)
         if self.gfx is None:
             raise RuntimeError('EMPWave: no effect found')

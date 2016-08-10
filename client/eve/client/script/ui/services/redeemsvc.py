@@ -43,12 +43,12 @@ class RedeemService(service.Service):
             self.OnRedeemingQueueUpdated()
 
     def ToggleRedeemWindow(self):
-        RedeemWindow.ToggleOpenClose(charID=session.charid, stationID=session.stationid)
+        RedeemWindow.ToggleOpenClose(charID=session.charid, stationID=session.stationid or session.structureid)
 
     def OpenRedeemWindow(self):
         wnd = RedeemWindow.GetIfOpen()
         if wnd is None:
-            wnd = RedeemWindow.Open(charID=session.charid, stationID=session.stationid, useDefaultPos=True)
+            wnd = RedeemWindow.Open(charID=session.charid, stationID=session.stationid or session.structureid, useDefaultPos=True)
             wnd.left -= 160
         if wnd is not None and not wnd.destroyed:
             wnd.Maximize()
@@ -114,28 +114,27 @@ class RedeemWindow(uicontrols.Window):
 
     def ApplyAttributes(self, attributes):
         uicontrols.Window.ApplyAttributes(self, attributes)
-        charID = attributes.charID
-        stationID = attributes.stationID
+        self.stationID = attributes.stationID
+        self.charID = attributes.charID
         self.selectedTokens = {}
         self.SetCaption(localization.GetByLabel('UI/RedeemWindow/RedeemItem'))
         self.SetMinSize([640, 260])
         self.SetWndIcon(self.iconNum)
         self.NoSeeThrough()
         self.SetScope('all')
-        self.charID = charID
-        self.stationID = stationID
         self.uiSvc = sm.StartService('ui')
         h = self.sr.topParent.height - 2
         self.sr.picParent = uiprimitives.Container(name='picpar', parent=self.sr.topParent, align=uiconst.TORIGHT, width=h, height=h, left=const.defaultPadding, top=const.defaultPadding)
         self.sr.pic = uiprimitives.Sprite(parent=self.sr.picParent, align=uiconst.RELATIVE, left=1, top=3, height=h, width=h)
-        sm.GetService('photo').GetPortrait(charID, 64, self.sr.pic)
+        sm.GetService('photo').GetPortrait(self.charID, 64, self.sr.pic)
         self.state = uiconst.UI_NORMAL
         self.sr.windowCaption = uicontrols.WndCaptionLabel(text=localization.GetByLabel('UI/RedeemWindow/RedeemItem'), parent=self.sr.topParent, align=uiconst.RELATIVE)
         tp = 5
         self.redeemingAmountLabel = uicontrols.EveLabelMedium(text=self.GetTextForRedeemingAmountLabel(0), parent=self.sr.topParent, top=tp, left=60, state=uiconst.UI_DISABLED, align=uiconst.TOPRIGHT)
         tp += self.redeemingAmountLabel.textheight
-        if stationID:
-            text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(self.uiSvc.GetStation(self.stationID).solarSystemID))
+        if self.stationID:
+            self.solarsystemID = session.solarsystemid2
+            text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(self.solarsystemID))
             self.redeemToLabel = uicontrols.EveLabelMedium(text=text, parent=self.sr.topParent, top=tp, left=60, state=uiconst.UI_DISABLED, align=uiconst.TOPRIGHT)
         else:
             text = localization.GetByLabel('UI/RedeemWindow/IncorrectPlayerLocation')
@@ -191,10 +190,10 @@ class RedeemWindow(uicontrols.Window):
                 description = '%s<t>%s' % (description, localization.GetByLabel('UI/RedeemWindow/RedeemExpires', expires=token.expireDateTime).replace('<br>', ''))
             if token.stationID:
                 description = localization.GetByLabel('UI/RedeemWindow/RedeemableTo', desc=description, station=token.stationID)
-                selectedTokenStation = token.stationID
+                selectedTokenDeliveryLocation = token.stationID
             else:
-                selectedTokenStation = self.stationID
-            self.selectedTokens[token.tokenID, token.massTokenID] = selectedTokenStation
+                selectedTokenDeliveryLocation = self.stationID
+            self.selectedTokens[token.tokenID, token.massTokenID] = selectedTokenDeliveryLocation
             quantity *= evetypes.GetPortionSize(token.typeID)
             label = '%s<t>%s<t>%s' % (evetypes.GetName(token.typeID), quantity, description)
             return listentry.Get('RedeemToken', {'itemID': None,
@@ -202,11 +201,11 @@ class RedeemWindow(uicontrols.Window):
              'massTokenID': token.massTokenID,
              'info': token,
              'typeID': token.typeID,
-             'stationID': token.stationID,
+             'stationID': selectedTokenDeliveryLocation,
              'label': label,
              'quantity': quantity,
              'getIcon': 1,
-             'retval': (token.tokenID, token.massTokenID, selectedTokenStation),
+             'retval': (token.tokenID, token.massTokenID, selectedTokenDeliveryLocation),
              'OnChange': self.OnTokenChange,
              'checked': True})
 
@@ -258,11 +257,18 @@ class RedeemWindow(uicontrols.Window):
             if self.IsMultipleStations():
                 text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryMultiple')
             else:
-                redeemStation = self.selectedTokens.values()[0]
-                if redeemStation is not None:
-                    text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(self.uiSvc.GetStation(redeemStation).solarSystemID))
+                redeemLocationID = self.selectedTokens.values()[0]
+                if util.IsStation(redeemLocationID):
+                    text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(self.uiSvc.GetStation(redeemLocationID).solarSystemID))
+                elif redeemLocationID is not None:
+                    try:
+                        solarsystemID = sm.GetService('structureDirectory').GetStructures()[redeemLocationID]['solarSystemID']
+                    except KeyError:
+                        solarsystemID = self.solarsystemID if self.solarsystemID is not None else session.solarsystemid2
+
+                    text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(solarsystemID))
         elif self.stationID is not None:
-            text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(self.uiSvc.GetStation(self.stationID).solarSystemID))
+            text = localization.GetByLabel('UI/RedeemWindow/ItemsDeliveryLocation', solarSystem=cfg.evelocations.Get(self.solarsystemID))
         if len(self.selectedTokens) == 0:
             self.sr.redeemBtn.state = uiconst.UI_DISABLED
         if hasattr(self, 'redeemToLabel'):

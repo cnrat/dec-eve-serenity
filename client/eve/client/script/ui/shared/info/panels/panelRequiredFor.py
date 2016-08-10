@@ -1,5 +1,6 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\info\panels\panelRequiredFor.py
+from collections import defaultdict
 from carbonui.primitives.container import Container
 from eve.client.script.ui.control.buttons import ToggleButtonGroup
 import carbonui.const as uiconst
@@ -24,12 +25,22 @@ class PanelRequiredFor(Container):
         btnGroup = ToggleButtonGroup(parent=toggleButtonCont, align=uiconst.CENTER, height=toggleButtonCont.height, width=300, padding=(10, 4, 10, 3), callback=self.LoadRequiredForLevel)
         for level in xrange(1, 6):
             hint = localization.GetByLabel('UI/InfoWindow/RequiredForLevelButtonHint', skillName=evetypes.GetName(self.typeID), level=level)
-            isDisabled = not bool(cfg.GetTypesRequiredBySkill(self.typeID).get(level, None))
+            isDisabled = not bool(self.GetItemsRequiringSkill(self.typeID, level))
             btnGroup.AddButton(btnID=level, label=uiutil.IntToRoman(level), hint=hint, isDisabled=isDisabled)
 
         self.scroll = Scroll(name='scroll', parent=self, padding=const.defaultPadding)
         btnGroup.SelectFirst()
-        return
+
+    def GetItemsRequiringSkill(self, typeID, level):
+        requiredBySkill = cfg.GetTypesRequiredBySkill(typeID).get(level, {})
+        publishedItemsBySkill = defaultdict(dict)
+        for marketGroup, metaDict in requiredBySkill.iteritems():
+            for metaGroupID, typeIDs in metaDict.iteritems():
+                publishedTypeIDs = [ typeID for typeID in typeIDs if evetypes.IsPublished(typeID) ]
+                if publishedTypeIDs:
+                    publishedItemsBySkill[marketGroup][metaGroupID] = publishedTypeIDs
+
+        return dict(publishedItemsBySkill)
 
     def LoadRequiredForLevel(self, level):
         scrolllist = self.GetRequiredForLevelSubContent(self.typeID, level)
@@ -37,7 +48,7 @@ class PanelRequiredFor(Container):
 
     def GetRequiredForLevelSubContent(self, typeID, skillLevel):
         scrolllist = []
-        requiredFor = cfg.GetTypesRequiredBySkill(typeID)[skillLevel]
+        requiredFor = self.GetItemsRequiringSkill(typeID, skillLevel)
         for marketGroupID in requiredFor:
             marketGroup = cfg.GetMarketGroup(marketGroupID)
             data = {'GetSubContent': self.GetRequiredForLevelGroupSubContent,
@@ -60,7 +71,7 @@ class PanelRequiredFor(Container):
         skillTypeID = data['typeID']
         skillLevel = data['skillLevel']
         skillMarketGroup = data['marketGroupID']
-        requiredFor = cfg.GetTypesRequiredBySkill(skillTypeID)[skillLevel][skillMarketGroup]
+        requiredFor = self.GetItemsRequiringSkill(skillTypeID, skillLevel)[skillMarketGroup]
         if const.metaGroupUnused in requiredFor:
             for typeID in requiredFor[const.metaGroupUnused]:
                 if not evetypes.IsPublished(typeID):
@@ -99,7 +110,7 @@ class PanelRequiredFor(Container):
         skillMarketGroup = data['marketGroupID']
         metaLevel = data['metaLevel']
         scrolllist = []
-        reqFor = cfg.GetTypesRequiredBySkill(skillTypeID)[skillLevel][skillMarketGroup][metaLevel]
+        reqFor = self.GetItemsRequiringSkill(skillTypeID, skillLevel)[skillMarketGroup][metaLevel]
         for typeID in reqFor:
             if not evetypes.IsPublished(typeID):
                 continue

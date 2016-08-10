@@ -26,6 +26,7 @@ class SceneRenderJobSpaceJessica(SceneRenderJobSpace):
          'hdrEnabled': True}
         self.backBufferOverride = None
         self.depthBufferOverride = None
+        self.sceneFadeOut.Disable()
         return
 
     def SetSettings(self, rjSettings):

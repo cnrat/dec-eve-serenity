@@ -10,7 +10,7 @@ class StationServiceBtn(BigButton):
         self.Startup(self.width, self.height, iconOpacity=0.75)
         serviceInfo = attributes.serviceInfo
         self.cmdStr = serviceInfo.command
-        self.stationServiceIDs = serviceInfo.serviceIDs
+        self.maskStationServiceIDs = serviceInfo.maskServiceIDs
         self.serviceID = serviceInfo.serviceID
         self.serviceStatus = attributes.serviceStatus
         self.serviceEnabled = True

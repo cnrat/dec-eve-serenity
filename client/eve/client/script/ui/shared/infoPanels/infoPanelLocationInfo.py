@@ -1,5 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\infoPanels\infoPanelLocationInfo.py
+from collections import defaultdict
+import evetypes
 from carbonui.primitives.container import Container
 from entosis.occupancyCalculator import GetOccupancyMultiplier
 from eve.client.script.ui.control.eveLabel import EveLabelMedium
@@ -339,25 +341,35 @@ class ListSurroundingsBtn(uicontrols.ButtonIcon):
         else:
             m = []
             if self.sr.Get('groupByType', 0):
-                typedict = {}
                 if self.sr.typeID and self.sr.itemID:
                     m += [(uiutil.MenuLabel('UI/Commands/ShowInfo'), sm.GetService('menu').ShowInfo, (self.sr.typeID, self.sr.itemID))]
-                menuItems = {const.groupAsteroidBelt: uiutil.MenuLabel('UI/Common/LocationTypes/AsteroidBelts'),
-                 const.groupPlanet: uiutil.MenuLabel('UI/Common/LocationTypes/Planets'),
-                 const.groupStargate: uiutil.MenuLabel('UI/Common/LocationTypes/Stargates'),
-                 const.groupStation: uiutil.MenuLabel('UI/Common/LocationTypes/Stations')}
-                for item in self.sr.mapitems:
-                    if item.groupID in (const.groupMoon, const.groupSun, const.groupSecondarySun):
-                        continue
-                    if item.groupID not in typedict:
-                        typedict[item.groupID] = []
-                    typedict[item.groupID].append(item)
 
+                def GetGroupingKeyVal(labelPath):
+                    return util.KeyVal(labelPath=labelPath, typeIDs=[])
+
+                groupDict = {const.groupAsteroidBelt: GetGroupingKeyVal('UI/Common/LocationTypes/AsteroidBelts'),
+                 const.groupPlanet: GetGroupingKeyVal('UI/Common/LocationTypes/Planets'),
+                 const.groupStargate: GetGroupingKeyVal('UI/Common/LocationTypes/Stargates'),
+                 const.groupStation: GetGroupingKeyVal('UI/Common/LocationTypes/Stations')}
+                categoryDict = {const.categoryStructure: GetGroupingKeyVal('UI/Common/LocationTypes/Structures')}
+                for item in self.sr.mapitems:
+                    if item.groupID in groupDict:
+                        groupDict[item.groupID].typeIDs.append(item)
+                    categoryID = evetypes.GetCategoryID(item.typeID)
+                    if categoryID in categoryDict:
+                        categoryDict[categoryID].typeIDs.append(item)
+
+                menuItemDict = {}
+                menuItemDict.update(groupDict)
+                menuItemDict.update(categoryDict)
                 listToSort = []
-                for groupID, itemList in typedict.iteritems():
-                    menuLabel = menuItems[groupID]
-                    path = menuLabel[0]
-                    listToSort.append((localization.GetByLabel(path), (menuLabel, itemList)))
+                for groupingID, groupingInfo in menuItemDict.iteritems():
+                    itemList = groupingInfo.typeIDs
+                    if not itemList:
+                        continue
+                    labelPath = groupingInfo.labelPath
+                    menuLabel = uiutil.MenuLabel(labelPath)
+                    listToSort.append((localization.GetByLabel(labelPath), (menuLabel, itemList)))
 
                 sortedList = uiutil.SortListOfTuples(listToSort)
                 for entry in sortedList:

@@ -227,7 +227,7 @@ class CCSvc(service.Service):
             return self.availableTypeIDs
         else:
             availableTypeIDs = set()
-            if session.stationid2:
+            if session.stationid2 or session.structureid:
                 try:
                     inv = self.invCache.GetInventory(const.containerHangar)
                     availableTypeIDs.update({i.typeID for i in inv.List(const.flagHangar) if i.categoryID == const.categoryApparel})

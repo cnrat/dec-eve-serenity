@@ -92,6 +92,8 @@ class InBayDroneDamageTracker(object):
 def ConvertDroneStateToCorrectFormat(damageStateForDrones):
     newDroneDamageDict = {}
     for itemID, ds in damageStateForDrones.iteritems():
+        if ds is None:
+            continue
         shieldInfo = ds[0]
         shieldHealth = shieldInfo[0]
         shieldTau = shieldInfo[1]

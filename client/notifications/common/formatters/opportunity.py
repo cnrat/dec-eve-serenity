@@ -13,18 +13,17 @@ class AchievementOpportunityFormatter(BaseNotificationFormatter):
         return {'groupID': groupID}
 
     def Format(self, notification):
+        import eve.common.script.util.eveFormat as eveFormat
         data = notification.data
         groupID = data['groupID']
         group = GetAchievementGroup(groupID)
         notificationPath = group.notificationPath
         subject = GetByLabel(notificationPath)
         notification.subject = subject
-        if gatekeeper.user.IsInCohort(gatekeeper.cohortTEXOpportunityRewards):
-            import eve.common.script.util.eveFormat as eveFormat
-            iskReward = GROUP_TO_REWARD[groupID]
-            iskText = eveFormat.FmtISK(iskReward, showFractionsAlways=False)
-            contextText = GetByLabel('UI/Generic/FormatReference/opportunityRewardName')
-            notification.subtext = '<color=0xFF6FFF75>%s %s</color>' % (iskText, contextText)
+        iskReward = GROUP_TO_REWARD[groupID]
+        iskText = eveFormat.FmtISK(iskReward, showFractionsAlways=False)
+        contextText = GetByLabel('UI/Generic/FormatReference/opportunityRewardName')
+        notification.subtext = '<color=0xFF20D603>%s %s</color>' % (iskText, contextText)
 
     def MakeSampleData(self):
         from utillib import KeyVal

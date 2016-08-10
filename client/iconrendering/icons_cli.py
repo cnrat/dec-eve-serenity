@@ -142,7 +142,7 @@ def GetDestDirs(render_path):
     assetdirs = {}
     for dirpath, dirnames, filenames in os.walk(DX9_ROOT):
         for filename in filenames:
-            if 'sofhull_' in filename:
+            if 'sofhull_' in filename.lower() and 'redesign' not in dirpath.lower():
                 assetdirs[filename.lower()] = dirpath.replace(RES_ROOT, 'res:').replace('\\', '/').lower()
 
     for currID in icon_dict.keys():

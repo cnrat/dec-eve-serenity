@@ -180,6 +180,7 @@ attributeCpuOutput = 48
 attributeCrystalVolatilityChance = 783
 attributeCrystalVolatilityDamage = 784
 attributeCrystalsGetDamaged = 786
+attributeCynosuralFieldSpawnRadius = 2455
 attributeDamage = 3
 attributeDamageCloudChance = 522
 attributeDamageCloudType = 546
@@ -204,6 +205,8 @@ attributeDisallowTethering = 2343
 attributeDisallowWhenInvulnerable = 2395
 attributeDisallowTethering = 2343
 attributeDisallowDocking = 2354
+attributeDisallowCloaking = 2454
+attributeDisallowDriveJumping = 2453
 attributeDistributionID01 = 1755
 attributeDistributionID02 = 1756
 attributeDistributionID03 = 1757
@@ -902,6 +905,7 @@ attributeFighterSquadronIsHeavy = 2214
 attributeFighterSquadronIsLight = 2212
 attributeFighterSquadronIsSupport = 2213
 attributeFighterSquadronRole = 2270
+attributeFighterSquadronOrbitRange = 2223
 attributeFighterRefuelingTime = 2426
 attributeFighterAbilityAntiFighterMissileResistance = 2189
 attributeFighterAbilityAttackTurretDamageMultiplier = 2178
@@ -1275,6 +1279,7 @@ effectRemoteTargetPaintFalloff = 6425
 effectRemoteWebifierFalloff = 6426
 effectRemoteECMFalloff = 6470
 effectEntityEnergyNeutralizerFalloff = 6691
+effectEntityECMFalloff = 6695
 effectRemoteArmorRepairEntity = 6687
 effectRemoteHullRepairEntity = 6689
 effectRemoteSensorDampEntity = 6693
@@ -1397,7 +1402,8 @@ falloffEffectivnessModuleGroups = [inventorycommon.const.groupEnergyDestabilizer
  inventorycommon.const.groupTrackingLink,
  inventorycommon.const.groupStatisGrappler,
  inventorycommon.const.groupTargetPainter,
- inventorycommon.const.groupTrackingDisruptor]
+ inventorycommon.const.groupTrackingDisruptor,
+ inventorycommon.const.groupFueledRemoteShieldBooster]
 singlePointTargetedEffects = [effectDoomsdayBeamDOT,
  effectDoomsdayConeDOT,
  effectDoomsdayHOG,

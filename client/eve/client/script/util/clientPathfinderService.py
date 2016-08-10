@@ -10,6 +10,11 @@ from evePathfinder import factory
 def ConvertStationIDToSolarSystemIDIfNecessary(waypointID):
     if util.IsStation(waypointID):
         return cfg.stations.Get(waypointID).solarSystemID
+    elif util.IsSolarSystem(waypointID):
+        return waypointID
+    structure = sm.GetService('structureDirectory').GetStructureInfo(waypointID)
+    if structure is not None:
+        return structure.solarSystemID
     else:
         return waypointID
 

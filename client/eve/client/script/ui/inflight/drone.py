@@ -332,7 +332,6 @@ class DroneView(ActionPanel):
         return uicore.desktop.width - DroneView.default_width - 16
 
     def ApplyAttributes(self, attributes):
-        self.fafDefVal = cfg.dgmattribs.Get(const.attributeFighterAttackAndFollow).defaultValue
         self.droneAggressionDefVal = cfg.dgmattribs.Get(const.attributeDroneIsAggressive).defaultValue
         self.droneFFDefVal = cfg.dgmattribs.Get(const.attributeDroneFocusFire).defaultValue
         ActionPanel.ApplyAttributes(self, attributes)
@@ -408,7 +407,6 @@ class DroneView(ActionPanel):
             self.groups = self.SettifyGroups(settings.user.ui.Get(self.settingsName, {}))
             droneSettingChanges = {}
             droneSettingChanges[const.attributeDroneIsAggressive] = settings.char.ui.Get('droneAggression', self.droneAggressionDefVal)
-            droneSettingChanges[const.attributeFighterAttackAndFollow] = settings.char.ui.Get('fighterAttackAndFollow', self.fafDefVal)
             droneSettingChanges[const.attributeDroneFocusFire] = settings.char.ui.Get('droneFocusFire', self.droneFFDefVal)
             sm.GetService('godma').GetStateManager().ChangeDroneSettings(droneSettingChanges)
             if self and not self.destroyed:
@@ -1039,7 +1037,6 @@ class DroneView(ActionPanel):
 
     def DroneSettings(self, menuParent):
         self.droneBehaviour = sm.GetService('godma').GetStateManager().GetDroneSettingAttributes()
-        self.fafDefVal = cfg.dgmattribs.Get(const.attributeFighterAttackAndFollow).defaultValue
         self.droneAggressionDefVal = cfg.dgmattribs.Get(const.attributeDroneIsAggressive).defaultValue
         self.droneFFDefVal = cfg.dgmattribs.Get(const.attributeDroneFocusFire).defaultValue
         if not self.droneBehaviour.has_key(const.attributeDroneIsAggressive):
@@ -1050,8 +1047,6 @@ class DroneView(ActionPanel):
         focusFire = settings.char.ui.Get('droneFocusFire', self.droneFFDefVal)
         menuParent.AddCheckBox(text=localization.GetByLabel('UI/Drones/AttackModeFocusFire'), checked=focusFire, callback=(self.FocusFireChange, not focusFire))
         menuParent.AddHeader(text=localization.GetByLabel('UI/Drones/FighterSettings'))
-        fightFollow = settings.char.ui.Get('fighterAttackAndFollow', self.fafDefVal)
-        menuParent.AddCheckBox(text=localization.GetByLabel('UI/Drones/AttackModeAttackAndFollow'), checked=fightFollow, callback=(self.FightFollowChange, not fightFollow))
 
     def AggressiveChange(self, aggressive, *args):
         settings.char.ui.Set('droneAggression', aggressive)
@@ -1061,14 +1056,9 @@ class DroneView(ActionPanel):
         settings.char.ui.Set('droneFocusFire', focusFire)
         self.OnChange()
 
-    def FightFollowChange(self, fightFollow, *args):
-        settings.char.ui.Set('fighterAttackAndFollow', fightFollow)
-        self.OnChange()
-
     def OnChange(self):
         droneSettingChanges = {}
         droneSettingChanges[const.attributeDroneIsAggressive] = settings.char.ui.Get('droneAggression', self.droneAggressionDefVal)
-        droneSettingChanges[const.attributeFighterAttackAndFollow] = settings.char.ui.Get('fighterAttackAndFollow', self.fafDefVal)
         droneSettingChanges[const.attributeDroneFocusFire] = settings.char.ui.Get('droneFocusFire', self.droneFFDefVal)
         sm.GetService('godma').GetStateManager().ChangeDroneSettings(droneSettingChanges)
 

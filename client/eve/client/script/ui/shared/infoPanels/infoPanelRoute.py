@@ -236,7 +236,12 @@ class InfoPanelRoute(uicls.InfoPanelBase):
                     isStation = True
                     solarSystemID = cfg.stations.Get(destinationID).solarSystemID
                 else:
-                    log.LogError('ConstructRoute: Unknown item. I can only handle solar systems and stations, you gave me', destinationID)
+                    structure = sm.GetService('structureDirectory').GetStructureInfo(destinationID)
+                    if structure is not None:
+                        isStation = True
+                        solarSystemID = structure.solarSystemID
+                    else:
+                        log.LogError('ConstructRoute: Unknown item. I can only handle solar systems, stations and structures. You gave me', destinationID)
                 if len(self.markersParent.children) > i:
                     systemIcon = self.markersParent.children[i]
                     systemIcon.left = markerX
@@ -338,7 +343,7 @@ class InfoPanelRoute(uicls.InfoPanelBase):
             for routeID in routeData:
                 if util.IsStation(routeID):
                     routeID = cfg.stations.Get(routeID).solarSystemID
-                if routeID != lastID:
+                if routeID != lastID and util.IsSolarSystem(routeID):
                     ids.append(routeID)
                 lastID = routeID
 
@@ -445,23 +450,24 @@ class AutopilotDestinationIcon(uiprimitives.Container):
 
     def GetHint(self, *args):
         ret = sm.GetService('infoPanel').GetSolarSystemTrace(self.destinationID, traceFontSize=None)
-        if util.IsStation(self.destinationID):
-            ret += '<br>' + cfg.evelocations.Get(self.destinationID).name
+        if not util.IsSolarSystem(self.destinationID):
+            if util.IsStation(self.destinationID) or sm.GetService('structureDirectory').GetStructureInfo(self.destinationID):
+                ret += '<br>' + cfg.evelocations.Get(self.destinationID).name
         return ret
 
     def GetMenu(self, *args):
         if util.IsSolarSystem(self.destinationID):
             return sm.GetService('menu').GetMenuFormItemIDTypeID(self.destinationID, const.typeSolarSystem)
-        if util.IsStation(self.destinationID):
-            station = sm.StartService('ui').GetStation(self.destinationID)
-            return sm.GetService('menu').GetMenuFormItemIDTypeID(self.destinationID, station.stationTypeID)
+        typeID = self.GetStationOrStructureTypeID(self.destinationID)
+        if typeID:
+            return sm.GetService('menu').GetMenuFormItemIDTypeID(self.destinationID, typeID)
 
     def OnClick(self, *args):
         if util.IsSolarSystem(self.destinationID):
             sm.GetService('info').ShowInfo(const.typeSolarSystem, self.destinationID)
-        elif util.IsStation(self.destinationID):
-            station = sm.StartService('ui').GetStation(self.destinationID)
-            sm.GetService('info').ShowInfo(station.stationTypeID, self.destinationID)
+        typeID = self.GetStationOrStructureTypeID(self.destinationID)
+        if typeID:
+            sm.GetService('info').ShowInfo(typeID, self.destinationID)
 
     def GetDragData(self, *args):
         entry = util.KeyVal()
@@ -471,9 +477,18 @@ class AutopilotDestinationIcon(uiprimitives.Container):
         if util.IsSolarSystem(self.destinationID):
             entry.typeID = const.typeSolarSystem
         else:
-            station = sm.StartService('ui').GetStation(self.destinationID)
-            entry.typeID = station.stationTypeID
+            typeID = self.GetStationOrStructureTypeID(self.destinationID)
+            if typeID:
+                entry.typeID = typeID
         return [entry]
+
+    def GetStationOrStructureTypeID(self, destinationID):
+        if util.IsStation(self.destinationID):
+            station = sm.StartService('ui').GetStation(self.destinationID)
+            return station.stationTypeID
+        structureInfo = sm.GetService('structureDirectory').GetStructureInfo(self.destinationID)
+        if structureInfo:
+            return structureInfo.typeID
 
     def OnMouseDown(self, *args):
         uthread.new(self.OnMouseDown_thread)
@@ -491,10 +506,15 @@ class AutopilotDestinationIcon(uiprimitives.Container):
                 typeID = localStargate.typeID
             else:
                 typeID = const.typeSolarSystem
-        else:
+        elif util.IsStation(destinationID):
             station = sm.StartService('ui').GetStation(destinationID)
             typeID = station.stationTypeID
+        else:
+            structure = sm.GetService('structureDirectory').GetStructureInfo(destinationID)
+            if structure is not None:
+                typeID = structure.typeID
         sm.GetService('menu').TryExpandActionMenu(itemID=destinationID, clickedObject=self, typeID=typeID)
+        return
 
     def GetRadialMenuIndicator(self, create=True, *args):
         radialMenuSprite = getattr(self, 'radialMenuSprite', None)

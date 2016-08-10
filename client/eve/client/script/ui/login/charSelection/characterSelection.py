@@ -8,7 +8,6 @@ from eve.client.script.ui.util.uiComponents import ButtonEffect, Component
 import loggly
 import uthread
 import log
-import service
 import uicls
 import carbonui.const as uiconst
 import ccUtil
@@ -29,7 +28,8 @@ import evegraphics.settings as gfxsettings
 import eve.client.script.ui.login.charSelection.characterSelectionUtils as csUtil
 import eve.client.script.ui.login.charSelection.characterSelectionColors as csColors
 import gatekeeper
-import gatekeeper.gatekeeperConst as gkConst
+from seasons.client.seasoncharacterselectionsidebar import SeasonCharacterSelectionSidebar
+from seasons.common.util import are_seasons_enabled
 LOGO_WIDTH = 205
 LOGO_HEIGHT = 81
 MINIMUM_LOGOHEIGHT = 50
@@ -135,27 +135,36 @@ class CharacterSelection(uicls.LayerCore):
         return
 
     def OnRefreshScreen(self):
-        uicore.registry.SetFocus(self)
-        self.ready = False
-        self.countDownThread = None
-        self.characterSlotList = []
-        self.uiOffset = (0, 0)
-        self.maxFullSlotSize = None
-        self.Flush()
-        self.ClearBackground()
-        self.selectionScreen = Container(name='selectionScreen', parent=self, state=uiconst.UI_PICKCHILDREN)
-        self.InitUI()
-        self.AddBackground()
-        self.AddFeatureContainer()
-        self.LoadCharacterSlots()
-        self.SetRedeemPanelMode()
-        self.AdjustFeatureBarPosition()
-        self.CollapseOrExpandSlots(animate=False, loadingSlots=False)
-        self.AdjustLogo()
-        self.SetTimer()
-        self.loadingWheel = uicls.LoadingWheel(parent=self.selectionScreen, align=uiconst.CENTER, state=uiconst.UI_NORMAL, idx=0)
-        self.loadingWheel.display = False
-        return
+        if self._IsSelectionScreenDisabled():
+            return
+        else:
+            uicore.registry.SetFocus(self)
+            self.ready = False
+            self.countDownThread = None
+            self.characterSlotList = []
+            self.uiOffset = (0, 0)
+            self.maxFullSlotSize = None
+            self.Flush()
+            self.ClearBackground()
+            self.selectionScreen = Container(name='selectionScreen', parent=self, state=uiconst.UI_PICKCHILDREN)
+            self.InitUI()
+            self.AddBackground()
+            self.AddFeatureContainer()
+            self.LoadCharacterSlots()
+            self.SetRedeemPanelMode()
+            self.AdjustFeatureBarPosition()
+            self.CollapseOrExpandSlots(animate=False, loadingSlots=False)
+            self.AdjustLogo()
+            self.SetTimer()
+            self.loadingWheel = uicls.LoadingWheel(parent=self.selectionScreen, align=uiconst.CENTER, state=uiconst.UI_NORMAL, idx=0)
+            self.loadingWheel.display = False
+            return
+
+    def _IsSelectionScreenDisabled(self):
+        return self._IsSelectionScreenAvailable() and self.selectionScreen.state == uiconst.UI_DISABLED
+
+    def _IsSelectionScreenAvailable(self):
+        return hasattr(self, 'selectionScreen') and self.selectionScreen and not self.selectionScreen.destroyed
 
     def AnimateScreenIn(self):
         uicore.animations.MorphScalar(self.bg, 'opacity', startVal=0.0, endVal=1.0, duration=1.0)
@@ -202,9 +211,11 @@ class CharacterSelection(uicls.LayerCore):
         return sm.GetService('cc').GetCharacterSelectionData(force=force)
 
     def InitUI(self):
+        self.seasonSidebar = None
         self.selectionScreen.Flush()
         self.redeemPanel = RedeemPanel(parent=self.selectionScreen, collapseCallback=self.ExitRedeemMode, expandCallback=self.EnterRedeemMode, dragEnabled=True, instructionText=localization.GetByLabel('UI/RedeemWindow/DragAndDropToGive'), redeemButtonBorderColor=csColors.REDEEM_BORDER, redeemButtonBackgroundColor=csColors.REDEEM_BORDER_BACKGROUND, redeemButtonFillColor=csColors.REDEEM_BORDER_FILL, textColor=csColors.REDEEM_PANEL_AVAILABLE_TEXT, redeemPanelBackgroundColor=csColors.REDEEM_PANEL_FILL)
         self.topBorder = Container(name='topBorder', parent=self.selectionScreen, align=uiconst.TOTOP_NOPUSH, height=40, state=uiconst.UI_PICKCHILDREN)
+        self._ConstructSeasonInfo()
         self.centerArea = Container(name='centerAra', parent=self.selectionScreen, align=uiconst.TOALL, state=uiconst.UI_PICKCHILDREN)
         self.logoCont = Container(parent=self, name='logoCont', align=uiconst.TOTOP_NOPUSH, height=100, state=uiconst.UI_NORMAL)
         self.logo = uiprimitives.Sprite(parent=self.logoCont, texturePath='res:/UI/Texture/classes/CharacterSelection/logo.png', align=uiconst.CENTER, pos=(0,
@@ -213,6 +224,8 @@ class CharacterSelection(uicls.LayerCore):
          LOGO_HEIGHT))
         self.charactersCont = Container(name='charactersCont', parent=self.centerArea, align=uiconst.CENTER, state=uiconst.UI_PICKCHILDREN, width=1050, height=600)
         self.SetupCharacterSlots()
+        uthread.new(self._LoadSeasonInfo)
+        return
 
     def AddBackground(self):
         clientHeight = uicore.desktop.height
@@ -457,6 +470,8 @@ class CharacterSelection(uicls.LayerCore):
         if deletePrepTime is not None:
             return
         else:
+            if self.seasonSidebar:
+                self.seasonSidebar.Close()
             slotSelected.SetMouseOverState()
             slotSelected.PlaySelectedAnimation()
             self.ConfirmWithCharID(slotSelected.charID)
@@ -666,7 +681,6 @@ class CharacterSelection(uicls.LayerCore):
         eve.Message('CCTerminate')
         if eve.Message('AskDeleteCharacter', {'charID': charID}, uiconst.YESNO) != uiconst.ID_YES:
             return
-        progressHeader = localization.GetByLabel('UI/CharacterSelection/RecyclingCharacter', charID=charID)
         self.ShowLoading()
         if gender == const.genderFemale:
             beginMsg = 'CCTerminateForGoodFemaleBegin'
@@ -828,6 +842,20 @@ class CharacterSelection(uicls.LayerCore):
                 self.loadingWheel.forcedOn = 0
         except:
             log.LogError('Failed to hide the loading wheel')
+
+    def _ConstructSeasonInfo(self):
+        try:
+            if are_seasons_enabled() and sm.GetService('seasonService').is_season_active():
+                self.seasonSidebar = SeasonCharacterSelectionSidebar(parent=self.selectionScreen, redeemable_items_panel_height=self.topBorder.height)
+        except Exception:
+            log.LogTraceback('Failed to construct Scope Network sidebar in character selection')
+
+    def _LoadSeasonInfo(self):
+        try:
+            if self.seasonSidebar and not self.seasonSidebar.destroyed:
+                self.seasonSidebar.load_data()
+        except Exception:
+            log.LogTraceback('Failed to load data for Scope Network sidebar in character selection')
 
 
 @Component(ButtonEffect(opacityIdle=0.0, opacityHover=0.4, opacityMouseDown=0.5, bgElementFunc=lambda parent, _: parent.highlight))

@@ -35,7 +35,7 @@ class TargetingPanel(AttributePanel):
         self.SetScanResolutionText(shipID, typeAttributesByID)
         self.SetMaxTargetsText(shipID, maxLockedTargetsAdd)
         self.SetSignatureText(shipID, typeAttributesByID)
-        self.SetSensorStrenghtElements(shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs)
+        self.SetSensorStrengthElements(shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs)
 
     def SetTargetingHeader(self, shipID, multiplyMaxTargetRange):
         maxTargetRange = GetShipAttribute(shipID, dogmaConst.attributeMaxTargetRange)
@@ -67,7 +67,7 @@ class TargetingPanel(AttributePanel):
         signatureRadiusText += GetByLabel('UI/Fitting/FittingWindow/TargetingRange', range=signatureRadius + signatureRadiusAdd)
         self.SetLabel(dogmaConst.attributeSignatureRadius, signatureRadiusText)
 
-    def SetSensorStrenghtElements(self, shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs):
+    def SetSensorStrengthElements(self, shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs):
         maxSensor, maxSensorStrength, ssBValue, ssPValue = self.GetSensorStrengthValues(shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs)
         self.SetSensorText(maxSensorStrength, ssBValue, ssPValue)
         self.LoadIcon('sensorStrength', maxSensor.iconID)
@@ -79,12 +79,12 @@ class TargetingPanel(AttributePanel):
         self.SetLabel('sensorStrength', statsText)
 
     def SetSensorTooltip(self, maxSensor):
-        return
         cont = self.statsContsByIdentifier.get('sensorStrength', None)
-        tooltipTitleID = maxSensor.tooltipTitleID
-        if tooltipTitleID:
-            tooltipTitle = GetByMessageID(tooltipTitleID)
-            cont.tooltipPanelClassInfo.headerText = tooltipTitle
+        if cont is not None and cont.tooltipPanelClassInfo is not None:
+            tooltipTitleID = maxSensor.tooltipTitleID
+            if tooltipTitleID:
+                tooltipTitle = GetByMessageID(tooltipTitleID)
+                cont.tooltipPanelClassInfo.headerText = tooltipTitle
         return
 
     def GetSensorStrengthValues(self, shipID, sensorStrengthAttrs, sensorStrengthBonus, sensorStrengthBonusAttrs, sensorStrengthPercent, sensorStrengthPercentAttrs):

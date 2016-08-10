@@ -158,17 +158,24 @@ class WindowMgr(service.Service):
                 sm.GetService('gameui').ScopeCheck(['station', 'station_inflight'])
                 wndsToCheck += [util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenInventory, windowID=('InventoryStation', None)), util.KeyVal(cls=form.StationItems, cmd=uicore.cmd.OpenHangarFloor), util.KeyVal(cls=form.StationShips, cmd=uicore.cmd.OpenShipHangar)]
                 if session.corpid:
-                    wndsToCheck.append(util.KeyVal(cls=form.StationCorpDeliveries, cmd=uicore.cmd.OpenCorpDeliveries, windowID=form.Inventory.GetWindowIDFromInvID(('StationCorpDeliveries', session.stationid2))))
+                    wnd = self._GetCorpDeliveriesWnd(invID=('StationCorpDeliveries', session.stationid2))
+                    wndsToCheck.append(wnd)
                     office = sm.GetService('corp').GetOffice()
                     if office:
-                        wndsToCheck.append(util.KeyVal(cls=form.StationCorpHangars, cmd=uicore.cmd.OpenCorpHangar, windowID=form.Inventory.GetWindowIDFromInvID(('StationCorpHangars', office.itemID))))
-                        for i in xrange(7):
-                            invID = ('StationCorpHangar', office.itemID, i)
-                            wndsToCheck.append(util.KeyVal(cls=form.Inventory, cmd=self._OpenCorpHangarDivision, windowID=form.Inventory.GetWindowIDFromInvID(invID), args=(invID,)))
-
+                        officeItemID = office.itemID
+                        wnd = self._GetCorpHangarInvWnd(wndCls=form.StationCorpHangars, invID=('StationCorpHangars', officeItemID))
+                        wndsToCheck.append(wnd)
+                        wndsToCheck += self._GetCorpHangarDivisionInvWnds(invIdName='StationCorpHangar', locationID=officeItemID)
             elif session.structureid and session.structureid != session.shipid:
                 sm.GetService('gameui').ScopeCheck(['station_inflight'])
                 wndsToCheck += [util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenInventory, windowID=('InventoryStructure', None)), util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenHangarFloor, windowID=('StructureItemHangar', session.structureid)), util.KeyVal(cls=form.Inventory, cmd=uicore.cmd.OpenShipHangar, windowID=('StructureShipHangar', session.structureid))]
+                if session.corpid:
+                    wnd = self._GetCorpDeliveriesWnd(invID=('StationCorpDeliveries', session.structureid))
+                    wndsToCheck.append(wnd)
+                    if sm.GetService('structureOffices').HasOffice():
+                        wnd = self._GetCorpHangarInvWnd(wndCls=form.Inventory, invID=('StructureCorpHangars', session.structureid))
+                        wndsToCheck.append(wnd)
+                        wndsToCheck += self._GetCorpHangarDivisionInvWnds(invIdName='StructureCorpHangar', locationID=session.structureid)
             elif session.solarsystemid and session.shipid:
                 if IsBetaScannersEnabled():
                     from eve.client.script.ui.inflight.probeScannerWindow import ProbeScannerWindow
@@ -208,6 +215,23 @@ class WindowMgr(service.Service):
         from eve.client.script.ui.shared.dockedUI import ReloadLobbyWnd
         ReloadLobbyWnd()
         return
+
+    def _GetCorpDeliveriesWnd(self, invID):
+        wnd = util.KeyVal(cls=form.StationCorpDeliveries, cmd=uicore.cmd.OpenCorpDeliveries, windowID=form.Inventory.GetWindowIDFromInvID(invID))
+        return wnd
+
+    def _GetCorpHangarInvWnd(self, wndCls, invID):
+        wnd = util.KeyVal(cls=wndCls, cmd=uicore.cmd.OpenCorpHangar, windowID=form.Inventory.GetWindowIDFromInvID(invID))
+        return wnd
+
+    def _GetCorpHangarDivisionInvWnds(self, invIdName, locationID):
+        wndsToCheck = []
+        for i in xrange(7):
+            invID = ('%s' % invIdName, locationID, i)
+            wnd = util.KeyVal(cls=form.Inventory, cmd=self._OpenCorpHangarDivision, windowID=form.Inventory.GetWindowIDFromInvID(invID), args=(invID,))
+            wndsToCheck.append(wnd)
+
+        return wndsToCheck
 
     def _OpenCorpHangarDivision(self, invID):
         form.Inventory.OpenOrShow(invID=invID, usePrimary=False, toggle=False)

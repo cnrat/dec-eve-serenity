@@ -22,18 +22,17 @@ class Stargate(SpaceObject):
 
     def _SetupStargateEffects(self, model):
         gateStateChild = None
-        for child in model.children:
-            if child.name == 'FX_JUMPGATE':
-                for each in child.children:
-                    if each.name == 'GATE_STATE':
-                        gateStateChild = each
-                    elif each.name == 'FX_DEPARTURE':
-                        self.departureCurve = each.curveSets[0]
-                    elif each.name == 'FX_ARRIVAL':
-                        self.arrivalCurve = each.curveSets[0]
-
-            elif child.name == 'BOLTS':
-                self.lightningTransform = child
+        for child in model.effectChildren:
+            for each in child.objects:
+                if each.name == 'GATE_STATE':
+                    gateStateChild = each
+                elif each.name == 'FX_DEPARTURE':
+                    self.departureCurve = each.curveSets[0]
+                elif each.name == 'FX_ARRIVAL':
+                    self.arrivalCurve = each.curveSets[0]
+                else:
+                    self.lightningTransform = child
+                    break
 
         if gateStateChild is None:
             return

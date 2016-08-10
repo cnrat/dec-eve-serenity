@@ -5,6 +5,7 @@ import trinity
 import uthread
 import eve.common.script.sys.eveCfg as util
 from eve.client.script.environment.spaceObject.LargeCollidableStructure import LargeCollidableStructure
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 CUSTOMSOFFICE_SPACEPORT = 4579
 CUSTOMSOFFICE_SPACEELEVATOR = 4580
 
@@ -33,7 +34,7 @@ class CustomsOffice(LargeCollidableStructure):
         if self.level is None or self.level not in self.modelLists:
             LargeCollidableStructure.LoadModel(self)
         else:
-            modelName = util.GraphicFile(self.modelLists[self.level])
+            modelName = GetGraphicFile(self.modelLists[self.level])
             LargeCollidableStructure.LoadModel(self, modelName)
             if self.model is None:
                 LargeCollidableStructure.LoadModel(self)

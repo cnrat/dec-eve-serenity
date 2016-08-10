@@ -87,7 +87,7 @@ def _div_and_rest(total, chunk):
     return (divs, total - chunk * divs)
 
 
-def split_delta(delta, include_weeks=True):
+def split_delta(delta, include_weeks=True, include_months=True, include_years=True):
     parts = {'1st': None,
      '2nd': None,
      'is_past': False}
@@ -95,15 +95,17 @@ def split_delta(delta, include_weeks=True):
         parts['is_past'] = True
         delta = datetime.timedelta(seconds=-delta.total_seconds())
     days = abs(delta.days)
-    parts['years'], days = _div_and_rest(days, MEAN_YEAR)
-    if parts['years']:
-        parts['1st'] = 'years'
-    parts['months'], days = _div_and_rest(days, MEAN_MONTH)
-    if parts['months']:
-        if not parts['1st']:
-            parts['1st'] = 'months'
-        else:
-            parts['2nd'] = 'months'
+    if include_years:
+        parts['years'], days = _div_and_rest(days, MEAN_YEAR)
+        if parts['years']:
+            parts['1st'] = 'years'
+    if include_months:
+        parts['months'], days = _div_and_rest(days, MEAN_MONTH)
+        if parts['months']:
+            if not parts['1st']:
+                parts['1st'] = 'months'
+            else:
+                parts['2nd'] = 'months'
     if include_weeks:
         parts['weeks'], days = _div_and_rest(days, 7)
         if not parts['1st'] and parts['weeks']:

@@ -24,6 +24,7 @@ from inventorycommon.const import compareCategories
 from inventorycommon.util import IsModularShip, IsShipFittable
 from shipfitting.multiBuyUtil import BuyMultipleTypes
 from eve.client.script.ui.services.menuSvcExtras import marketMenu
+import crates
 import uix
 import uiutil
 import uthread
@@ -80,6 +81,7 @@ from carbon.common.script.sys.service import ROLE_GMH
 from carbonui.control.menu import DISABLED_ENTRY0, CloseContextMenus
 import inventorycommon.typeHelpers
 from eve.common.script.sys.eveCfg import InShipInSpace, IsDockedInStructure, InStructure, IsControllingStructure
+import evegraphics.fsd.graphicIDs as fsdGraphicIDs
 CELESTIAL_MENU_CATEGORIES = (const.categoryCelestial,
  const.categoryStarbase,
  const.categoryStation,
@@ -154,7 +156,7 @@ class MenuSvc(service.Service):
 
     def _MapMenu(self, itemID, unparsed=0):
         menuEntries = []
-        if util.IsSolarSystem(itemID) or util.IsStation(itemID):
+        if util.IsSolarSystem(itemID) or util.IsStation(itemID) or sm.GetService('structureDirectory').GetStructureInfo(itemID) is not None:
             waypoints = sm.StartService('starmap').GetWaypoints()
             uni, regionID, constellationID, _sol, _item = sm.StartService('map').GetParentLocationID(itemID)
             checkInWaypoints = itemID in waypoints
@@ -278,6 +280,7 @@ class MenuSvc(service.Service):
             checkShipSkin = invItem.groupID == const.groupShipSkins
             checkSkillExtractor = invItem.typeID == const.typeSkillExtractor
             checkSkillInjector = invItem.typeID == const.typeSkillInjector
+            checkCrate = invItem.typeID in crates.CrateStorage()
             checkTrashable = not checkIfActiveShip and not checkPilotLicence and not checkAurumToken and not checkServiceItem
             checkSecContainer = groupID in (const.groupSecureCargoContainer, const.groupAuditLogSecureContainer)
             checkIfInQuickBar = invItem.typeID in settings.user.ui.Get('marketquickbar', [])
@@ -375,9 +378,12 @@ class MenuSvc(service.Service):
                     label = uiutil.MenuLabel('UI/Commands/ActivateSkillInjector', {'injector': const.typeSkillInjector,
                      'quantity': invItem.stacksize})
                     menuEntries += [[label, self.ActivateSkillInjector, (invItem.itemID, invItem.stacksize)]]
+                if checkCrate and not checkMultiSelection:
+                    label = localization.GetByLabel('UI/Crate/MenuCommandOpenCrate', typeID=invItem.typeID)
+                    menuEntries += [[label, self.OpenCrate, (invItem.typeID, invItem.itemID, invItem.stacksize)]]
             menuEntries += [None]
             if not checkViewOnly and checkSameLocation and not checkMultiSelection and checkSingleton:
-                if checkSecContainer and checkIfInStation:
+                if checkSecContainer and (checkIfInStation or checkIfInStructure):
                     desc = localization.GetByLabel('UI/Menusvc/SetNewPasswordForContainerDesc')
                     menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/SetNewPasswordForContainer'), self.AskNewContainerPwd, ([invItem], desc, const.SCCPasswordTypeGeneral)]]
                 if checkAuditLogSecureContainer and checkIfInStation:
@@ -440,7 +446,7 @@ class MenuSvc(service.Service):
                 menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AddTypeToMarketQuickbar'), self.AddToQuickBar, (invItem.typeID,)]]
             if checkIfInQuickBar and not checkMultiSelection:
                 menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/RemoveTypeFromMarketQuickbar'), self.RemoveFromQuickBar, (invItem,)]]
-            if checkIfInHangar and checkIfAtStation and checkIfIsMine and checkCanContain and not checkIfIsCapsule:
+            if checkIfInHangar and (checkIfAtStation or checkIfAtStructure) and checkIfIsMine and checkCanContain and not checkIfIsCapsule:
                 menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/ViewContents'), self.GetContainerContents, [invItem]]]
             if not checkViewOnly and checkSingleton:
                 if checkSameLocation and isPlayerDeployedContainer and not checkIfInCorpDeliveries:
@@ -470,12 +476,16 @@ class MenuSvc(service.Service):
             if not checkViewOnly:
                 if checkIfIsShip and checkSameLocation and checkIfImInStation and checkIfAtStation and checkIfInHangar and checkIfIsMine and not checkSingleton:
                     menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
+                    if not IsModularShip(invItem.typeID):
+                        menuEntries += [[uiutil.MenuLabel('UI/Fitting/FittingWindow/FittingManagement/OpenMultifit'), ('isDynamic', self.GetFitMenu, [invItem, invItem.typeID])]]
                 if checkIfIsShip and checkIfInSpace and checkIfInCargo and checkIfIsMine and not checkSingleton:
                     menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
                 if checkIfIsShip and checkIfInSpace and checkLocationCorpHangarArrayEquivalent and checkLocationInSpace and not checkSingleton:
                     menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
                 if checkIfIsShip and checkIfAtStructure and checkIfInHangar and checkIfIsMine and not checkSingleton:
                     menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/AssembleShip'), self.AssembleShip, [invItem]]]
+                    if not IsModularShip(invItem.typeID):
+                        menuEntries += [[uiutil.MenuLabel('UI/Fitting/FittingWindow/FittingManagement/OpenMultifit'), ('isDynamic', self.GetFitMenu, [invItem, invItem.typeID])]]
                 if (checkIfImInStation and checkSameStation or checkIfInStructure and checkSameLocation) and checkIfIsHardware and checkActiveShip and not checkImplant and not checkBooster:
                     menuEntries += [[uiutil.MenuLabel('UI/Inventory/ItemActions/FitToActiveShip'), TryFit, [invItem]]]
                 if checkIfInSpace and not checkIfInDroneBay and checkIfDrone and checkMAInRange:
@@ -816,6 +826,11 @@ class MenuSvc(service.Service):
         else:
             return self._CharacterMenu(charid, corpid, unparsed, filterFunc, **kwargs)
 
+    def _CheckIfGuest(self, charid):
+        stationGuest = session.stationid and sm.GetService('station').IsGuest(charid)
+        structureGuest = session.structureid and sm.GetService('structureGuests').IsGuest(charid)
+        return bool(stationGuest or structureGuest)
+
     def _CharacterMenu(self, charid, corpid, unparsed=0, filterFunc=None, multi=0, **kwargs):
         if not charid:
             return []
@@ -823,12 +838,11 @@ class MenuSvc(service.Service):
             addressBookSvc = sm.GetService('addressbook')
             checkIsNPC = util.IsNPC(charid)
             checkIsAgent = sm.GetService('agents').IsAgent(charid)
-            checkInStation = bool(session.stationid)
             checkInAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'contact'))
             checkInCorpAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'corpcontact'))
             checkInAllianceAddressbook = bool(addressBookSvc.IsInAddressBook(charid, 'alliancecontact'))
             checkIfBlocked = addressBookSvc.IsBlocked(charid)
-            checkIfGuest = session.stationid and sm.StartService('station').IsGuest(charid)
+            checkIfGuest = self._CheckIfGuest(charid)
             checkIfMe = charid == session.charid
             checkHaveCloneBay = sm.GetService('clonejump').HasCloneReceivingBay()
             checkIfExecCorp = session.allianceid and sm.GetService('alliance').GetAlliance(session.allianceid).executorCorpID == session.corpid
@@ -908,8 +922,9 @@ class MenuSvc(service.Service):
                     if agentInfo.solarsystemID and agentInfo.solarsystemID != session.solarsystemid2:
                         menuEntries += [None]
                         menuEntries += self.MapMenu(agentInfo.stationID, unparsed=1)
-            if not checkMultiSelection and not checkIfMe and checkInStation and not checkIsNPC and checkIfGuest and not checkIfDustCharacter:
-                menuEntries += [[uiutil.MenuLabel('UI/Market/TradeWithCharacter'), sm.StartService('pvptrade').StartTradeSession, (charid,)]]
+            if not checkMultiSelection and not checkIfMe and not checkIsNPC and checkIfGuest and not checkIfDustCharacter:
+                pvptrade = sm.GetService('pvptrade')
+                menuEntries += [[uiutil.MenuLabel('UI/Market/TradeWithCharacter'), pvptrade.StartTradeSession, (charid,)]]
             if not checkMultiSelection and not checkIsNPC and not checkIfDustCharacter:
                 menuEntries += [[uiutil.MenuLabel('UI/Station/BountyOffice/PlaceBounty'), openFunctions.OpenBountyOffice, (charid,)]]
             if not checkIsNPC and not util.IsDustCharacter(charid):
@@ -1292,11 +1307,9 @@ class MenuSvc(service.Service):
                     gm.append(('WM: /create this type', lambda *x: _wrapMulti('/create %d %%d' % typeID)))
                 gm.append(('GM: /load me this type', lambda *x: _wrapMulti('/load me %d %%d' % typeID)))
                 graphicID = evetypes.GetGraphicID(typeID)
-                graphicFile = util.GraphicFile(graphicID)
-                if graphicFile is '':
-                    graphicFile = None
-                g = cfg.graphics.GetIfExists(graphicID)
-                sofHull = getattr(g, 'sofHullName', None)
+                graphic = fsdGraphicIDs.GetGraphic(graphicID)
+                graphicFile = fsdGraphicIDs.GetGraphicFile(graphic)
+                sofHull = fsdGraphicIDs.GetSofHullName(graphic)
                 gm.append(('res', [('typeID: ' + str(typeID), blue.pyos.SetClipboardData, (str(typeID),)),
                   ('graphicID: ' + str(graphicID), blue.pyos.SetClipboardData, (str(graphicID),)),
                   ('graphicFile: ' + str(graphicFile), blue.pyos.SetClipboardData, (str(graphicFile),)),
@@ -1355,6 +1368,38 @@ class MenuSvc(service.Service):
 
     def GetFromESP(self, action):
         return devFunctions.GetFromESP(action)
+
+    def GetFitMenu(self, item, typeID):
+        ownerID = session.charid
+        fittings = sm.GetService('fittingSvc').GetFittingsForType(ownerID, typeID)
+        menuEntries = []
+        m = []
+        for fittingID, fitting in fittings:
+            m.append((fitting.name.lower(), (fitting.name, self.FitStack, [item, fitting])))
+
+        m = uiutil.SortListOfTuples(m)
+        menuEntries += m
+        fittings = sm.GetService('fittingSvc').GetFittingsForType(session.corpid, typeID)
+        if len(fittings):
+            menuEntries.append(None)
+            m = []
+            for fittingID, fitting in fittings:
+                m.append((fitting.name.lower(), (fitting.name, self.FitStack, [item, fitting])))
+
+            m = uiutil.SortListOfTuples(m)
+            menuEntries += m
+        if not menuEntries:
+            menuEntries += [[uiutil.MenuLabel('UI/Fitting/FittingWindow/FittingManagement/NoFittingsFound'), DISABLED_ENTRY0]]
+        return menuEntries
+
+    def FitStack(self, item, fitting):
+        from eve.client.script.ui.shared.fitting.multiFitWnd import MultiFitWnd
+        maxShipsAllowed = int(sm.GetService('machoNet').GetGlobalConfig().get('bulkFit_maxShips', 30))
+        wnd = MultiFitWnd.GetIfOpen()
+        if wnd:
+            wnd.LoadWindow(fitting, min(item.stacksize, maxShipsAllowed))
+        else:
+            MultiFitWnd.Open(fitting=fitting, qty=min(item.stacksize, maxShipsAllowed))
 
     def GetGMMenu(self, itemID=None, slimItem=None, charID=None, invItem=None, mapItem=None, typeID=None):
         if not session.role & (service.ROLE_GML | service.ROLE_WORLDMOD):
@@ -1440,12 +1485,10 @@ class MenuSvc(service.Service):
                     npcStation = cfg.mapSolarSystemContentCache.npcStations.get(itemID, None)
                     if npcStation:
                         graphicID = npcStation.graphicID
-                animations = inventorycommon.typeHelpers.GetAnimationStates(item.typeID)
-                graphicFile = util.GraphicFile(graphicID)
-                if graphicFile is '':
-                    graphicFile = None
-                g = cfg.graphics.GetIfExists(graphicID)
-                raceName = getattr(g, 'sofRaceName', None)
+                graphic = fsdGraphicIDs.GetGraphic(graphicID)
+                animations = fsdGraphicIDs.GetAnimationStates(graphic)
+                graphicFile = fsdGraphicIDs.GetGraphicFile(graphic)
+                raceName = fsdGraphicIDs.GetSofRaceName(graphic)
                 sofDNA = None
                 ball = sm.StartService('michelle').GetBallpark().GetBall(slimItem.itemID)
                 subMenu = self.GetGMStructureStateMenu(itemID, slimItem, charID, invItem, mapItem)
@@ -1639,11 +1682,7 @@ class MenuSvc(service.Service):
                 elif currentState == pos.STRUCTURE_UNANCHORED:
                     subMenu.append(('Anchor', sm.RemoteSvc('slash').SlashCmd, ('/pos anchor ' + str(itemID),)))
             else:
-                if getattr(slimItem, 'posTimestamp', None) is not None:
-                    subMenu.append(('Complete State', sm.RemoteSvc('slash').SlashCmd, ('/sov complete ' + str(itemID),)))
                 subMenu.append(('Offline', sm.RemoteSvc('slash').SlashCmd, ('/pos offline ' + str(itemID),)))
-        if hasattr(slimItem, 'structureState') and slimItem.structureState != None and slimItem.structureState in [pos.STRUCTURE_SHIELD_REINFORCE, pos.STRUCTURE_ARMOR_REINFORCE]:
-            subMenu.append(('Complete State', sm.RemoteSvc('slash').SlashCmd, ('/sov complete ' + str(itemID),)))
         return subMenu
 
     def GetGMBallsAndBoxesMenu(self, itemID=None, slimItem=None, charID=None, invItem=None, mapItem=None):
@@ -2390,7 +2429,7 @@ class MenuSvc(service.Service):
                 menuEntries += [None]
                 if not checkWarpActive and checkIsWithinLookAtRange:
                     if not checkLookingAtItem and not checkPlanet and not checkMoon:
-                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/LookAtObject'), sm.GetService('sceneManager').GetActiveSpaceCamera().LookAt, (itemID,)]]
+                        menuEntries += [[uiutil.MenuLabel('UI/Inflight/LookAtObject'), self.TryLookAt, (itemID,)]]
                     else:
                         prereqs = [('isLookingAtItem', checkLookingAtItem, False)]
                         reason = self.FindReasonNotAvailable(prereqs)
@@ -2695,17 +2734,24 @@ class MenuSvc(service.Service):
                     if parentBookmarkItem and parentBookmarkItem.groupID == const.groupSolarSystem:
                         mapTypeID = parentBookmarkItem.typeID
             checkSameSolarSystemID = mapFunctionID and mapFunctionID == session.solarsystemid2
-            checkCanBeWaypoint = mapTypeID == const.typeSolarSystem or groupID == const.groupStation
+            checkCanBeWaypoint = mapTypeID == const.typeSolarSystem or groupID == const.groupStation or categoryID == const.categoryStructure
             if checkCanBeWaypoint:
+                solarSystemID = None
                 waypoints = sm.GetService('starmap').GetWaypoints()
                 checkInWaypoints = mapFunctionID in waypoints
                 if util.IsSolarSystem(mapFunctionID):
                     solarSystemID = mapFunctionID
                 elif util.IsStation(mapFunctionID):
                     solarSystemID = cfg.stations.Get(mapFunctionID).solarSystemID
-                else:
-                    log.LogError('mapFunctionID is not a solarsystem or a station, this will probably end up in a strange menu behaviour.', mapFunctionID)
-                    solarSystemID = mapFunctionID
+                elif mapFunctionID and cfg.evelocations.GetIfExists(mapFunctionID):
+                    solarSystemID = cfg.evelocations.Get(mapFunctionID).solarSystemID
+                    if solarSystemID is None:
+                        structureInfo = sm.GetService('structureDirectory').GetStructureInfo(mapFunctionID)
+                        if structureInfo is not None:
+                            solarSystemID = structureInfo.solarSystemID
+                        else:
+                            log.LogTraceback(extraText='mapFunctionID %s is not a solarsystem, a station or a structure. This will endi in tears for the menu.' % mapFunctionID)
+                            solarSystemID = mapFunctionID
                 checkCanJump = session.solarsystemid is not None and solarSystemID in sm.GetService('map').GetNeighbors(session.solarsystemid) and checkInShipInSpace
                 menuEntries += [None]
                 if checkCanJump:
@@ -2736,7 +2782,7 @@ class MenuSvc(service.Service):
                 menuEntries += [None]
                 menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestination'), sm.StartService('starmap').SetWaypoint, (itemID, True)]]
             elif checkStructure and mapFunctionID and util.IsSolarSystem(parentID) and parentID != session.solarsystemid2:
-                menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestinationToSystem'), sm.StartService('starmap').SetWaypoint, (parentID, True)]]
+                menuEntries += [[uiutil.MenuLabel('UI/Inflight/SetDestination'), sm.StartService('starmap').SetWaypoint, (itemID, True)]]
             if checkStructure and checkIsMyCorps and checkIsStationManager:
                 menuEntries += [[uiutil.MenuLabel('UI/Commands/EditProfileForStructure'), openFunctions.OpenProfileSettingsForStructure, (itemID,)]]
             if checkStation and not session.structureid:
@@ -4392,6 +4438,9 @@ class MenuSvc(service.Service):
     def ActivateSkillInjector(self, itemID, quantity):
         return menuFunctions.ActivateSkillInjector(itemID, quantity)
 
+    def OpenCrate(self, typeID, itemID, stacksize):
+        return menuFunctions.OpenCrate(typeID, itemID, stacksize)
+
     def ConsumeBooster(self, invItems):
         return invItemFunctions.ConsumeBooster(invItems)
 
@@ -4411,7 +4460,7 @@ class MenuSvc(service.Service):
     def SetHomeStation(self, stationID):
         medicalController = GetMedicalController()
         if not medicalController:
-            return
+            raise UserError('MustBeDocked')
         medicalController.SetHomeStation(stationID)
 
     @base.ThrottlePerSecond()

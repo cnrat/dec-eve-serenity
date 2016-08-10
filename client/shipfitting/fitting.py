@@ -14,6 +14,7 @@ class Fitting(object):
         self.itemTypes = defaultdict(lambda : 0)
         self.modulesByFlag = {}
         self.dronesByType = {}
+        self.fightersByType = {}
         self.chargesByType = {}
         self.fuelByType = {}
         self.rigsToFit = False
@@ -28,6 +29,8 @@ class Fitting(object):
                 self.modulesByFlag[flag] = typeID
             elif self._IsDrone(flag):
                 self.dronesByType[typeID] = qty
+            elif self._IsFighter(flag):
+                self.fightersByType[typeID] = qty
             elif self._IsFuel(flag, groupID):
                 self.fuelByType[typeID] = qty
             elif self._IsAmmo(flag, groupID):
@@ -36,14 +39,15 @@ class Fitting(object):
                 logger.error('LoadFitting::flag neither fitting nor drone bay %s, %s', typeID, flag)
                 continue
             skipType = False
-            for item in shipInv.List(flag):
-                if item.typeID == typeID:
-                    itemQty = item.stacksize
-                    if itemQty == qty:
-                        skipType = True
-                        break
-                    else:
-                        qty -= itemQty
+            if shipInv:
+                for item in shipInv.List(flag):
+                    if item.typeID == typeID:
+                        itemQty = item.stacksize
+                        if itemQty == qty:
+                            skipType = True
+                            break
+                        else:
+                            qty -= itemQty
 
             if skipType:
                 continue
@@ -61,11 +65,14 @@ class Fitting(object):
     def _IsDrone(self, flag):
         return flag == invconst.flagDroneBay
 
+    def _IsFighter(self, flag):
+        return flag == invconst.flagFighterBay
+
     def _IsFuel(self, flag, groupID):
         return flag == invconst.flagCargo and groupID == invconst.groupIceProduct
 
     def _IsAmmo(self, flag, groupID):
-        return flag == invconst.flagCargo and groupID
+        return flag == invconst.flagCargo
 
     def GetQuantityByType(self):
         return self.itemTypes
@@ -84,6 +91,9 @@ class Fitting(object):
 
     def GetDronesByType(self):
         return self.dronesByType
+
+    def GetFigthersByType(self):
+        return self.fightersByType
 
     def FittingHasSubsystems(self):
         return self.hasSubsystems

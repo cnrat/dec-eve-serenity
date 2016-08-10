@@ -1,10 +1,11 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\structure\structureBrowser\extaColumnUtil.py
 from eve.client.script.ui.station.stationServiceConst import serviceDataByNameID, serviceIDAlwaysPresent
+from eve.common.script.util.eveFormat import FmtISK
 from localization import GetByLabel
 import structures
 
-def GetSettingDataObectForServiceName(serviceName):
+def GetSettingDataObjectForServiceName(serviceName):
     serviceData = serviceDataByNameID.get(serviceName, None)
     if not serviceData or serviceData.serviceID == serviceIDAlwaysPresent:
         return
@@ -17,7 +18,7 @@ def GetSettingDataObectForServiceName(serviceName):
 
 
 def GetHeaderForService(serviceName):
-    settingData = GetSettingDataObectForServiceName(serviceName)
+    settingData = GetSettingDataObjectForServiceName(serviceName)
     if settingData is None:
         return
     else:
@@ -28,18 +29,19 @@ def GetHeaderForService(serviceName):
 
 
 class ExtraColumnProvider(object):
+    NO_VALUE_FOUND_CHAR = '-'
 
     def GetColumnText(self, controller, serviceName):
         serviceData = serviceDataByNameID.get(serviceName, None)
         if not serviceData:
             return
         else:
-            settingData = GetSettingDataObectForServiceName(serviceName)
+            settingData = GetSettingDataObjectForServiceName(serviceName)
             if settingData is None:
                 return
             value = controller.GetInfoForExtraColumns(serviceData.serviceID, settingData)
             if value is None:
-                return '-'
+                return self.NO_VALUE_FOUND_CHAR
             text = self.FormatColumnValue(value, settingData.valueType)
             return text
 
@@ -50,4 +52,6 @@ class ExtraColumnProvider(object):
             return GetByLabel('UI/Structures/Browser/PercentageText', value=value)
         if valueType == structures.SETTINGS_TYPE_BOOL:
             return bool(value)
+        if valueType == structures.SETTINGS_TYPE_ISK:
+            return FmtISK(value, showFractionsAlways=0)
         return value

@@ -12,6 +12,7 @@ import uicontrols
 import uiprimitives
 import inventorycommon.typeHelpers
 from service import Service, ROLEMASK_ELEVATEDPLAYER
+from evegraphics.fsd.graphicIDs import GetGraphic, GetGraphicFile
 
 class TypeDBEntry(listentry.Generic):
     __guid__ = 'listentry.TypeDBEntry'
@@ -26,9 +27,9 @@ class TypeDBEntry(listentry.Generic):
         graphicID = evetypes.GetGraphicID(typeID)
         graphicFileMenu = []
         if evetypes.Exists(typeID) and evetypes.GetGraphicID(typeID) is not None:
-            graphic = cfg.graphics.GetIfExists(evetypes.GetGraphicID(typeID))
+            graphic = GetGraphic(evetypes.GetGraphicID(typeID))
             if graphic is not None:
-                graphicFile = getattr(graphic, 'graphicFile', 'None')
+                graphicFile = GetGraphicFile(graphic)
                 graphicFileMenu = [['Copy graphicID (%s)' % graphicID, lambda *x: blue.pyos.SetClipboardData(str(graphicID)), ()], ['Copy graphicFile (%s)' % graphicFile, lambda *x: blue.pyos.SetClipboardData(graphicFile), ()]]
         averagePrice = inventorycommon.typeHelpers.GetAveragePrice(typeID)
         if averagePrice is None:

@@ -200,8 +200,8 @@ class BaseLink(BaseLinkCore):
                         if item[0] == localization.GetByLabel('UI/Inventory/ItemActions/SetNewPasswordForContainer'):
                             m.remove(item)
 
-            except:
-                log.LogTraceback('failed to convert string to ids in Browser:ShowInfo')
+            except StandardError:
+                log.LogException('failed to convert string to ids in Browser:ShowInfo')
                 return []
 
         else:
@@ -492,7 +492,7 @@ class BaseLink(BaseLinkCore):
             if len(fromto) == 2:
                 sourceID = int(fromto[1])
             from eve.client.script.ui.shared.mapView.mapViewUtil import OpenMap
-            OpenMap(interestID=sourceID or session.regionid, drawRoute=(sourceID, destinationID))
+            OpenMap(interestID=destinationID, drawRoute=(sourceID, destinationID), zoomToItem=False)
             return
 
     def FleetMenu(self, text):

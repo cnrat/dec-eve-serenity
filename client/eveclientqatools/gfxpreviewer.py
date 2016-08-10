@@ -6,6 +6,7 @@ import uicontrols
 import uiprimitives
 import carbonui.const as uiconst
 import evespacescene
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 
 class ToolsWindow(object):
 
@@ -200,8 +201,7 @@ class AssetPreviewer(object):
             return self._getResourceFromGraphicID(graphicID)
 
     def _getResourceFromGraphicID(self, graphicID):
-        graphicInfo = cfg.graphics.GetIfExists(graphicID)
-        resPath = getattr(graphicInfo, 'graphicFile', None)
+        resPath = GetGraphicFile(graphicID)
         if resPath is None:
             self._showMessage('Could not get resPath from graphicID ' + str(graphicID))
             return

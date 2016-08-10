@@ -116,3 +116,25 @@ def get_task_number_by_project_id(task_id, project_id):
 
 def get_localization_for_task(task_id):
     return localization.GetByLabel('UI/ProjectDiscovery/Subcellular/Tutorial/TutorialExplanations/%02d' % task_id)
+
+
+rank_paths = {1: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon1.png',
+ 2: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon2.png',
+ 3: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon3.png',
+ 4: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon4.png',
+ 5: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon5.png',
+ 6: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon6.png',
+ 7: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon7.png',
+ 8: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon8.png',
+ 9: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon9.png',
+ 10: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon10.png',
+ 11: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon11.png',
+ 12: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon12.png',
+ 13: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon13.png',
+ 14: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon14.png',
+ 15: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon15.png',
+ 16: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon16.png',
+ 17: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon17.png',
+ 18: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon18.png',
+ 19: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon19.png',
+ 20: 'res:/UI/Texture/classes/ProjectDiscovery/ranks/rankIcon20.png'}

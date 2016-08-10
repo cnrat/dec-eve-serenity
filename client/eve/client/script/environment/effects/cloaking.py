@@ -30,7 +30,6 @@ class Cloak(ShipRenderEffect):
                 del self.gfx.additiveEffects[:]
                 del self.gfx.distortionEffects[:]
         self.sourceObject.clipSphereCenter = random.choice(self.sourceObject.damageLocators)[0]
-        self.SetupEffectEmitter()
         return
 
     def Start(self, duration):

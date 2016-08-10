@@ -284,7 +284,7 @@ def GetRenderFunctionAndArgs(resourceMapper, inventoryMapper, typeID, groupID, c
         return (photo.RenderPin, [outPath, graphicFile], {'size': size})
     elif renderType == RENDER_METHOD_SPACEOBJECT:
         if blueprint != BLUEPRINT_NONE:
-            scenePath = gfxutils.GetResPathFromGraphicID(BLUEPRINT_SCENE_GFXID)
+            scenePath = graphicIDs.GetGraphicFile(BLUEPRINT_SCENE_GFXID)
         else:
             scenePath = GetScenePathByRaceName(raceName)
         animationStates = resourceMapper.GetGraphicStateFilesFromGraphicID(graphicID)

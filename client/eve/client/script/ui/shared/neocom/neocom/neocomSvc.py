@@ -13,6 +13,7 @@ from eve.client.script.ui.shared.assetsWindow import AssetsWindow
 from eve.client.script.ui.shared.bountyWindow import BountyWindow
 from eve.client.script.ui.shared.comtool.lscchannel import Channel
 from eve.client.script.ui.shared.eveCalendar import CalendarWnd
+from eve.client.script.ui.shared.fittingMgmtWindow import FittingMgmt
 from eve.client.script.ui.shared.fleet.fleetwindow import FleetWindow
 from eve.client.script.ui.shared.industry.industryWnd import Industry
 from eve.client.script.ui.shared.inventory.invWindow import InventoryPrimary, ActiveShipCargo, StationItems, StationShips, StationCorpHangars, StationCorpDeliveries
@@ -24,7 +25,7 @@ from eve.client.script.ui.shared.neocom.calculator import Calculator
 from eve.client.script.ui.shared.neocom.channels import Channels
 from eve.client.script.ui.shared.neocom.charactersheet import CharacterSheetWindow
 from eve.client.script.ui.shared.neocom.compare import TypeCompare
-from eve.client.script.ui.shared.neocom.contracts.contracts import ContractsWindow
+from eve.client.script.ui.shared.neocom.contracts.contractsWnd import ContractsWindow
 from eve.client.script.ui.shared.neocom.corporation.base_corporation_ui import CorporationWindow
 from eve.client.script.ui.shared.neocom.evemail import MailWindow
 from eve.client.script.ui.shared.neocom.help import HelpWindow
@@ -53,6 +54,10 @@ from .neocomPanels import PanelEveMenu, PanelBase
 from .neocom import Neocom
 import neocomPanelEntries
 from eve.client.script.ui.shared.neocom.neocom.neocomCommon import BTNTYPE_WINDOW
+from seasons.client.const import SCOPE_LOGO_RES_PATH, get_seasons_title_label_path
+from seasons.client.seasonwindow import SeasonWindow
+from seasons.common.const import SEASONAL_EVENTS_ID
+from seasons.common.util import are_seasons_enabled
 DEBUG_ALWAYSLOADRAW = False
 NOTPERSISTED_BTNTYPES = (neocomCommon.BTNTYPE_WINDOW,)
 RAWDATA_NEOCOMDEFAULT = [(neocomCommon.BTNTYPE_CHAT, 'chat', None),
@@ -74,7 +79,7 @@ RAWDATA_NEOCOMDEFAULT = [(neocomCommon.BTNTYPE_CHAT, 'chat', None),
  (neocomCommon.BTNTYPE_CMD, 'opportunities', None),
  (neocomCommon.BTNTYPE_CMD, 'tutorial', None),
  (neocomCommon.BTNTYPE_CMD, 'help', None)]
-RAWDATA_EVEMENU = ((neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon.BTNTYPE_CMD, 'inventory', None),
+RAWDATA_EVEMENU = [(neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon.BTNTYPE_CMD, 'inventory', None),
    (neocomCommon.BTNTYPE_CMD, 'activeShipCargo', None),
    (neocomCommon.BTNTYPE_CMD, 'itemHangar', None),
    (neocomCommon.BTNTYPE_CMD, 'shipHangar', None),
@@ -107,6 +112,7 @@ RAWDATA_EVEMENU = ((neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon
  (neocomCommon.BTNTYPE_CMD, 'charactersheet', None),
  (neocomCommon.BTNTYPE_CMD, 'addressbook', None),
  (neocomCommon.BTNTYPE_CMD, 'fitting', None),
+ (neocomCommon.BTNTYPE_CMD, 'fittingMgmt', None),
  (neocomCommon.BTNTYPE_CMD, 'map_old', None),
  (neocomCommon.BTNTYPE_CMD, 'map_beta', None),
  (neocomCommon.BTNTYPE_CMD, 'shipTree', None),
@@ -114,9 +120,9 @@ RAWDATA_EVEMENU = ((neocomCommon.BTNTYPE_GROUP, 'groupInventory', [(neocomCommon
  (neocomCommon.BTNTYPE_CMD, 'compareTool', None),
  (neocomCommon.BTNTYPE_CMD, 'aurumStore', None),
  (neocomCommon.BTNTYPE_CMD, 'tutorial', None),
- (neocomCommon.BTNTYPE_CMD, 'opportunities', None),
- (neocomCommon.BTNTYPE_CMD, 'help', None),
- (neocomCommon.BTNTYPE_CMD, 'settings', None))
+ (neocomCommon.BTNTYPE_CMD, 'opportunities', None)]
+RAWDATA_EVEMENU_DEFAULT = [(neocomCommon.BTNTYPE_CMD, 'help', None), (neocomCommon.BTNTYPE_CMD, 'settings', None)]
+SCOPE_NETWORK_BTN = (neocomCommon.BTNTYPE_CMD, SEASONAL_EVENTS_ID, None)
 
 class BtnDataRaw():
 
@@ -141,6 +147,7 @@ BTNDATARAW_BY_ID = {'addressbook': BtnDataRaw(cmdName='OpenPeopleAndPlaces', wnd
  'contracts': BtnDataRaw(cmdName='OpenContracts', wndCls=ContractsWindow),
  'corporation': BtnDataRaw(cmdName='OpenCorporationPanel', wndCls=CorporationWindow),
  'fitting': BtnDataRaw(cmdName='OpenFitting', wndCls=FittingWindow2),
+ 'fittingMgmt': BtnDataRaw(cmdName='OpenFittingMgmt', wndCls=FittingMgmt),
  'fleet': BtnDataRaw(cmdName='OpenFleet', wndCls=FleetWindow),
  'group': BtnDataRaw(label='UI/Neocom/ButtonGroup', iconPath=neocomCommon.ICONPATH_GROUP),
  'groupInventory': BtnDataRaw(label='UI/Neocom/GroupInventory', iconPath=neocomCommon.ICONPATH_GROUP),
@@ -179,6 +186,12 @@ BTNDATARAW_BY_ID = {'addressbook': BtnDataRaw(cmdName='OpenPeopleAndPlaces', wnd
  'structurebrowser': BtnDataRaw(cmdName='OpenStructureBrowser', wndCls=StructureBrowserWnd),
  'accessgroups': BtnDataRaw(cmdName='OpenAccessGroupsWindow', wndCls=AccessGroupsWnd)}
 
+def AddDefaultEveMenu():
+    for button in RAWDATA_EVEMENU_DEFAULT:
+        if button not in RAWDATA_EVEMENU:
+            RAWDATA_EVEMENU.append(button)
+
+
 def AddProjectDiscoveryIfEnabled():
     if sm.RemoteSvc('ProjectDiscovery').is_enabled():
         if PROJECT_DISCOVERY_ID not in BTNDATARAW_BY_ID:
@@ -186,6 +199,22 @@ def AddProjectDiscoveryIfEnabled():
             RAWDATA_EVEMENU[2][2].append((neocomCommon.BTNTYPE_CMD, PROJECT_DISCOVERY_ID, None))
             BTNDATARAW_BY_ID[PROJECT_DISCOVERY_ID] = BtnDataRaw(label=PROJECT_DISCOVERY_ID, cmdName='ToggleProjectDiscovery', iconPath='res:/ui/texture/WindowIcons/projectdiscovery.png', wndCls=ProjectDiscoveryWindow)
     return
+
+
+def AddScopeNetworkIfEnabled():
+    if not are_seasons_enabled():
+        return
+    if not sm.GetService('seasonService').is_season_active():
+        if SEASONAL_EVENTS_ID in BTNDATARAW_BY_ID:
+            RAWDATA_NEOCOMDEFAULT.remove(SCOPE_NETWORK_BTN)
+            RAWDATA_EVEMENU.remove(SCOPE_NETWORK_BTN)
+            del BTNDATARAW_BY_ID[SEASONAL_EVENTS_ID]
+        return
+    if SEASONAL_EVENTS_ID not in BTNDATARAW_BY_ID:
+        BTNDATARAW_BY_ID[SEASONAL_EVENTS_ID] = BtnDataRaw(label=get_seasons_title_label_path(), cmdName='ToggleSeasonWindow', iconPath=SCOPE_LOGO_RES_PATH, wndCls=SeasonWindow)
+        RAWDATA_NEOCOMDEFAULT.append(SCOPE_NETWORK_BTN)
+        RAWDATA_EVEMENU.append(SCOPE_NETWORK_BTN)
+        sm.GetService('cmd').AddSeasonWindowCommand()
 
 
 def ConvertOldTypeOfRawData(rawData):
@@ -279,6 +308,8 @@ class NeocomSvc(service.Service):
 
     def CreateNeocom(self):
         AddProjectDiscoveryIfEnabled()
+        AddScopeNetworkIfEnabled()
+        AddDefaultEveMenu()
         if not self.btnData:
             rawData = settings.char.ui.Get('neocomButtonRawData', self._GetDefaultRawButtonData())
             self._CheckNewDefaultButtons(rawData)

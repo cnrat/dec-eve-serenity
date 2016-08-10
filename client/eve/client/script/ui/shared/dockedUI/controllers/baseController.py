@@ -30,6 +30,12 @@ class BaseStationController(object):
     def CanMoveHQ(self):
         return self._HasRole(const.corpRoleDirector)
 
+    def CanUnrent(self):
+        return self._HasRole(const.corpRoleDirector)
+
+    def IsHqAllowed(self):
+        return True
+
     def _HasRole(self, corpRole):
         return session.corprole & corpRole == corpRole
 
@@ -114,7 +120,7 @@ class BaseStationController(object):
     def _GetServiceInfoAvailable(self, servicesAtLocation):
         haveServices = []
         for serviceData in stationServiceConst.serviceData:
-            if stationServiceConst.serviceIDAlwaysPresent in serviceData.serviceIDs:
+            if stationServiceConst.serviceIDAlwaysPresent in serviceData.maskServiceIDs:
                 haveServices.append(serviceData)
             if serviceData.serviceID in servicesAtLocation:
                 haveServices.append(serviceData)

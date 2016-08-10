@@ -1,8 +1,9 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\sellItemEntry.py
-import uthread2
 from carbonui import const as uiconst
 from carbonui.primitives.container import Container
+from carbonui.primitives.fill import Fill
+from carbonui.primitives.line import Line
 from carbonui.primitives.sprite import Sprite
 from eve.client.script.ui.control.buttons import ButtonIcon
 from eve.client.script.ui.control.eveIcon import Icon
@@ -39,40 +40,50 @@ class SellItemContainer(BuySellItemContainerBase):
         self.locationID = self.item.locationID
         self.bestBid = attributes.bestBid
         self.bestPrice = attributes.bestPrice
+        self.totalStrikethroughLine = None
+        self.priceAmountWarning = None
         self.deltaCont = Container(parent=self, align=uiconst.TORIGHT, width=30)
-        theRestCont = Container(parent=self, align=uiconst.TOALL)
-        self.totalCont = Container(parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.3)
-        self.priceCont = Container(parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.22)
-        self.qtyCont = Container(parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.15)
-        self.itemCont = Container(parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.33)
-        self.deleteCont = Container(parent=self.itemCont, align=uiconst.TORIGHT, width=24)
+        theRestCont = Container(name='theRestCont', parent=self, align=uiconst.TOALL)
+        self.totalCont = Container(name='totalCont', parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.3)
+        self.priceCont = Container(name='priceCont', parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.22)
+        self.qtyCont = Container(name='qtyCont', parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.15)
+        self.itemCont = Container(name='itemCont', parent=theRestCont, align=uiconst.TORIGHT_PROP, width=0.33)
+        self.deleteCont = Container(name='deleteCont', parent=self.itemCont, align=uiconst.TORIGHT, width=24)
         self.deleteButton = ButtonIcon(texturePath='res:/UI/Texture/Icons/73_16_210.png', pos=(0, 0, 16, 16), align=uiconst.CENTERRIGHT, parent=self.deleteCont, hint=GetByLabel('UI/Generic/RemoveItem'), idx=0, func=self.RemoveItem)
         self.deleteCont.display = False
-        self.textCont = Container(parent=self.itemCont, align=uiconst.TOALL)
+        self.textCont = Container(name='textCont', parent=self.itemCont, align=uiconst.TOALL)
         self.errorBg = ErrorFrame(bgParent=self)
         self.DrawItem()
         self.DrawQty()
         self.DrawPrice()
         self.DrawTotal()
         self.DrawDelta()
-        self.GetTotalSum()
+        self.estimatedSellCount = self.GetSellCountEstimate()
+        self.SetTotalSumAndLabel()
         self.brokersFeePerc = self.limits.GetBrokersFeeForLocation(self.stationID)
         self.UpdateBrokersFee()
         self.GetSalesTax()
         self.ShowNoSellOrders()
+        self.UpdateOrderStateInUI()
+        return
 
     def GetRegionID(self):
         return cfg.mapSystemCache.Get(session.solarsystemid2).regionID
 
-    def ShowNoSellOrders(self):
+    def OnDurationChanged(self, duration):
+        self.OnChange()
+
+    def ShowNoSellOrders(self, force=False):
+        if self.IsImmediateOrder() and (self.bestBid is None or force):
+            uicore.animations.FadeIn(self.errorBg, 0.35, duration=0.3)
+        return
+
+    def GetDuration(self):
         from eve.client.script.ui.shared.market.sellMulti import SellItems
         wnd = SellItems.GetIfOpen()
         if not wnd:
             return
-        else:
-            if wnd.durationCombo.GetValue() == 0 and self.bestBid is None:
-                uicore.animations.FadeIn(self.errorBg, 0.35, duration=0.3)
-            return
+        return wnd.durationCombo.GetValue()
 
     def DrawQty(self):
         qty = self.item.stacksize
@@ -153,19 +164,67 @@ class SellItemContainer(BuySellItemContainerBase):
         self.salesTax = tax
 
     def GetTotalSum(self):
-        price = self.GetPrice()
-        qty = self.GetQty()
-        self.totalSum = price * qty
-        self.totalLabel.text = FmtISK(self.totalSum)
+        self.GetTotalSumAndDisplaySum()
         return self.totalSum
 
+    def GetTotalSumAndDisplaySum(self):
+        price = self.GetPrice()
+        qty = self.GetQty()
+        sumToDisplay = price * qty
+        totalSum = sumToDisplay
+        if self.IsImmediateOrder():
+            if self.estimatedSellCount == 0:
+                totalSum = 0
+            elif self.estimatedSellCount < qty:
+                sumToDisplay = self.estimatedSellCount * price
+                totalSum = sumToDisplay
+        self.totalSum = totalSum
+        return (totalSum, sumToDisplay)
+
+    def UpdateTotalSumLabel(self, totalSum, sumToDisplay):
+        self.totalLabel.text = FmtISK(sumToDisplay)
+        if sumToDisplay != totalSum:
+            self.ConstructTotalStrikethroughLine()
+            self.totalStrikethroughLine.width = self.totalLabel.textwidth
+        else:
+            self.ChangeTotalStrikethroughDisplay(display=False)
+
     def OnChange(self, *args):
-        self.GetTotalSum()
+        self.estimatedSellCount = self.GetSellCountEstimate()
+        self.SetTotalSumAndLabel()
         self.UpdateBrokersFee()
         self.GetSalesTax()
         self.UpdateDelta()
         if self.parentEditFunc:
             self.parentEditFunc(args)
+        self.UpdateOrderStateInUI()
+
+    def SetTotalSumAndLabel(self):
+        totalSum, displaySum = self.GetTotalSumAndDisplaySum()
+        self.UpdateTotalSumLabel(totalSum, displaySum)
+
+    def UpdateOrderStateInUI(self):
+        duration = self.GetDuration()
+        if duration != 0:
+            self.ChangePriceAmountWarningDisplay(display=False)
+            self.HideNoSellOrders()
+            return
+        qty = self.GetQty()
+        if self.estimatedSellCount == 0:
+            self.ShowNoSellOrders(force=True)
+            self.ChangePriceAmountWarningDisplay(display=False)
+        elif self.estimatedSellCount < qty:
+            self.HideNoSellOrders()
+            self.PrepareWarningInfo(self.estimatedSellCount, qty)
+        else:
+            self.HideNoSellOrders()
+            self.ChangePriceAmountWarningDisplay(display=False)
+
+    def PrepareWarningInfo(self, estimatedSellCount, qtyToSell):
+        self.ConstructPriceAmountWarning()
+        self.ConstructQtyBg()
+        self.ChangePriceAmountWarningDisplay(display=True)
+        self.priceAmountWarning.info = (estimatedSellCount, qtyToSell)
 
     def GetPrice(self):
         price = self.priceEdit.GetValue()
@@ -174,6 +233,17 @@ class SellItemContainer(BuySellItemContainerBase):
     def GetQty(self):
         qty = self.qtyEdit.GetValue()
         return qty
+
+    def GetQtyToSell(self):
+        qty = self.GetQty()
+        if self.IsImmediateOrder():
+            return min(self.estimatedSellCount, qty)
+        else:
+            return qty
+
+    def IsImmediateOrder(self):
+        isImmediate = self.GetDuration() == 0
+        return isImmediate
 
     def SetQtyAndPrice(self, newQty, newPrice):
         self.qtyEdit.SetValue(newQty)
@@ -198,6 +268,8 @@ class SellItemContainer(BuySellItemContainerBase):
         self.qtyEdit.top = 20
         self.priceEdit.top = 20
         self.qtyEdit.SetParent(self.priceCont)
+        if self.priceAmountWarning:
+            self.priceAmountWarning.top = -10
 
     def RemoveSingle(self):
         self.height = 40
@@ -214,3 +286,48 @@ class SellItemContainer(BuySellItemContainerBase):
         self.priceEdit.top = 11
         self.priceEdit.padLeft = 8
         self.qtyEdit.SetParent(self.qtyCont)
+        if self.priceAmountWarning:
+            self.priceAmountWarning.top = 0
+
+    def ConstructPriceAmountWarning(self):
+        if self.priceAmountWarning:
+            return None
+        else:
+            cont = Container(name='priceAmountWarning', parent=self.itemCont, align=uiconst.TORIGHT, left=-4, width=16, idx=0)
+            self.priceAmountWarning = Sprite(parent=cont, pos=(0, 0, 16, 16), align=uiconst.CENTER, texturePath='res:/ui/texture/icons/44_32_7.png')
+            self.priceAmountWarning.SetRGB(1.0, 0.3, 0.3, 0.8)
+            self.priceAmountWarning.info = (None, None)
+            self.priceAmountWarning.GetHint = self.GetWarningHint
+            return None
+
+    def ConstructQtyBg(self):
+        if getattr(self.qtyEdit, 'warningBg', None):
+            return
+        else:
+            warningBg = Fill(bgParent=self.qtyEdit, color=(1, 0, 0, 0.3))
+            self.qtyEdit.warningBg = warningBg
+            return
+
+    def ConstructTotalStrikethroughLine(self):
+        if self.totalStrikethroughLine:
+            return
+        self.totalStrikethroughLine = Line(parent=self.totalCont, align=uiconst.CENTERRIGHT, pos=(2, 0, 0, 1), idx=0, color=(1, 1, 1, 0.8))
+
+    def ChangeTotalStrikethroughDisplay(self, display=False):
+        if self.totalStrikethroughLine:
+            self.totalStrikethroughLine.display = display
+
+    def ChangePriceAmountWarningDisplay(self, display=False):
+        if self.priceAmountWarning:
+            self.priceAmountWarning.display = display
+        if getattr(self.qtyEdit, 'warningBg', None):
+            self.qtyEdit.warningBg.display = display
+        return
+
+    def GetWarningHint(self):
+        estimatedSellCount, qtyToSell = self.priceAmountWarning.info
+        if estimatedSellCount is None or qtyToSell is None:
+            return
+        else:
+            txt = GetByLabel('UI/Market/MarketQuote/QtyPriceWarning', estimatedSellNum=int(estimatedSellCount), tryingToSellNum=qtyToSell)
+            return txt

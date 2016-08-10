@@ -325,6 +325,9 @@ class TreeDataStructure(TreeDataInvFolder):
     def GetIcon(self):
         return self.invController.GetIconName()
 
+    def GetID(self):
+        return ('Structure', self.itemID)
+
 
 class TreeDataStationCorp(TreeDataInvFolder):
 

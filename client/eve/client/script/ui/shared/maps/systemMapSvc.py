@@ -131,8 +131,9 @@ class SystemMapSvc(service.Service):
         title = localization.GetByLabel('UI/Map/StarMap/InitializingMap')
         loadLabel = localization.GetByLabel('UI/Map/StarMap/BuildingModel')
         sm.GetService('loading').ProgressWnd(title, loadLabel, 0, 3)
-        registered = sm.GetService('sceneManager').GetRegisteredScene('systemmap')
-        camera = sm.GetService('sceneManager').GetRegisteredCamera(evecamera.CAM_SYSTEMMAP)
+        sceneManager = sm.GetService('sceneManager')
+        registered = sceneManager.GetRegisteredScene('systemmap')
+        camera = sceneManager.GetRegisteredCamera(evecamera.CAM_SYSTEMMAP)
         if registered is None or self.currentSolarsystemID != eve.session.solarsystemid2:
             cameraFov = 0.7
             scene = trinity.Load('res:/dx9/scene/systemMap.red')
@@ -156,14 +157,15 @@ class SystemMapSvc(service.Service):
                 if camera.translationFromParent < 0:
                     camera.translationFromParent = -camera.translationFromParent
                 camera.OrbitParent(0.0, 10.0)
-                sm.GetService('sceneManager').RegisterCamera(camera)
+                sceneManager.RegisterCamera(camera)
             ssmap.scaling = (SYSTEMMAP_SCALE, SYSTEMMAP_SCALE, SYSTEMMAP_SCALE)
             scene.objects.append(ssmap)
             self.currentSolarsystem = ssmap
-            sm.GetService('sceneManager').RegisterScene(scene, 'systemmap')
+            sceneManager.RegisterScene(scene, 'systemmap')
             sm.GetService('viewState').GetView('systemmap').layer.SetInterest(eve.session.shipid, interpolate=False)
             self.lastHighlightItemsWithinProbeRange = blue.os.GetWallclockTime()
-        sm.GetService('sceneManager').SetRegisteredScenes('systemmap')
+        sceneManager.SetRegisteredScenes('systemmap')
+        sceneManager.SetSecondaryCamera(evecamera.CAM_SYSTEMMAP)
         sm.GetService('loading').ProgressWnd(title, loadLabel, 1, 3)
         self.LoadProbesAndScanResult()
         self.LoadBookmarks()

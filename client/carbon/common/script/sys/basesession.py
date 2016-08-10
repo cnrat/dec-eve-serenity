@@ -1277,12 +1277,13 @@ class CoreSession():
             self.__dict__[attr] = value
 
     def DisconnectObject(self, object, key=None, delaySecs=1):
-        caller = localstorage.GetLocalStorage().get('base.caller', None)
-        if caller:
-            caller = caller()
-            if isinstance(caller, ObjectConnection) and caller.__object__ is object:
-                caller.DisconnectObject(delaySecs)
-                return
+        if key is None:
+            caller = localstorage.GetLocalStorage().get('base.caller', None)
+            if caller:
+                caller = caller()
+                if isinstance(caller, ObjectConnection) and caller.__object__ is object:
+                    caller.DisconnectObject(delaySecs)
+                    return
         for k, v in self.connectedObjects.items():
             obConn = v
             if obConn.__object__ is object and (key is None or key == (obConn.__dict__['__session__'].sid, obConn.__dict__['__c2ooid__'])):

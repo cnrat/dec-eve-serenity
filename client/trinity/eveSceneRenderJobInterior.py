@@ -26,6 +26,7 @@ class EveSceneRenderJobInterior(SceneRenderJobBase):
      'UPDATE_BACKGROUND_CAMERA',
      'UPDATE_UI',
      'SET_VIEWPORT',
+     'CAMERA_UPDATE',
      'SET_DEPTH',
      'SET_BACKGROUND_DEPTH_VAR',
      'SET_BACKGROUND_RT',

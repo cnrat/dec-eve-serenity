@@ -1,28 +1,35 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\trinity\postprocess.py
 import ast
+import logging
+import math
+import re
 import blue
 import trinity
 import yamlext
 
+def _GetValueType(value):
+    if isinstance(value, (str, unicode)):
+        return 'texture'
+    if isinstance(value, (tuple, list)):
+        if len(value) == 2:
+            return 'vector2'
+        if len(value) == 3:
+            return 'vector3'
+        if len(value) == 4:
+            return 'vector4'
+        raise ValueError()
+    if isinstance(value, bool):
+        return 'bool'
+    if isinstance(value, (float, int, long)):
+        return 'float'
+    raise ValueError()
+
+
 def _GetParameterType(data):
     if 'type' in data:
         return data['type']
-    if isinstance(data['value'], (str, unicode)):
-        return 'texture'
-    if isinstance(data['value'], tuple):
-        if len(data['value']) == 2:
-            return 'vector2'
-        if len(data['value']) == 3:
-            return 'vector3'
-        if len(data['value']) == 4:
-            return 'vector4'
-        raise ValueError()
-    if isinstance(data['value'], bool):
-        return 'bool'
-    if isinstance(data['value'], (float, int, long)):
-        return 'float'
-    raise ValueError()
+    return _GetValueType(data['value'])
 
 
 def _GetConditionDependencies(condition):
@@ -51,8 +58,20 @@ class _LazyParameters(object):
         return self._parameters[item].GetValue()
 
 
-def _EvaluateCondition(condition, parameters):
-    return eval(condition, {'platform': trinity.platform}, _LazyParameters(parameters))
+def _EvaluateString(expression, parameters):
+    try:
+        return eval(expression, {'platform': trinity.platform,
+         'math': math}, _LazyParameters(parameters))
+    except BaseException as e:
+        params = []
+        for k, v in parameters.iteritems():
+            try:
+                params.append('%s = %s' % (k, v.GetValue()))
+            except:
+                params.append('%s = ???' % k)
+
+        logging.exception('Exception when evaluating expression %s with parameters %s', expression, '\n'.join(params))
+        raise e
 
 
 class Parameter(object):
@@ -104,8 +123,8 @@ class Parameter(object):
         pass
 
     def _UpdateBindings(self):
-        for obj, name, apply in self._bindings.itervalues():
-            apply(obj, name)
+        for obj, name, applyFunc in self._bindings.itervalues():
+            applyFunc(obj, name)
 
     def UpdateUsage(self, usage):
         usage[self.name] = True
@@ -122,6 +141,9 @@ class NumericParameter(Parameter):
     def __init__(self, name, data):
         super(NumericParameter, self).__init__(name, data)
         self.value = data['value']
+        if isinstance(self.value, list):
+            self.value = tuple(self.value)
+        self.currentValue = self.value
         if self._type == 'float':
             self.paramType = trinity.Tr2FloatParameter
         elif self._type == 'vector2':
@@ -132,6 +154,7 @@ class NumericParameter(Parameter):
             self.paramType = trinity.Tr2Vector4Parameter
         else:
             raise RuntimeError()
+        self._dependencies = _GetConditionDependencies(self.value) if isinstance(self.value, basestring) else []
 
     def _GetEffectParameter(self, effect, name):
         try:
@@ -144,13 +167,23 @@ class NumericParameter(Parameter):
         return (param, 'value')
 
     def _ApplyToEffect(self, obj, name):
-        obj.value = self.value
+        obj.value = self.currentValue
 
     def GetValue(self):
-        return self.value
+        return self.currentValue
 
     def SetValue(self, value):
         self.value = value
+
+    def UpdateValue(self, parameters):
+        if isinstance(self.value, (str, unicode)):
+            self.currentValue = _EvaluateString(self.value, parameters)
+        else:
+            self.currentValue = self.value
+        super(NumericParameter, self).UpdateValue(parameters)
+
+    def GetDependencies(self):
+        return self._dependencies
 
 
 class BooleanParameter(Parameter):
@@ -304,12 +337,14 @@ class RenderTargetParameter(Parameter):
                         height = self._data['height']
                 else:
                     height = copyFrom.height
-                self.rt = trinity.Tr2RenderTarget(width, height, self._data.get('mipCount', copyFrom.mipCount), self._data.get('format', copyFrom.format), self._data.get('multiSampleType', copyFrom.multiSampleType), self._data.get('multiSampleQuality', copyFrom.multiSampleQuality))
+                self.rt = trinity.Tr2RenderTarget()
+                self.rt.CreateEx(width, height, self._data.get('mipCount', copyFrom.mipCount), self._data.get('format', copyFrom.format), self._data.get('multiSampleType', copyFrom.multiSampleType), self._data.get('multiSampleQuality', copyFrom.multiSampleQuality), trinity.EX_FLAG.BIND_UNORDERED_ACCESS if self._data.get('uav', False) else 0)
                 self.rt.name = self.name
             else:
                 self.rt = None
         else:
-            self.rt = trinity.Tr2RenderTarget(self._data['width'], self._data['height'], self._data.get('mipCount', 1), self._data['format'], self._data.get('multiSampleType', 1), self._data.get('multiSampleQuality', 0))
+            self.rt = trinity.Tr2RenderTarget()
+            self.rt.CreateEx(self._data['width'], self._data['height'], self._data.get('mipCount', 1), self._data['format'], self._data.get('multiSampleType', 1), self._data.get('multiSampleQuality', 1), trinity.EX_FLAG.BIND_UNORDERED_ACCESS if self._data.get('uav', False) else 0)
             self.rt.name = self.name
         self.texture.SetFromRenderTarget(self.rt)
         self._UpdateBindings()
@@ -367,7 +402,7 @@ class ConditionParameter(Parameter):
         return
 
     def UpdateValue(self, parameters):
-        if _EvaluateCondition(self.condition, parameters):
+        if _EvaluateString(self.condition, parameters):
             active = parameters[self.true]
         else:
             active = parameters[self.false]
@@ -416,6 +451,32 @@ PARAMETER_TYPES = {'condition': ConditionParameter,
  'bool': BooleanParameter,
  'gpubuffer': GpuBufferParameter}
 
+def TopoSort(dependencies):
+    if not dependencies:
+        raise StopIteration()
+    data = dict(dependencies)
+    for k, v in data.items():
+        v.discard(k)
+
+    extra_items_in_deps = reduce(set.union, data.values()) - set(data.keys())
+    data.update({item:set() for item in extra_items_in_deps})
+    while True:
+        ordered = set((item for item, dep in data.items() if not dep))
+        if not ordered:
+            break
+        for each in ordered:
+            yield each
+
+        data = {item:dep - ordered for item, dep in data.items() if item not in ordered}
+
+    if data:
+        raise RuntimeError('A cyclic dependency exists amongst %r' % dependencies)
+
+
+def _IsIdentifier(s):
+    return re.match('^[_A-Za-z][_a-zA-Z0-9]*$', s)
+
+
 class PostProcess(object):
 
     def __init__(self):
@@ -457,7 +518,7 @@ class PostProcess(object):
         yamlext.dumpfile(params, blue.paths.ResolvePathForWriting(path))
 
     def Clear(self):
-        data = '\nparameters:\n    _source:\n        type: condition\n        condition: __sourcert__ and __sourcert__.multiSampleType > 1\n        true: _sourceCopy\n        false: __sourcert__\n    _sourceCopy:\n        type: rendertarget\n        multiSampleType: 1\n        multiSampleQuality: 0\n        copyFrom: __sourcert__\nsteps:\n-   type: Resolve\n    name: Resolve Source into Dest\n    condition: __sourcert__.multiSampleType > 1 and __destrt__\n    arguments:\n        -   __destrt__\n        -   __sourcert__\n    parameters:\n        destination: __destrt__\n        source: __sourcert__\n-   type: Resolve\n    name: Resolve Source into a Temp RT\n    condition: __sourcert__.multiSampleType > 1 and not __destrt__\n    arguments:\n        -   _sourceCopy\n        -   __sourcert__\n    parameters:\n        destination: _sourceCopy\n        source: __sourcert__\n\n-   type: PushDepthStencil\n    name: Push NULL DS\n    parameters:\n        pushCurrent: False\n-   type: PushRenderTarget\n    name: Backup RT 0\n    parameters:\n        renderTarget: __destrt__\n\n-   type: RenderTexture\n    name: Render to Dest\n    condition: not __destrt__\n    arguments:\n        -   _source\n    parameters:\n        renderTarget: _source\n\n-   type: PopDepthStencil\n    name: Restore DS\n-   type: PopRenderTarget\n    name: Restore RT 0\n'
+        data = '\nparameters:\n    _source:\n        type: condition\n        condition: __sourcert__ and __sourcert__.multiSampleType > 1\n        true: _sourceCopy\n        false: __sourcert__\n    _sourceCopy:\n        type: rendertarget\n        multiSampleType: 1\n        multiSampleQuality: 0\n        copyFrom: __sourcert__\nsteps:\n-   type: Resolve\n    name: Resolve Source into Dest\n    condition: __sourcert__.multiSampleType > 1 and __destrt__\n    parameters:\n        destination: __destrt__\n        source: __sourcert__\n-   type: Resolve\n    name: Resolve Source into a Temp RT\n    condition: __sourcert__.multiSampleType > 1 and not __destrt__\n    parameters:\n        destination: _sourceCopy\n        source: __sourcert__\n\n-   type: PushDepthStencil\n    name: Push NULL DS\n    parameters:\n        pushCurrent: False\n-   type: PushRenderTarget\n    name: Backup RT 0\n    parameters:\n        renderTarget: __destrt__\n\n-   type: RenderTexture\n    name: Render to Dest\n    condition: not __destrt__\n    parameters:\n        renderTarget: _source\n\n-   type: PopDepthStencil\n    name: Restore DS\n-   type: PopRenderTarget\n    name: Restore RT 0\n'
         self._data = yamlext.loads(data)
         del self.renderJob.steps[:]
         if self.source:
@@ -487,26 +548,20 @@ class PostProcess(object):
             changedParams = self._parameters.keys()
         cp = set(changedParams)
         for each in changedParams:
-            cp = cp.union(self._dependencies.get(each, []))
+            cp = cp.union({k for k, v in self._dependencies.iteritems() if each in v})
 
         return cp
 
     def _UpdateParameters(self, changedParams=None):
-
-        def dep_cmp(a, b):
-            if a in self._dependencies.get(b, []):
-                return 1
-            if b in self._dependencies.get(a, []):
-                return -1
-
-        changedParams = sorted(self._ExpandChangedParams(changedParams), dep_cmp)
-        for p in changedParams:
-            self._parameters[p].UpdateValue(self._parameters)
+        changedParams = self._ExpandChangedParams(changedParams)
+        for p in TopoSort(self._dependencies):
+            if p in changedParams:
+                self._parameters[p].UpdateValue(self._parameters)
 
         used = {k:False for k in self._parameters.iterkeys()}
         for params, condition, steps in self._stepDependencies:
             if condition:
-                enabled = True if _EvaluateCondition(condition, self._parameters) else False
+                enabled = True if _EvaluateString(condition, self._parameters) else False
             else:
                 enabled = True
             if params.intersection(changedParams):
@@ -532,21 +587,6 @@ class PostProcess(object):
         else:
             super(PostProcess, self).__setattr__('_loadPending', True)
 
-    def _FlattenDependencies(self, dependencies):
-        changed = True
-        while changed:
-            changed = False
-            for k, v in dependencies.iteritems():
-                for each in v:
-                    u = v.union(dependencies.get(each, set()))
-                    if u != v:
-                        v = u
-                        changed = True
-
-                if changed:
-                    dependencies[k] = v
-                    break
-
     def _LoadData(self, data):
         del self.__members__[:]
         self._dependencies.clear()
@@ -556,29 +596,18 @@ class PostProcess(object):
                 del self._parameters[k]
 
         for key, value in data.get('parameters', {}).iteritems():
-            pt = PARAMETER_TYPES[_GetParameterType(value)]
-            self._parameters[key] = pt(key, value)
-            for each in self._parameters[key].GetDependencies():
-                self._dependencies.setdefault(each, set()).add(key)
+            self._AddVariable(key, value)
 
-            self.__members__.append(key)
-
-        self._FlattenDependencies(self._dependencies)
+        self.__members__.sort()
+        self._UpdateParameters()
+        tempVars = self._CreateTempVariables(data)
         self._UpdateParameters()
         del self.renderJob.steps[:]
         for each in data.get('steps', []):
-            args = []
-            if 'arguments' in each:
-                for value in each['arguments']:
-                    if isinstance(value, basestring):
-                        args.append(self._parameters[value].GetValue())
-                    else:
-                        args.append(value)
-
             usedParameters = set()
-            step = getattr(trinity, 'TriStep%s' % each['type'])(*tuple(args))
+            step = getattr(trinity, 'TriStep%s' % each['type'])()
             for key, value in each.iteritems():
-                if key not in ('type', 'parameters', 'effectParameters', 'condition', 'renderTargets', 'arguments'):
+                if key not in ('type', 'parameters', 'effectParameters', 'condition', 'renderTargets'):
                     if isinstance(value, dict):
                         reader = blue.DictReader()
                         value = reader.CreateObject(value)
@@ -587,6 +616,8 @@ class PostProcess(object):
             if 'parameters' in each:
                 for key, value in each['parameters'].iteritems():
                     if isinstance(value, basestring):
+                        if value in tempVars:
+                            value = tempVars[value]
                         self._parameters[value].Bind(step, key)
                         usedParameters.add(value)
                     else:
@@ -594,12 +625,14 @@ class PostProcess(object):
 
             if 'effectParameters' in each:
                 for key, value in each['effectParameters'].iteritems():
+                    if value in tempVars:
+                        value = tempVars[value]
                     self._parameters[value].Bind(step.effect, key)
                     usedParameters.add(value)
 
             steps = [step]
             if 'condition' in each:
-                if not _EvaluateCondition(each['condition'], self._parameters):
+                if not _EvaluateString(each['condition'], self._parameters):
                     step.enabled = False
             for indx, rt in each.get('renderTargets', {}).iteritems():
                 setrt = trinity.TriStepSetRenderTarget(self._parameters[rt].GetValue())
@@ -608,6 +641,7 @@ class PostProcess(object):
                 setrt.enabled = step.enabled
                 self.renderJob.steps.append(setrt)
                 steps.append(setrt)
+                usedParameters.add(rt)
 
             self.renderJob.steps.append(step)
             if 'condition' in each:
@@ -617,6 +651,36 @@ class PostProcess(object):
 
         self._UpdateParameters()
         return
+
+    def _CreateTempVariables(self, data):
+        tempVars = {}
+        for each in data.get('steps', []):
+            for key, value in each.get('parameters', {}).iteritems():
+                if isinstance(value, basestring) and not _IsIdentifier(value) and value not in tempVars:
+                    name = '_ppTemp%s' % len(tempVars)
+                    val = _EvaluateString(value, self._parameters)
+                    self._AddVariable(name, {'value': value,
+                     'type': _GetValueType(val)})
+                    tempVars[value] = name
+
+            for key, value in each.get('effectParameters', {}).iteritems():
+                if isinstance(value, basestring) and not _IsIdentifier(value) and value not in tempVars:
+                    name = '_ppTemp%s' % len(tempVars)
+                    val = _EvaluateString(value, self._parameters)
+                    self._AddVariable(name, {'value': value,
+                     'type': _GetValueType(val)})
+                    tempVars[value] = name
+
+        return tempVars
+
+    def _AddVariable(self, name, description):
+        pt = PARAMETER_TYPES[_GetParameterType(description)]
+        self._parameters[name] = pt(name, description)
+        self._dependencies[name] = set()
+        for each in self._parameters[name].GetDependencies():
+            self._dependencies[name].add(each)
+
+        self.__members__.append(name)
 
     def __getattr__(self, item):
         if item in self._parameters:

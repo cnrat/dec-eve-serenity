@@ -32,6 +32,7 @@ class InventorySvc(service.Service):
         self.itemClipboard = []
         self.itemClipboardCopy = False
         self.tempInvLocations = set()
+        self.treeUpdatingEnabled = True
 
     def _ShouldCloseContainer(self, item, change):
         if not item.singleton:
@@ -303,6 +304,15 @@ class InventorySvc(service.Service):
                 data.append(cls(invName, itemID=itemID, isRemovable=True))
 
         return TreeData(children=data)
+
+    def ChangeTreeUpdatingState(self, isUpdateEnabled):
+        changed = self.treeUpdatingEnabled != isUpdateEnabled
+        self.treeUpdatingEnabled = isUpdateEnabled
+        if changed:
+            sm.ScatterEvent('OnInvTreeUpdatingChanged', isUpdateEnabled)
+
+    def IsTreeUpdatingEnabled(self):
+        return self.treeUpdatingEnabled
 
 
 def HasCorpDeliveryRoles():

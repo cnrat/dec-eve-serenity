@@ -22,6 +22,7 @@ from eve.client.script.ui.station.assembleModularShip import AssembleShip
 from eve.client.script.ui.util.uiComponents import Component, ButtonEffect
 from eve.common.script.sys.eveCfg import IsPreviewable
 import evetypes
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 from inventorycommon.util import IsModularShip
 from locks import Lock
 from utillib import KeyVal
@@ -837,7 +838,7 @@ class SofDnaSceneContext(SceneContext):
 
     def __init__(self, dna, dirt=None, scenePath=None):
         if scenePath is None:
-            scenePath = gfxutils.GetResPathFromGraphicID(20413)
+            scenePath = GetGraphicFile(20413)
         self.dna = dna
         self.dirt = dirt
         self.scenePath = scenePath

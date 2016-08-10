@@ -5,6 +5,7 @@ import collections
 import GameWorld
 import miscUtil
 import blue
+import evegraphics.fsd.graphicIDs as fsdGraphicIDs
 
 class StaticShapeComponent:
     __guid__ = 'entities.StaticShapeComponent'
@@ -36,7 +37,7 @@ class CollisionMeshServer(service.Service):
     def ReportState(self, component, entity):
         report = collections.OrderedDict()
         report['Graphic ID'] = component.graphicID
-        report['Collision File'] = miscUtil.GetCommonResourcePath(cfg.graphics.Get(component.graphicID).collisionFile)
+        report['Collision File'] = miscUtil.GetCommonResourcePath(fsdGraphicIDs.GetCollisionFile(component.graphicID))
         report['Failed'] = component.avatar.failed
         report['Is Initialized'] = component.avatar.isInitialized
         report['collisionGroup'] = component.avatar.collisionGroup
@@ -49,15 +50,11 @@ class CollisionMeshServer(service.Service):
         return report
 
     def PrepareComponent(self, sceneID, entityID, component):
-        graphic = cfg.graphics.GetIfExists(component.graphicID)
         error = False
         collisionFile = None
-        if graphic:
-            collisionFilePath = getattr(graphic, 'collisionFile', None)
-            if collisionFilePath:
-                collisionFile = miscUtil.GetCommonResourcePath(collisionFilePath)
-            else:
-                error = True
+        collisionFilePath = fsdGraphicIDs.GetCollisionFile(component.graphicID)
+        if collisionFilePath:
+            collisionFile = miscUtil.GetCommonResourcePath(collisionFilePath)
         else:
             error = True
         if collisionFile is None or collisionFile == 'None':

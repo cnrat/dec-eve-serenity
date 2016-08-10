@@ -54,13 +54,14 @@ class StructureProfileController(object):
             self.groupsBySettingID = defaultdict(set)
             if self.originalProfileData is None:
                 return self.groupsBySettingID
-            for eachData in self.originalProfileData:
-                if eachData.settingID not in structures.SETTING_OBJECT_BY_SETTINGID:
-                    log.LogWarn('Trying to add invalid settingID = %s' % eachData.settingID)
+            for settingID in self.originalProfileData:
+                if settingID not in structures.SETTING_OBJECT_BY_SETTINGID:
+                    log.LogWarn('Trying to add invalid settingID = %s' % settingID)
                     continue
-                sc = SettingController(eachData.settingID, eachData.groupID, eachData.value)
-                self.ChangeSignalConnection(sc)
-                self.groupsBySettingID[eachData.settingID].add(sc)
+                for groupData in self.originalProfileData[settingID]:
+                    sc = SettingController(settingID, groupData.groupID, groupData.value)
+                    self.ChangeSignalConnection(sc)
+                    self.groupsBySettingID[settingID].add(sc)
 
             return
 

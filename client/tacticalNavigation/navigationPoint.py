@@ -10,24 +10,19 @@ class NavigationPoint:
         self.globalPosition = globalPosition
         self.clientBall = AddClientBall(globalPosition)
         self.bracket = navigationBracket.NavigationPointBracket.Create(self.clientBall)
-        self.referrers = []
-        self.connectors = {}
+        self.refCount = 0
 
     def GetNavBall(self):
         return self.clientBall
 
-    def AddReferrer(self, ball):
-        self.referrers.append(ball.id)
-        connector = tacticalui.CreateMovementConnector(ball, self.clientBall)
-        self.connectors[ball.id] = connector
+    def AddReferrer(self):
+        self.refCount += 1
 
-    def RemoveReferrer(self, ballId):
-        self.referrers.remove(ballId)
-        self.connectors[ballId].Destroy()
-        del self.connectors[ballId]
+    def RemoveReferrer(self):
+        self.refCount -= 1
 
     def HasReferrers(self):
-        return len(self.referrers) > 0
+        return self.refCount > 0
 
     def Destroy(self):
         self.bracket.Close()

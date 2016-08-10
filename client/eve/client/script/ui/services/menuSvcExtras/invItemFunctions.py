@@ -101,7 +101,7 @@ def DeliverToStructure(items, characterID=None):
         Confirm(characterID)
     else:
         OwnerSearchWindow.CloseIfOpen(windowID='DeliverToStructure')
-        OwnerSearchWindow.Open(windowID='DeliverToStructure', actionBtns=[('Deliver Items', Deliver, True)], caption='Deliver Items To', input='', showContactList=True, multiSelect=False, ownerGroups=[const.groupCharacter])
+        OwnerSearchWindow.Open(windowID='DeliverToStructure', actionBtns=[(localization.GetByLabel('UI/Inventory/ItemActions/DeliverItems'), Deliver, True)], caption=localization.GetByLabel('UI/Inventory/ItemActions/DeliverItemsHeader'), input='', showContactList=True, multiSelect=False, ownerGroups=[const.groupCharacter])
 
 
 def AssembleShip(invItems):
@@ -509,20 +509,25 @@ def CheckRepackageItems(invItems):
 
 def RepackageItemsInStation(invItems):
     invItems = CheckRepackageItems(invItems)
-    invCache = sm.GetService('invCache')
-    itemsByStation = collections.defaultdict(list)
-    for item in invItems:
-        stationID = invCache.GetStationIDOfItem(item)
-        if stationID is not None:
-            itemsByStation[stationID].append((item.itemID, item.locationID))
+    if not invItems:
+        return
+    else:
+        invCache = sm.GetService('invCache')
+        itemsByStation = collections.defaultdict(list)
+        for item in invItems:
+            stationID = invCache.GetStationIDOfItem(item)
+            if stationID is not None:
+                itemsByStation[stationID].append((item.itemID, item.locationID))
 
-    if len(itemsByStation):
-        RepackageWithDestroyConfirmation(sm.RemoteSvc('repairSvc'), 'DisassembleItems', dict(itemsByStation))
-    return
+        if len(itemsByStation):
+            RepackageWithDestroyConfirmation(sm.RemoteSvc('repairSvc'), 'DisassembleItems', dict(itemsByStation))
+        return
 
 
 def RepackageItemsInStructure(invItems):
     invItems = CheckRepackageItems(invItems)
+    if not invItems:
+        return
     locationID = invItems[0].locationID
     inventory = sm.GetService('invCache').GetInventoryFromId(locationID)
     RepackageWithDestroyConfirmation(inventory, 'RepackageItems', [ item.itemID for item in invItems ], locationID)

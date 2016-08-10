@@ -21,6 +21,9 @@ class ABTestClientManager:
         self.languageID = None
         return
 
+    def IsMinorImprovementsEnabled(self):
+        return True
+
     def IsTutorialEnabled(self):
         return False
 

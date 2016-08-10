@@ -2,7 +2,6 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\inventorycommon\typeHelpers.py
 try:
     import eve.common.script.sys.eveCfg
-    graphics = eve.common.script.sys.eveCfg.CfgGraphics
     fsdDustIcons = eve.common.script.sys.eveCfg.CfgFsdDustIcons
     icons = eve.common.script.sys.eveCfg.CfgIcons
     sounds = eve.common.script.sys.eveCfg.CfgSounds
@@ -10,7 +9,6 @@ try:
     shiptypes = eve.common.script.sys.eveCfg.CfgShiptypes
     _averageMarketPrice = eve.common.script.sys.eveCfg.CfgAverageMarketPrice
 except ImportError:
-    graphics = None
     fsdDustIcons = []
     icons = None
     sounds = None
@@ -20,11 +18,13 @@ except ImportError:
 
 import evetypes
 import const
+import evegraphics.fsd.graphicIDs as fsdGraphicIDs
+import logging
+log = logging.getLogger(__name__)
 
 def GetGraphic(typeID):
     try:
-        graphicID = evetypes.GetGraphicID(typeID)
-        return graphics().Get(graphicID)
+        return fsdGraphicIDs.GetGraphic(evetypes.GetGraphicID(typeID))
     except Exception:
         pass
 
@@ -32,18 +32,11 @@ def GetGraphic(typeID):
 
 
 def GetGraphicFile(typeID):
-    try:
-        return GetGraphic(typeID).graphicFile
-    except Exception:
-        return ''
+    return fsdGraphicIDs.GetGraphicFile(evetypes.GetGraphicID(typeID), '')
 
 
 def GetAnimationStates(typeID):
-    graphic = GetGraphic(typeID)
-    try:
-        return graphic.animationStates
-    except Exception:
-        return []
+    return fsdGraphicIDs.GetAnimationStates(evetypes.GetGraphicID(typeID), [])
 
 
 def GetIcon(typeID):
@@ -65,6 +58,19 @@ def GetIconFile(typeID):
         return icons().Get(iconID).iconFile
     except Exception:
         return ''
+
+
+def GetHoloIconPath(typeID):
+    try:
+        g = GetGraphic(typeID)
+        return fsdGraphicIDs.GetIconFolder(g) + '/' + fsdGraphicIDs.GetSofHullName(g) + '_isis.png'
+    except Exception:
+        typeString = typeID if typeID is not None else 'None'
+        exceptionMsg = 'Failed to find respath to the holographic icon for typeID: %s' % typeString
+        log.exception(exceptionMsg)
+        return
+
+    return
 
 
 def GetSound(typeID):

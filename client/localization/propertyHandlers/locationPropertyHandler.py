@@ -48,8 +48,12 @@ class LocationPropertyHandler(BasePropertyHandler):
                     return '[no station: %d]' % locationID
 
             else:
-                LogInfo("LOCALIZATION LINK: The 'linkify' argument was used for a location whose type can not be identified.", locationID)
-                return linkText
+                structure = sm.GetService('structureDirectory').GetStructureInfo(locationID)
+                if structure is not None:
+                    locationTypeID = structure.typeID
+                else:
+                    LogInfo("LOCALIZATION LINK: The 'linkify' argument was used for a location whose type can not be identified.", locationID)
+                    return linkText
         return '<a href=showinfo:%d//%d>%s</a>' % (locationTypeID, locationID, linkText)
 
 

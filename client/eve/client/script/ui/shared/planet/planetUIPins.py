@@ -18,6 +18,7 @@ import uiprimitives
 import uicontrols
 from eve.common.script.util.planetCommon import SurfacePoint
 import eve.common.script.util.planetCommon as planetCommon
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 from . import planetCommon as planetCommonUI
 from .pinContainers.BasePinContainer import BasePinContainer
 from .pinContainers.CommandCenterContainer import CommandCenterContainer
@@ -163,8 +164,6 @@ class BasePlanetPin(SpherePinStack):
         self.pin = pin
         self.spherePins = []
         self.model3D = self.Get3DModel()
-        self.firstCycle = True
-        self.lastCycleProportion = 0.0
         self.producerCycleTime = 0.0
         self.transform = transform
         self.resourceIcons = []
@@ -253,14 +252,7 @@ class BasePlanetPin(SpherePinStack):
                 self.cycle.pinColor = util.Color.WHITE
                 currCycle = self.pin.GetCycleTime() - (self.pin.GetNextRunTime() - blue.os.GetWallclockTime())
                 cycleProportion = currCycle / float(self.pin.GetCycleTime())
-                if self.lastCycleProportion > cycleProportion:
-                    self.firstCycle = not self.firstCycle
-                self.lastCycleProportion = cycleProportion
-                if self.firstCycle:
-                    self.cycle.pinAlphaThreshold = cycleProportion
-                else:
-                    self.cycle.pinAlphaThreshold = 1.0 - cycleProportion
-                    self.cycle.pinRotation = cycleProportion * 2.0 * math.pi
+                self.cycle.pinAlphaThreshold = cycleProportion
             elif self.pin.IsProducer() and getattr(self.pin, 'schematicID', False):
                 cycleLength = 3.0
                 elapsed = 1.0 / blue.os.fps
@@ -1104,7 +1096,7 @@ class ExtractionHeadPin(SpherePinStack):
             id = 20612
         else:
             id = 10097
-        return trinity.Load(cfg.graphics.Get(id).graphicFile)
+        return trinity.Load(GetGraphicFile(id))
 
     def SetExtractionHeadRadius(self, radius, time=250.0):
         if radius is None:

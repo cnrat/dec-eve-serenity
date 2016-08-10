@@ -2,6 +2,8 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\spaceView.py
 from billboards import load_billboard_playlist
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
+from eve.common.script.sys.eveCfg import IsDockedInStructure
+import evecamera
 from viewstate import View
 import uicls
 import service
@@ -62,6 +64,16 @@ class SpaceView(View):
         load_billboard_playlist()
         return
 
+    def LoadCamera(self, cameraID=None):
+        if cameraID is None:
+            sceneMan = sm.GetService('sceneManager')
+            currCam = sceneMan.GetActivePrimaryCamera()
+            if not (currCam and currCam.IsLocked()):
+                self.ActivatePrimaryCamera()
+        else:
+            sm.GetService('sceneManager').SetPrimaryCamera(cameraID)
+        return
+
     def UnloadView(self):
         self.LogInfo('unloading: removed ballpark and cleared effects')
         uicore.layer.main.state = uiconst.UI_PICKCHILDREN
@@ -95,3 +107,13 @@ class SpaceView(View):
                 tacticalSvc.ShowTacticalOverlay()
             else:
                 tacticalSvc.HideTacticalOverlay()
+
+    def GetRegisteredCameraID(self):
+        if IsDockedInStructure():
+            return evecamera.CAM_SHIPORBIT
+        return settings.char.ui.Get('spaceCameraID', evecamera.CAM_SHIPORBIT)
+
+    def ActivatePrimaryCamera(self):
+        cameraID = self.GetRegisteredCameraID()
+        sceneMan = sm.GetService('sceneManager')
+        return sceneMan.SetPrimaryCamera(cameraID)

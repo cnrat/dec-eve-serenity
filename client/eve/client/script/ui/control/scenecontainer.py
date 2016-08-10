@@ -95,6 +95,7 @@ class SceneContainer(Base):
 
     def PrepareCamera(self):
         self.camera = SceneContainerCamera()
+        self.camera.OnActivated()
 
     def DisplaySpaceScene(self, blendMode=None):
         from trinity.sceneRenderJobSpaceEmbedded import CreateEmbeddedRenderJobSpace
@@ -148,7 +149,11 @@ class SceneContainer(Base):
             self.renderJob.SetStencil(path)
 
     def AddToScene(self, model, clear=1):
-        if model == None or self.scene == None:
+        if model is None:
+            log.LogWarn('SceneContainer: Trying to load a None model to the scene')
+            return
+        elif self.scene is None:
+            log.LogWarn('SceneContainer: Trying to load a model to a None scene')
             return
         else:
             if clear:
@@ -345,6 +350,7 @@ class SceneContainerBrackets(Base):
 
     def PrepareCamera(self):
         self.camera = SceneContainerCamera()
+        self.camera.OnActivated()
         self.camera.frontClip = self.frontClip
         self.camera.backClip = self.backClip
         self.camera.fov = self.fov

@@ -5,10 +5,12 @@ from carbonui.uianimations import animations
 from eve.client.script.parklife import states
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive, GetCameraMaxLookAtRange, GetBallPosition
 from eve.client.script.ui.camera.debugCameraController import DebugCameraController
+from eve.client.script.ui.camera.enterSpaceCameraController import EnterSpaceCameraController
 from eve.client.script.ui.camera.shipOrbitCameraController import ShipOrbitCameraController
 from eve.client.script.ui.camera.shipPOVCameraController import ShipPOVCameraController
 from eve.client.script.ui.camera.spaceCameraController import SpaceCameraController
 from eve.client.script.ui.camera.tacticalCameraController import TacticalCameraController
+from eve.client.script.ui.camera.undockCameraController import UndockCameraController
 from eve.client.script.ui.control.marqueeCont import MarqueeCont
 from eve.client.script.ui.inflight.bracketsAndTargets.bracketVarious import GetOverlaps
 from eve.client.script.ui.services.menuSvcExtras import movementFunctions
@@ -68,6 +70,10 @@ class InflightLayer(uicls.LayerCore):
             self.cameraController = ShipPOVCameraController()
         elif cameraID == evecamera.CAM_DEBUG:
             self.cameraController = DebugCameraController()
+        elif cameraID == evecamera.CAM_UNDOCK:
+            self.cameraController = UndockCameraController()
+        elif cameraID == evecamera.CAM_ENTERSPACE:
+            self.cameraController = EnterSpaceCameraController()
         else:
             self.cameraController = None
         self.positionalControl.SetCameraController(self.cameraController)
@@ -467,7 +473,7 @@ class InflightLayer(uicls.LayerCore):
             if not uicore.cmd.IsUIHidden():
                 uicore.layer.main.state = uiconst.UI_PICKCHILDREN
             if sm.IsServiceRunning('tactical'):
-                uthread.new(sm.GetService('tactical').ResetTargetingRanges)
+                uthread.new(sm.GetService('tactical').ClearModuleRange)
             if uicore.cmd.IsCombatCommandLoaded('CmdApproachItem') and not self.positionalControl.IsActive():
                 self.positionalControl.StartMoveCommand()
             uiutil.SetOrder(self, -1)

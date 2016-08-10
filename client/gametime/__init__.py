@@ -35,6 +35,10 @@ def GetTimeDiff(a, b):
     return b - a
 
 
+def GetSecondsSinceWallclockTime(time):
+    return float(GetWallclockTime() - time) / SEC
+
+
 def GetSecondsSinceSimTime(time):
     return float(GetSimTime() - time) / SEC
 

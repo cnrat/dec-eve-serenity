@@ -4,8 +4,7 @@ import math
 import destiny
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.parklife import states
-from eve.client.script.ui.camera.baseCamera import K_ZOOMPOWER
-from eve.client.script.ui.camera.cameraUtil import GetDurationByDistance, GetBallPosition, GetBall, GetBallMaxZoom, Vector3Chaser, VectorLerper, IsAutoTrackingEnabled, CheckShowModelTurrets
+from eve.client.script.ui.camera.cameraUtil import GetDurationByDistance, GetBallPosition, GetBall, GetBallMaxZoom, Vector3Chaser, VectorLerper, IsAutoTrackingEnabled, CheckShowModelTurrets, GetSpeedDirection, GetInitialLookAtDistance, IsDynamicCameraMovementEnabled
 from eve.client.script.ui.camera.baseSpaceCamera import BaseSpaceCamera
 import evecamera
 import blue
@@ -16,8 +15,6 @@ import evegraphics.settings as gfxsettings
 import inventorycommon.const as invconst
 MAX_SPEED_OFFSET_SPEED = 3000.0
 MAX_SPEED_OFFSET_LOGSPEED = math.log(MAX_SPEED_OFFSET_SPEED) ** 2
-FOV_MIN = 0.55
-FOV_MAX = 1.1
 TRACK_RESET_SPEED = 60.0
 
 class ShipOrbitCamera(BaseSpaceCamera):
@@ -48,22 +45,27 @@ class ShipOrbitCamera(BaseSpaceCamera):
         BaseSpaceCamera.OnActivated(self, **kwargs)
         self._LerpSpeedOffset()
         settings.char.ui.Set('spaceCameraID', evecamera.CAM_SHIPORBIT)
-        if lastCamera and lastCamera.cameraID in (evecamera.CAM_TACTICAL, evecamera.CAM_SHIPPOV, evecamera.CAM_JUMP):
+        if lastCamera and lastCamera.cameraID in (evecamera.CAM_TACTICAL,
+         evecamera.CAM_SHIPPOV,
+         evecamera.CAM_JUMP,
+         evecamera.CAM_UNDOCK,
+         evecamera.CAM_ENTERSPACE):
             itemID = itemID or getattr(lastCamera, 'lastLookAtID', None) or self.ego
             self._SetLookAtBall(itemID)
             atPos1 = self.GetTrackPosition(self.lookAtBall)
-            if self._zoomPropCache is not None:
-                dist = self.GetZoomDistanceByZoomProportion(self._zoomPropCache)
-            else:
-                dist = self.GetLookAtRadius()
-            eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(lastCamera.GetLookAtDirection(), dist))
-            if lastCamera.cameraID in (evecamera.CAM_TACTICAL, evecamera.CAM_JUMP):
+            eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(lastCamera.GetLookAtDirection(), self.GetInitialZoomDist(lastCamera)))
+            if lastCamera.cameraID in (evecamera.CAM_TACTICAL,
+             evecamera.CAM_JUMP,
+             evecamera.CAM_UNDOCK,
+             evecamera.CAM_ENTERSPACE):
                 if lastCamera.cameraID == evecamera.CAM_JUMP:
                     duration = 0.1
                 else:
                     duration = GetDurationByDistance(lastCamera.eyePosition, eyePos1, 0.4, 0.6)
                 self.Transit(lastCamera.atPosition, lastCamera.eyePosition, atPos1, eyePos1, duration=duration, smoothing=0.0)
+                currFov = self.fov
                 self.fov = lastCamera.fov
+                self.SetFovTarget(currFov)
             else:
                 self.SetAtPosition(atPos1)
                 self.SetEyePosition(eyePos1)
@@ -73,25 +75,14 @@ class ShipOrbitCamera(BaseSpaceCamera):
             self._SetLookAtBall(self.ego)
         return
 
-    def GetFov(self):
-        if not self.IsDynamicFovEnabled():
-            return 1.0
-        if self._atTransitOffset:
-            atPos = geo2.Vec3Subtract(self.atPosition, self._atTransitOffset)
+    def GetInitialZoomDist(self, lastCamera):
+        if lastCamera.cameraID == evecamera.CAM_ENTERSPACE:
+            dist = lastCamera.GetZoomDistance()
+        elif self._zoomPropCache is not None:
+            dist = self.GetZoomDistanceByZoomProportion(self._zoomPropCache)
         else:
-            atPos = self.atPosition
-        dist = geo2.Vec3Distance(self.eyePosition, atPos)
-        return self._GetFov(dist)
-
-    def _GetFov(self, dist):
-        prop = max(0.0, min(dist / self.minZoom, 1.0))
-        return FOV_MIN + prop ** 0.35 * (FOV_MAX - FOV_MIN)
-
-    def SolveQuadratic(self, a, b, c):
-        d = math.sqrt(b ** 2 - 4 * a * c)
-        x1 = -2 * c / (b + d)
-        x2 = -2 * c / (b - d)
-        return max(x1, x2)
+            dist = self.GetLookAtDistance()
+        return dist
 
     def GetLookAtItemID(self):
         return self.GetItemID()
@@ -99,7 +90,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
     def LookAt(self, itemID, forceUpdate=False, objRadius=None):
         lookAtBall = self._TrySetLookAtBall(itemID, forceUpdate, objRadius)
         if lookAtBall:
-            radius = self.GetLookAtRadius(objRadius)
+            radius = self.GetLookAtDistance(objRadius)
             self._LookAtAnimate(itemID, radius)
 
     def _TrySetLookAtBall(self, itemID, forceUpdate=False, objRadius=None):
@@ -139,7 +130,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
             self._LookAtAnimate(itemID, radius)
 
     def _LerpSpeedOffset(self, duration=3.0):
-        self._speedOffsetLerper.SetStartValue(self.speedOffset)
+        self._speedOffsetLerper.SetStartValue((0, 0, 0))
         self._speedOffsetLerper.Reset(duration)
 
     def IsBallWarping(self, itemID):
@@ -181,7 +172,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
 
     def _GetNewLookAtEyePos(self, atPos1, itemID, radius):
         if evetypes.GetGroupID(self.lookAtBall.typeID) == invconst.groupBillboard:
-            direction = self.GetSpeedDirection()
+            direction = GetSpeedDirection(self.lookAtBall)
             if geo2.Vec3Dot(self.GetLookAtDirection(), direction) < 0:
                 direction = geo2.Vec3Scale(direction, -1)
             radius = self.lookAtBall.radius * 5
@@ -190,15 +181,8 @@ class ShipOrbitCamera(BaseSpaceCamera):
         eyePos1 = geo2.Vec3Add(atPos1, geo2.Vec3Scale(direction, radius))
         return eyePos1
 
-    def GetLookAtRadius(self, objRadius=None):
-        kPower = 0.95
-        a = 1.0 / self.minZoom ** kPower
-        b = FOV_MIN / 2.0
-        r = objRadius or self.maxZoom
-        r = max(objRadius, self.maxZoom)
-        c = -r
-        radius = self.SolveQuadratic(a, b, c)
-        return radius
+    def GetLookAtDistance(self, objRadius=None):
+        return GetInitialLookAtDistance(self.maxZoom, self.minZoom, objRadius)
 
     def _UpdateAtOffset(self):
         if not self.lookAtBall:
@@ -206,7 +190,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
             return
         else:
             atOffset = None
-            self.speedDir = self.GetSpeedDirection()
+            self.speedDir = GetSpeedDirection(self.lookAtBall)
             self.UpdateSpeedOffset()
             self._UpdateTrackOffset()
             trackOffset = self._trackOffsetChaser.GetValue()
@@ -217,7 +201,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
         return self._speedOffsetLerper.GetValue(v1=self.speedOffset)
 
     def UpdateSpeedOffset(self):
-        if self.IsCenterOffsetEnabled() and not self.IsTracking():
+        if IsDynamicCameraMovementEnabled() and not self.IsTracking():
             speedProp = self.GetSpeedOffsetProportion()
             offsetAmount = speedProp * 0.5 * self.maxZoom
             self.speedOffset = geo2.Vec3Scale(self.speedDir, offsetAmount)
@@ -225,7 +209,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
             self.speedOffset = (0, 0, 0)
 
     def _UpdateTrackOffset(self):
-        if self.IsTracking() and self.IsCenterOffsetEnabled():
+        if self.IsTracking() and IsDynamicCameraMovementEnabled():
             trackOffset = self._GetTrackAtOffset()
             self._trackOffsetChaser.SetTargetValue(trackOffset, 30.0 * self._trackSpeed)
         else:
@@ -240,33 +224,16 @@ class ShipOrbitCamera(BaseSpaceCamera):
         return trackOffset
 
     def _GetTrackEyeOffset(self):
-        offsetProp = 1.0 - self.GetZoomProportion() ** K_ZOOMPOWER
+        offsetProp = 1.0 - self.GetZoomProportion() ** self.kZoomPower
         offsetDir = self._GetTrackEyeOffsetDirection()
         offsetAmount = offsetProp * self.maxZoom
         offset = geo2.Vec3Scale(offsetDir, offsetAmount)
         return offset
 
     def _GetTrackEyeOffsetDirection(self):
-        pitch = self.GetPitch()
+        pitch = math.pi - self.GetPitch()
         rotMat = geo2.MatrixRotationAxis(self.GetZAxis(), -pitch)
         return geo2.Vec3Transform(self.GetYAxis(), rotMat)
-
-    def IsCenterOffsetEnabled(self):
-        return gfxsettings.Get(gfxsettings.UI_CAMERA_CENTER_OFFSET)
-
-    def IsDynamicFovEnabled(self):
-        return gfxsettings.Get(gfxsettings.UI_CAMERA_DYNAMIC_FOV)
-
-    def GetSpeedDirection(self):
-        if getattr(self.lookAtBall, 'model', None) and hasattr(self.lookAtBall.model.rotationCurve, 'value'):
-            quat = self.lookAtBall.model.rotationCurve.value
-        else:
-            quat = self.lookAtBall.GetQuaternionAt(blue.os.GetSimTime())
-            quat = (quat.x,
-             quat.y,
-             quat.z,
-             quat.w)
-        return geo2.QuaternionTransformVector(quat, (0, 0, 1))
 
     def _UpdateEyeOffset(self):
         if self.IsChasing():
@@ -274,7 +241,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
             eyeOffset = self.GetChaseEyeOffset()
             offset = geo2.Vec3Subtract(offset, eyeOffset)
             self._eyeOffsetChaser.SetTargetValue(offset, 1.0)
-        elif self.IsTracking() and self.IsCenterOffsetEnabled():
+        elif self.IsTracking() and IsDynamicCameraMovementEnabled():
             offset = self._GetTrackEyeOffset()
             self._eyeOffsetChaser.SetTargetValue(offset, TRACK_RESET_SPEED * self._trackSpeed)
         else:
@@ -314,8 +281,8 @@ class ShipOrbitCamera(BaseSpaceCamera):
             if self.GetItemID() == self.ego or self.IsTracking() or self.IsChasing():
                 self.SetZoom(zoomProp)
             self.EnforceMinZoom()
-        if not self.isManualFovEnabled:
-            self.SetFovTarget(self.GetFov())
+        if not self.isManualFovEnabled and IsDynamicCameraMovementEnabled():
+            self.SetFovTarget(self.GetDynamicFov())
 
     def _UpdateAnchorPosition(self):
         if self.lookAtBall and self.lookAtBall.mode == destiny.DSTBALL_WARP:
@@ -365,7 +332,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
         uicore.animations.MorphScalar(self, '_trackSpeed', self._trackSpeed, 1.0, duration=1.5)
 
     def _GetEyePosDriftProporition(self):
-        if not self.IsCenterOffsetEnabled():
+        if not IsDynamicCameraMovementEnabled():
             return 1.0
         elif self.GetItemID() == self.ego:
             return 0.999
@@ -399,7 +366,7 @@ class ShipOrbitCamera(BaseSpaceCamera):
         self._SetLookAtBall(self.ego)
 
     def Orbit(self, dx=0, dy=0):
-        if self.IsTransitioningToOrFromTracking() and self.IsCenterOffsetEnabled():
+        if self.IsTransitioningToOrFromTracking() and IsDynamicCameraMovementEnabled():
             return
         else:
             BaseSpaceCamera.Orbit(self, dx, dy)

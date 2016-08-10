@@ -4,8 +4,10 @@ import blue
 import uthread
 import structures
 import evetypes
+import logging
 from eve.client.script.environment.spaceObject.buildableStructure import BuildableStructure
 from eve.client.script.environment.model.turretSet import TurretSet
+from evegraphics.explosions.spaceObjectExplosionManager import SpaceObjectExplosionManager
 STATE_CONSTRUCT = 'construct'
 STATE_VULNERABLE = 'vulnerable'
 STATE_INVULNERABLE = 'invulnerable'
@@ -177,10 +179,16 @@ class Structure(BuildableStructure):
         self.model = self.GetNanoContainerModel()
 
     def Explode(self, explosionURL=None, scaling=1.0, managed=False, delay=0.0):
-        explosionURL, (delay, _) = self.GetExplosionInfo()
-        explosionLocatorSets = None
-        if hasattr(self.model, 'locatorSets'):
-            explosionLocatorSets = self.model.locatorSets.FindByName('explosions')
-        rotation = self.GetStaticRotation()
-        self.explosionManager.PlayClientSideExplosionBall(explosionURL, (self.x, self.y, self.z), rotation, explosionLocatorSets)
-        return delay
+        if SpaceObjectExplosionManager.USE_EXPLOSION_BUCKETS:
+            self.LogInfo('Exploding with explosion bucket')
+            scene = sm.GetService('space').GetScene()
+            wreckSwitchTime, _, __ = SpaceObjectExplosionManager.ExplodeBucketForBall(self, scene)
+            return wreckSwitchTime
+        else:
+            explosionURL, (delay, _) = self.GetExplosionInfo()
+            explosionLocatorSets = None
+            if hasattr(self.model, 'locatorSets'):
+                explosionLocatorSets = self.model.locatorSets.FindByName('explosions')
+            rotation = self.GetStaticRotation()
+            self.explosionManager.PlayClientSideExplosionBall(explosionURL, (self.x, self.y, self.z), rotation, explosionLocatorSets)
+            return delay

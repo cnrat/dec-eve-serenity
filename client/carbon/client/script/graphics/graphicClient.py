@@ -3,6 +3,7 @@
 import service
 import carbon.client.script.graphics.graphicWrappers.loadAndWrap as graphicWrappers
 import trinity
+import evegraphics.fsd.graphicIDs as fsdGraphicIDs
 
 class GraphicClient(service.Service):
     __guid__ = 'svc.graphicClient'
@@ -57,10 +58,7 @@ class GraphicClient(service.Service):
             return None
 
     def GetModelFilePath(self, graphicID):
-        if graphicID in cfg.graphics:
-            return cfg.graphics.Get(graphicID).graphicFile
-        else:
-            return None
+        return fsdGraphicIDs.GetGraphicFile(graphicID)
 
     def GetGraphicName(self, graphicID):
         graphicFile = self.GetModelFilePath(graphicID)

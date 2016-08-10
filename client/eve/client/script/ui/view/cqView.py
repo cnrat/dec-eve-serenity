@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\view\cqView.py
 import sys
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 from inventorycommon.util import IsModularShip
 import log
 import geo2
@@ -145,9 +146,7 @@ class CQView(StationView):
         stationGraphicsID = hangarUtil.racialHangarScenes[8]
         if stationRace in hangarUtil.racialHangarScenes:
             stationGraphicsID = hangarUtil.racialHangarScenes[stationRace]
-        g = cfg.graphics.GetIfExists(stationGraphicsID)
-        if g is not None:
-            scenePath = g.graphicFile
+        scenePath = GetGraphicFile(stationGraphicsID)
         if stationRace == const.raceAmarr:
             shipPositionData = ReadYamlFile('res:/dx9/scene/hangar/shipPlacementAmarr.yaml')
             positioning = ReadYamlFile('res:/dx9/scene/hangar/amarrbalconyplacement.yaml')

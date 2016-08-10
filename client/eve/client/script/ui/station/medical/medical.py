@@ -366,7 +366,7 @@ def GetJumpClone(currentLocationID):
 
 def GetJumpCloneDetails():
     clonejump = sm.GetService('clonejump')
-    cloneID, cloneName = clonejump.GetCloneAtLocation(session.stationid2)
+    cloneID, cloneName = clonejump.GetCloneAtLocation(session.stationid2 or session.structureid)
     implants = clonejump.GetImplantsForClone(cloneID)
     clone = Bundle(id=cloneID, name=cloneName, implants=implants)
     return clone

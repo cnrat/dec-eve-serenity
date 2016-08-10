@@ -2,7 +2,8 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\environment\spaceObject\buildableStructure.py
 import uthread
 from eve.client.script.environment.spaceObject.LargeCollidableStructure import LargeCollidableStructure
-from evegraphics.utils import GetResPathFromGraphicID, GetCorrectEffectPath
+from evegraphics.fsd.graphicIDs import GetGraphicFile
+from evegraphics.utils import GetCorrectEffectPath
 import locks
 import trinity
 NANO_CONTAINER_GRAPHIC_ID = 20930
@@ -30,7 +31,7 @@ class BuildableStructure(LargeCollidableStructure):
 
     def LoadNanoContainerModel(self):
         self.LogInfo('BuildableStructure: Loading nano container model')
-        self.nanoContainerModel = self.LoadAdditionalModel(GetResPathFromGraphicID(NANO_CONTAINER_GRAPHIC_ID))
+        self.nanoContainerModel = self.LoadAdditionalModel(GetGraphicFile(NANO_CONTAINER_GRAPHIC_ID))
         self.nanoContainerModel.name += '_nanocontainer'
         self.nanoContainerModelLoadedEvent.set()
 

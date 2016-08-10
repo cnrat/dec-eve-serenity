@@ -152,7 +152,7 @@ class SceneRenderJobCharacters(SceneRenderJobBase):
             self.RemoveStep('RENDER_BACKDROP')
         return
 
-    def SetActiveCamera(self, camera):
+    def SetActiveCamera(self, camera, *args):
         if camera is None:
             self.RemoveStep('SET_VIEW')
             self.RemoveStep('SET_PROJECTION')

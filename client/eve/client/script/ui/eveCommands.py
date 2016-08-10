@@ -57,6 +57,8 @@ from uthread2.callthrottlers import CallCombiner
 from eveNewCommands.client.escapeCommand import EscapeCommand
 from eveNewCommands.client.escapeCommandAdapter import EscapeCommandAdapter
 from eve.devtools.script.enginetools import EngineToolsLauncher
+from seasons.client.const import get_seasons_title_label_path
+from seasons.client.seasonwindow import SeasonWindow
 contextFiS = 1
 contextIncarna = 2
 labelsByFuncName = {'CmdAccelerate': 'UI/Commands/CmdAccelerate',
@@ -171,7 +173,6 @@ labelsByFuncName = {'CmdAccelerate': 'UI/Commands/CmdAccelerate',
  'CmdToggleDroneFocusFire': 'UI/Commands/CmdToggleDroneFocusFire',
  'CmdToggleEffects': 'UI/Commands/CmdToggleEffects',
  'CmdToggleEffectTurrets': 'UI/Commands/CmdToggleEffectTurrets',
- 'CmdToggleFighterAttackAndFollow': 'UI/Commands/CmdToggleFighterAttackAndFollow',
  'CmdToggleLookAtItem': 'UI/Commands/CmdToggleLookAtItem',
  'CmdToggleCameraTracking': 'UI/Commands/CmdToggleCameraTracking',
  'CmdToggleShowAllBrackets': 'UI/Commands/CmdToggleShowAllBrackets',
@@ -402,8 +403,7 @@ class EveCommandService(svc.cmd):
          c(self.CmdDronesReturnToBay, (SHIFT, uiconst.VK_R)),
          c(self.CmdReconnectToDrones, None),
          c(self.CmdToggleAggressivePassive, None),
-         c(self.CmdToggleDroneFocusFire, None),
-         c(self.CmdToggleFighterAttackAndFollow, None)]
+         c(self.CmdToggleDroneFocusFire, None)]
         for cm in m:
             cm.category = 'drones'
             ret.append(cm)
@@ -507,7 +507,6 @@ class EveCommandService(svc.cmd):
          c(self.OpenMineralHoldOfActiveShip, None),
          c(self.OpenPlanetaryCommoditiesHoldOfActiveShip, None),
          c(self.OpenFuelBayOfActiveShip, None),
-         c(self.OpenStructureCargo, None),
          c(self.OpenChannels, None),
          c(self.OpenCharactersheet, (ALT, uiconst.VK_A)),
          c(self.OpenConfigMenu, None),
@@ -588,6 +587,13 @@ class EveCommandService(svc.cmd):
             ret.append(cm)
 
         return ret
+
+    def AddSeasonWindowCommand(self):
+        seasonsCommand = command.CommandMapping(self.ToggleSeasonWindow, None)
+        seasonsCommand.category = 'window'
+        if self.commandMap.GetCommandByName(seasonsCommand.name) is None:
+            self.commandMap.AddCommand(seasonsCommand)
+        return
 
     def CmdActivateHighPowerSlot1(self, *args):
         self._cmdshipui(0, 0)
@@ -992,13 +998,6 @@ class EveCommandService(svc.cmd):
         settings.char.ui.Set('droneFocusFire', newIsFocusFire)
         sm.GetService('godma').GetStateManager().ChangeDroneSettings(droneSettings)
 
-    def CmdToggleFighterAttackAndFollow(self, *args):
-        isFaf = settings.char.ui.Get('fighterAttackAndFollow', cfg.dgmattribs.Get(const.attributeFighterAttackAndFollow).defaultValue)
-        newIsFaf = (isFaf + 1) % 2
-        droneSettings = {const.attributeFighterAttackAndFollow: newIsFaf}
-        settings.char.ui.Set('fighterAttackAndFollow', newIsFaf)
-        sm.GetService('godma').GetStateManager().ChangeDroneSettings(droneSettings)
-
     def WinCmdToggleWindowed(self, *args):
         lastTimeToggled = settings.user.ui.Get('LastTimeToggleWindowed', 0)
         if blue.os.GetWallclockTime() - lastTimeToggled > 2 * const.SEC:
@@ -1357,6 +1356,12 @@ class EveCommandService(svc.cmd):
     ToggleProjectDiscovery.nameLabelPath = 'UI/ProjectDiscovery/ProjectName'
     ToggleProjectDiscovery.descriptionLabelPath = 'Tooltips/Neocom/ProjectDiscoveryDescription'
 
+    def ToggleSeasonWindow(self, *args):
+        SeasonWindow.ToggleOpenClose()
+
+    ToggleSeasonWindow.nameLabelPath = get_seasons_title_label_path()
+    ToggleSeasonWindow.descriptionLabelPath = 'Tooltips/Neocom/SeasonalEventsDescription'
+
     def ToggleRedeemItems(self, *args):
         if session.charid is not None:
             sm.StartService('redeem').ToggleRedeemWindow()
@@ -1446,7 +1451,9 @@ class EveCommandService(svc.cmd):
 
     def __OpenCargoHoldOfActiveShip_thread(self, *args):
         shipID = eveCfg.GetActiveShip()
-        if shipID is None:
+        if eveCfg.IsControllingStructure():
+            return self.OpenStructureCargo()
+        elif shipID is None:
             return
         else:
             shipItem = sm.GetService('clientDogmaIM').GetDogmaLocation().GetDogmaItemWithWait(shipID)
@@ -1457,7 +1464,8 @@ class EveCommandService(svc.cmd):
             return
 
     def OpenStructureCargo(self):
-        self._OpenSpecialHoldOfActiveship(const.attributeVulnerabilityRequired, 'Structure')
+        invID = ('Structure', session.structureid)
+        form.Inventory.OpenOrShow(invID=invID, usePrimary=False, toggle=True)
 
     OpenStructureCargo.nameLabelPath = 'Tooltips/Hud/CargoHold'
     OpenStructureCargo.descriptionLabelPath = 'Tooltips/Hud/CargoHoldStructure_description'
@@ -1632,16 +1640,18 @@ class EveCommandService(svc.cmd):
             settings.char.windows.Set('openWindows', allOpen)
             return
         else:
-            if session.stationid2:
+            if session.stationid2 or session.structureid:
                 uthread.new(self.__OpenCorpDeliveries_thread)
             return
 
     OpenCorpDeliveries.nameLabelPath = 'UI/Commands/OpenCorpDeliveries'
 
     def __OpenCorpDeliveries_thread(self, *args):
-        if session.stationid2:
-            invID = ('StationCorpDeliveries', session.stationid2)
-            form.Inventory.OpenOrShow(invID=invID, usePrimary=False, toggle=True)
+        locationID = session.stationid2 or session.structureid
+        if not locationID:
+            return
+        invID = ('StationCorpDeliveries', locationID)
+        form.Inventory.OpenOrShow(invID=invID, usePrimary=False, toggle=True)
 
     def ShowVgsOffer(self, offerId, suppressFullScreen=False):
         self.LogInfo('ShowVgsOffer', offerId)
@@ -1928,7 +1938,7 @@ class EveCommandService(svc.cmd):
             return
         if sm.GetService('cc').NoExistingCustomization():
             raise UserError('CantRecustomizeCharacterWithoutDoll')
-        if session.stationid:
+        if session.stationid or session.structureid:
             try:
                 self.loadingCharacterCustomization = True
                 if self.HasServiceAccess('charcustomization'):

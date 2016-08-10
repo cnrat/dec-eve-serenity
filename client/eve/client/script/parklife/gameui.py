@@ -1,8 +1,8 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\parklife\gameui.py
-from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
 from eve.client.script.ui.mouseInputHandler import MouseInputHandler
 from eve.client.script.ui.shared.languageWindow import LanguageWindow
+from logmodule import LogException
 import uiprimitives
 import carbonui.const as uiconst
 import uiutil
@@ -441,7 +441,7 @@ class GameUI(service.Service):
                 settings.user.ui.Set('defaultStructureView', structureView)
             uthread.pool('GameUI::ActivateView::structure', self._GetActivateViewFunction(viewSvc), structureView, change=change)
             ballpark = sm.GetService('michelle').GetBallpark()
-            if ballpark:
+            if ballpark and ballpark.solarsystemID == session.solarsystemid2:
                 if session.structureid in ballpark.balls:
                     ballpark.ego = session.structureid
                     self.OnNewState(ballpark)
@@ -460,7 +460,6 @@ class GameUI(service.Service):
             if oldSolarSystemID:
                 sm.GetService('FxSequencer').ClearAll()
                 self.LogInfo('Cleared effects')
-                sm.GetService('sceneManager').GetActiveSpaceCamera().ClearCameraParent()
             self.LogNotice('GameUI::OnSessionChanged, Heading for inflight', isRemote, session, change)
             activateViewFunc = self._GetActivateViewFunction(viewSvc)
             uthread.pool('GameUI::ChangePrimaryView::inflight', activateViewFunc, 'inflight', change=change)
@@ -800,8 +799,9 @@ class GameUI(service.Service):
         if spaceToSpaceTransition.active:
             spaceToSpaceTransition.Finalize()
         else:
-            self.sceneManager.UnregisterScene('default')
-            self.sceneManager.LoadScene(sc, inflight=1, registerKey='default')
+            self.sceneManager.UnregisterScene('default', ignoreCamera=True)
+            self.sceneManager.LoadScene(sc, registerKey='default')
+            self.sceneManager.ApplySpaceScene()
         if eve.session.solarsystemid:
             sm.GetService('tactical').CheckInit()
 
@@ -811,16 +811,13 @@ class GameUI(service.Service):
     @telemetry.ZONE_METHOD
     def _NewState(self, bp):
         if bp and bp.balls.get(bp.ego, None):
-            camera = sm.GetService('sceneManager').GetActiveSpaceCamera()
-            if IsNewCameraActive():
-                camera.LookAtMaintainDistance(bp.ego)
-            else:
-                uthread.new(camera.LookAt, bp.ego, camera.cachedCameraTranslation)
             if util.InSpace():
                 if not uicore.layer.shipui.isopen:
                     uicore.layer.shipui.OpenView()
                 else:
                     uicore.layer.shipui.SetupShip(False)
+            camera = sm.GetService('sceneManager').GetActiveSpaceCamera()
+            camera.LookAtMaintainDistance(bp.ego)
         return
 
     def DoWindowIdentification(self):

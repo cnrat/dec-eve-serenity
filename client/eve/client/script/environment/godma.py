@@ -2003,12 +2003,11 @@ class StateManager():
 
     def SendDroneSettings(self):
         droneSettingChanges = {const.attributeDroneIsAggressive: settings.char.ui.Get('droneAggression', cfg.dgmattribs.Get(const.attributeDroneIsAggressive).defaultValue),
-         const.attributeFighterAttackAndFollow: settings.char.ui.Get('fighterAttackAndFollow', cfg.dgmattribs.Get(const.attributeFighterAttackAndFollow).defaultValue),
          const.attributeDroneFocusFire: settings.char.ui.Get('droneFocusFire', cfg.dgmattribs.Get(const.attributeDroneFocusFire).defaultValue)}
         self.GetDogmaLM().ChangeDroneSettings(droneSettingChanges)
 
     def ChangeDroneSettings(self, droneSettingChanges):
-        validDroneSettingAttribs = [const.attributeDroneIsAggressive, const.attributeFighterAttackAndFollow, const.attributeDroneFocusFire]
+        validDroneSettingAttribs = [const.attributeDroneIsAggressive, const.attributeDroneFocusFire]
         for key in droneSettingChanges:
             if key in validDroneSettingAttribs:
                 self.droneSettingAttributes[key] = droneSettingChanges[key]

@@ -44,11 +44,13 @@ from eveclientqatools.performancebenchmark import PerformanceBenchmarkWindow
 from eve.devtools.script.uiControlCatalog.controlCatalogWindow import ControlCatalogWindow
 from eve.devtools.script.cycleNebulaPanel import CycleNebulaPanel
 import evegraphics.settings as gfxsettings
+from evegraphics.explosions.spaceObjectExplosionManager import SpaceObjectExplosionManager
 from carbon.client.script.animation.animationDebugClient import AnimationDebugWindow
 from carbon.client.script.entities.AI.AIDebugClient import AIDebugWindow
 from carbon.client.script.entities.combatLogWindow import CombatLogWindow
 from UITree import UITree
 from eve.devtools.script.enginetools import EngineToolsLauncher
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 BUTTONSPACING = 70
 WINDOWHEIGHT = 45
 WINDOWWIDTH = 150
@@ -806,7 +808,7 @@ class InsiderService(service.Service):
         if scene is not None:
             for li in fc:
                 log.LogError('LOADING ' + str(i) + ' of ' + str(len(fc)) + ' : ' + str(int(li)))
-                redFile = util.GraphicFile(int(li))
+                redFile = GetGraphicFile(int(li))
                 log.LogError(redFile)
                 if redFile is None:
                     errorCount += 1
@@ -1367,10 +1369,8 @@ class InsiderService(service.Service):
         m.append(('Automated Tasks', self.Automated()))
         m.append(None)
 
-        def ToggleCapitalHangar():
-            import eve.client.script.ui.view.hangarView as hv
-            hv.USE_CITADEL_HANGAR = not hv.USE_CITADEL_HANGAR
-            sm.GetService('viewState').ActivateView('hangar')
+        def ToggleExplosionBuckets(enabled):
+            SpaceObjectExplosionManager.USE_EXPLOSION_BUCKETS = enabled
 
         def GetAsteroidEnvToggler(settingsKey, flag):
 
@@ -1399,15 +1399,6 @@ class InsiderService(service.Service):
             scene.backgroundEffect.RebuildCachedData()
             return None
 
-        def ToggleSphericalRange():
-            from evegraphics.ui.lineController import LineController
-            gi = LineController.GetGlobalInstance()
-            gi._debugShowSpheredNavRange = not gi._debugShowSpheredNavRange
-
-        def ToggleNewOverlay(enable):
-            tactical = sm.GetService('tactical')
-            tactical.ToggleNewTacticalOverlay(enable)
-
         m.append(('Graphics', [('V3 testing', lambda : self.V3Testing()),
           ('Cycle nebulas', lambda : self.CycleNebulas()),
           ('Performance Benchmark', lambda : PerformanceBenchmarkWindow()),
@@ -1417,7 +1408,6 @@ class InsiderService(service.Service):
           ('Warp Effect Debug', gfxreports.ShowWarpEffectReport),
           ('Flight Controls Debug', sm.GetService('flightControls').simulation.ToggleDebug),
           ('Toggle Background Dithering', ToggleBackgroundDithering),
-          ('TacticalOverlay2', (('Enable', lambda : ToggleNewOverlay(True)), ('Disable', lambda : ToggleNewOverlay(False)))),
           ('Asteroid Environment', (('Enable Environment', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_ATMOSPHERICS, True)),
             ('Disable Environment', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_ATMOSPHERICS, False)),
             ('Enable Godrays', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_GODRAYS, True)),
@@ -1428,9 +1418,7 @@ class InsiderService(service.Service):
             ('Disable Fog', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_FOG, False)),
             ('Enable Rock Particles', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_PARTICLES, True)),
             ('Disable Rock Particles', GetAsteroidEnvToggler(gfxsettings.UI_ASTEROID_PARTICLES, False)))),
-          ('Hangar', (('Toggle Capital Hangars', ToggleCapitalHangar),)),
-          None,
-          ('Tactical Navigation', (('Toggle Spherical Range', ToggleSphericalRange),)),
+          ('Explosions', (('Enable Explosion Buckets', lambda : ToggleExplosionBuckets(True)), ('Disable Explosion Buckets', lambda : ToggleExplosionBuckets(False)))),
           None,
           ('Managed RT Report', gfxreports.ShowManagedRTReport),
           ('Blue Resources', gfxreports.ShowBlueResourceReport),

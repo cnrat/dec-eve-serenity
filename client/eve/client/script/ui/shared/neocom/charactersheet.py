@@ -31,7 +31,7 @@ from eve.client.script.ui.shared.neocom.charsheet.skins import CharacterSkinsPan
 import evetypes
 from eve.client.script.ui.tooltips.tooltipsWrappers import TooltipHeaderDescriptionWrapper
 from eve.client.script.ui.shared.monetization.events import LogCharacterSheetPilotLicenseImpression, LogMultiPilotTrainingBannerImpression
-from eve.client.script.ui.skilltrading.banner import IsSkillInjectorBannerDismissed, SkillInjectorBanner
+from eve.client.script.ui.skilltrading.banner import SkillInjectorBanner, ShouldShowBanner
 MAXBIOLENGTH = 1000
 
 class CharacterSheet(service.Service):
@@ -1965,7 +1965,7 @@ class CharacterSheetWindow(uicontrols.Window):
         self.killReportQuickFilter = uicls.QuickFilterEdit(parent=self.sr.combatlogpanel, left=const.defaultPadding, align=uiconst.TOPRIGHT, width=150)
         self.killReportQuickFilter.ReloadFunction = self.characterSheetSvc.ReloadKillReports
         self.sr.combatlogpanel.height = self.sr.combatCombo.height + self.sr.combatSetting.height + const.defaultPadding
-        if not IsSkillInjectorBannerDismissed():
+        if ShouldShowBanner():
             SkillInjectorBanner(parent=self.sr.skillpanel, align=uiconst.TOTOP, padding=(4, 4, 4, 4))
         skillFilterCont = Container(parent=self.sr.skillpanel, align=uiconst.TOTOP, height=24)
         uicls.UtilMenu(parent=skillFilterCont, align=uiconst.CENTERLEFT, menuAlign=uiconst.BOTTOMLEFT, GetUtilMenu=self.GetSkillSettingsMenu, texturePath='res:/UI/Texture/SettingsCogwheel.png', width=16, height=16, iconSize=18)

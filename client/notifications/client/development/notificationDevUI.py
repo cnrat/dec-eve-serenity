@@ -31,8 +31,16 @@ class NotificationDevMainContainer(Container):
         self.displayNotificationSettingBtn = Button(name='NotificationSettingsWindowButton', align=uiconst.TOTOP, label='Notification Settings window', func=self.OnDisplayNotificationSettingClick, pos=(0, 5, 100, 20), parent=self)
         self.toggleEnabledFlagBtn = Button(name='NotificationSettingsWindowButton', align=uiconst.TOTOP, label='Toggle enabled', func=self.OnToggleEnabledClick, pos=(0, 5, 100, 20), parent=self)
         self.toggleEnabledDevModeFlagBtn = Button(name='DevToggleButton', align=uiconst.TOTOP, label='Toggle developermode', func=self.OnDevToggleButtonClick, pos=(0, 5, 100, 20), parent=self)
+        self.testTransactionFun = Button(name='TransactioFun', align=uiconst.TOTOP, label='Generate random fake transaction', func=self.OnTransactionFun, pos=(0, 5, 100, 20), parent=self)
         self.isGenerating = False
         self.MakeNewGenerator()
+
+    def OnTransactionFun(self, *args):
+        import random
+        aRandom = random.Random()
+        startValue = 1000000
+        transaction = aRandom.randint(-1000000, 1000000)
+        sm.ScatterEvent('OnPersonalAccountChangedClient', startValue, transaction)
 
     def OnDevToggleButtonClick(self, *args):
         service = sm.GetService('notificationUIService')

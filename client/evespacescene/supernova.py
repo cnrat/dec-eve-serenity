@@ -4,6 +4,7 @@ import util
 import geo2
 import blue
 import trinity
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 SUPERNOVA_SYSTEM_ID = 30000367
 
 class Supernova(object):
@@ -28,15 +29,13 @@ class Supernova(object):
             self.systemID = systemID
 
     def _LoadModel(self):
-        graphic = cfg.graphics.get(20984, None)
-        path = graphic.graphicFile
+        path = GetGraphicFile(20984)
         model = blue.resMan.LoadObject(path)
         self.model = trinity.EveTransform()
         self.model.scaling = (10000.0, 10000.0, 10000.0)
         self.model.modifier = 2
         self.model.name = 'Supernova'
         self.model.children.append(model)
-        return
 
     def UpdatePosition(self, localPosition=None):
         if not self.model:

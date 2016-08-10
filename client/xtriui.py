@@ -42,9 +42,8 @@ from eve.client.script.ui.shared.medalribbonranks import Medal
 from eve.client.script.ui.shared.medalribbonranks import MedalRibbon
 from eve.client.script.ui.shared.medalribbonranks import Rank
 from eve.client.script.ui.shared.medalribbonranks import Ribbon
-from eve.client.script.ui.shared.neocom.contracts.contracts import ContractDraggableIcon
-from eve.client.script.ui.shared.neocom.contracts.contracts import MyContractsPanel
-from eve.client.script.ui.shared.neocom.contracts.contracts import StartPagePanel
+from eve.client.script.ui.shared.neocom.contracts.contractDraggableIcon import ContractDraggableIcon
+from eve.client.script.ui.shared.neocom.contracts.contractPanels import StartPagePanel, MyContractsPanel
 from eve.client.script.ui.shared.neocom.evemail import MailActionPanel
 from eve.client.script.ui.shared.neocom.evemail import MailAssignColorWnd
 from eve.client.script.ui.shared.zoomin import ViewPort

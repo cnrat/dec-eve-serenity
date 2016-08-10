@@ -2284,7 +2284,7 @@ class IconEntry(SE_BaseClassCore):
     def Startup(self, *etc):
         self.labelleft = 32
         self.sr.label = uicontrols.EveLabelMedium(text='', parent=self, left=self.labelleft, top=0, width=512, state=uiconst.UI_DISABLED, align=uiconst.CENTERLEFT)
-        self.sr.icon = GlowSprite(icon='ui_5_64_10', parent=self, pos=(0, 0, 0, 0), align=uiconst.TOPLEFT, state=uiconst.UI_DISABLED)
+        self.sr.icon = GlowSprite(icon='ui_5_64_10', parent=self, pos=(0, 0, 0, 0), align=uiconst.CENTERLEFT, state=uiconst.UI_DISABLED)
 
     def Load(self, node):
         self.sr.node = node
@@ -2318,7 +2318,7 @@ class IconEntry(SE_BaseClassCore):
 
     def GetHeight(self, *args):
         node, width = args
-        iconsize = node.Get('iconsize', 32)
+        iconsize = node.Get('height', node.Get('iconsize', 32))
         node.height = iconsize
         return node.height
 
@@ -2500,6 +2500,9 @@ class FittingModuleEntry(Item):
         hint = self.hints[hasSkill]
         self.sr.haveIcon.LoadIcon(iconNum, ignoreSize=True)
         self.sr.haveIcon.hint = hint
+        if not node.isValidGroup and getattr(self, 'invalidGroupBG', None) is None:
+            self.invalidGroupBG = uiprimitives.Fill(bgParent=self, padding=(1, 1, 1, 0), color=(1, 0, 0, 0.1))
+        return
 
     def GetMenu(self):
         if self.sr.node and self.sr.node.Get('GetMenu', None):

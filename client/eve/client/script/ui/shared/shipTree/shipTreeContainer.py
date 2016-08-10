@@ -108,7 +108,7 @@ class ShipTreeContainer(ContainerAutoSize):
          size), iconSize=65, idx=0, func=self.OnOtherFactionClicked, args=(node,), opacity=opacity, hint='<b>%s</b>\n%s' % (cfg.factions.Get(node.factionID).factionName, shipGroupName))
 
     def RenderRootNode(self, node):
-        texturePath = inventorycommon.typeHelpers.GetGraphic(typeCapsule).isisIconPath
+        texturePath = inventorycommon.typeHelpers.GetHoloIconPath(typeCapsule)
         size = 32
         left, top = self._GetNodePosition(node)
         if self.IsInGoldenPod():

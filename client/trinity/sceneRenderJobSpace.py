@@ -105,6 +105,8 @@ class SceneRenderJobSpace(SceneRenderJobBase):
         self.distortionJob = evePostProcess.EvePostProcessingJob()
         self.backgroundDistortionJob = evePostProcess.EvePostProcessingJob()
         self.sceneDesaturation = SceneDesaturation(self.postProcessingJob)
+        self.sceneFadeOut = SceneFadeOut(self.postProcessingJob)
+        self.sceneFadeOut.Enable()
         self.overrideSettings = {}
         self.SetSettingsBasedOnPerformancePreferences()
         self.updateJob = CreateRenderJob(name + '_Update')
@@ -397,6 +399,7 @@ class SceneRenderJobSpace(SceneRenderJobBase):
         self.distortionJob.Release()
         self.backgroundDistortionJob.Release()
         self.sceneDesaturation.Disable()
+        self.sceneFadeOut.Disable()
         self.distortionJob.SetPostProcessVariable('Distortion', 'TexDistortion', None)
         self.backgroundDistortionJob.SetPostProcessVariable('Distortion', 'TexDistortion', None)
         self.taaJob.Release()
@@ -434,6 +437,7 @@ class SceneRenderJobSpace(SceneRenderJobBase):
         self.hdrEnabled = currentSettings['hdrEnabled']
         self.gpuParticlesEnabled = currentSettings.get('gpuParticles', True)
         self.secondaryLighting = self.distortionEffectsEnabled = self.useDepth = trinity.GetShaderModel().endswith('DEPTH')
+        trinity.settings.SetValue('eveSpaceSceneDynamicLighting', trinity.GetShaderModel().endswith('DEPTH') and _singletons.platform == 'dx11')
         if 'hdrEnabled' in self.overrideSettings:
             self.hdrEnabled = self.overrideSettings['hdrEnabled']
         if 'bbFormat' in self.overrideSettings:
@@ -699,6 +703,7 @@ class SceneRenderJobSpace(SceneRenderJobBase):
         self._SetDistortionMap()
         self._SetVelocityMap()
         self._SetSecondaryLighting()
+        trinity.settings.SetValue('eveSpaceSceneDynamicLighting', trinity.GetShaderModel().endswith('DEPTH') and _singletons.platform == 'dx11')
         scene = self.GetScene()
         if scene is None:
             return
@@ -818,12 +823,14 @@ class SceneRenderJobSpace(SceneRenderJobBase):
         pass
 
 
-class SceneDesaturation(object):
-    attrName = 'SaturationFactor'
+class ScenePostProcessWrapper(object):
+    attrName = 'None'
+    ppType = None
+    initial_value = 1.0
 
     def __init__(self, ppJob):
         self.ppJob = ppJob
-        self._value = 1.0
+        self._value = self.initial_value
 
     @property
     def value(self):
@@ -832,10 +839,41 @@ class SceneDesaturation(object):
     @value.setter
     def value(self, value):
         self._value = value
-        self.ppJob.SetPostProcessVariable(evePostProcess.POST_PROCESS_DESATURATE, self.attrName, value)
+        self.ppJob.SetPostProcessVariable(self.ppType, self.attrName, value)
 
     def Disable(self):
-        self.ppJob.RemovePostProcess(evePostProcess.POST_PROCESS_DESATURATE)
+        self.ppJob.RemovePostProcess(self.ppType)
 
     def Enable(self):
-        self.ppJob.AddPostProcess(evePostProcess.POST_PROCESS_DESATURATE)
+        self.ppJob.AddPostProcess(self.ppType)
+
+
+class SceneDesaturation(ScenePostProcessWrapper):
+    attrName = 'SaturationFactor'
+    ppType = evePostProcess.POST_PROCESS_DESATURATE
+
+
+class SceneFadeOut(ScenePostProcessWrapper):
+    attrName = 'Color'
+    ppType = evePostProcess.POST_PROCESS_FADE_OUT
+    initial_value = (0.0, 0.0, 0.0, 0.0)
+
+    def __init__(self, ppJob):
+        ScenePostProcessWrapper.__init__(self, ppJob)
+        self._value = self.initial_value
+
+    @property
+    def color(self):
+        return self._value[:3]
+
+    @color.setter
+    def color(self, c):
+        self.value = c + (self._value[3],)
+
+    @property
+    def opacity(self):
+        return self._value[3]
+
+    @opacity.setter
+    def opacity(self, c):
+        self.value = self._value[:3] + (c,)

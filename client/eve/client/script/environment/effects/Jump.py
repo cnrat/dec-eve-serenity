@@ -4,6 +4,7 @@ import random
 import blue
 import geo2
 from eve.client.script.ui.camera.cameraUtil import IsNewCameraActive
+from eve.client.script.ui.view.viewStateConst import ViewState
 import evecamera
 import trinity
 import uthread
@@ -14,6 +15,7 @@ import evecamera.shaker as shaker
 import evefisfx.jumptransitioncamera as transitioncam
 from eve.client.script.environment.effects.GenericEffect import GenericEffect, ShipEffect, STOP_REASON_DEFAULT
 import eve.client.script.ui.shared.infoPanels.infoPanelConst as infoPanel
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 
 class JumpTransitionTunnel(object):
     __guid__ = 'effects.JumpTransitionTunnel'
@@ -139,7 +141,7 @@ class JumpTransitionTunnel(object):
 
     def GetCamera(self):
         if IsNewCameraActive():
-            return sm.GetService('sceneManager')._GetOrCreateCamera(evecamera.CAM_JUMP)
+            return sm.GetService('sceneManager').GetOrCreateCamera(evecamera.CAM_JUMP)
         else:
             return sm.GetService('sceneManager').GetActiveSpaceCamera()
 
@@ -187,7 +189,7 @@ class JumpTransitionTunnel(object):
         camera = self.GetCamera()
         camera.shakeController.EndCameraShake('JumpIn')
         if IsNewCameraActive():
-            sm.GetService('sceneManager').ActivatePrimarySpaceCam()
+            sm.GetService('viewState').GetView(ViewState.Space).ActivatePrimaryCamera()
         with ExceptionEater('JumpTransitionTunnelEnd'):
             if not self.destinationSceneApplied:
                 self.transition.ApplyDestinationScene()
@@ -348,7 +350,7 @@ class JumpTransitionWormhole(object):
         if self.resPath is not None:
             self.model = trinity.Load(self.resPath)
         transition = sm.GetService('viewState').GetTransitionByName('inflight', 'inflight')
-        transition.InitializeWormholeTransition(cfg.graphics.Get(wormholeItem.nebulaType).graphicFile)
+        transition.InitializeWormholeTransition(GetGraphicFile(wormholeItem.nebulaType))
         self.transition = transition
         cubeParams = self.model.Find('trinity.TriTextureParameter')
         for cube in cubeParams:
@@ -376,7 +378,7 @@ class JumpTransitionWormhole(object):
         blue.synchro.Sleep(500)
         if self.startCS is not None:
             self.startCS.Play()
-        blue.synchro.Sleep(3000)
+        blue.synchro.Sleep(1000)
         self.transition.ApplyDestinationScene()
         if self.midCS is not None:
             self.midCS.Play()
@@ -421,8 +423,9 @@ class JumpTransitionWormhole(object):
         if self.stopCS is not None:
             self.stopCS.Play()
         if IsNewCameraActive():
-            blue.synchro.SleepSim(3000)
-            sm.GetService('sceneManager').ActivatePrimarySpaceCam()
+            blue.synchro.SleepSim(500)
+            sm.GetService('viewState').GetView(ViewState.Space).ActivatePrimaryCamera()
+            blue.synchro.SleepSim(1500)
         else:
             blue.synchro.SleepSim(500)
             camera = self.GetCamera()

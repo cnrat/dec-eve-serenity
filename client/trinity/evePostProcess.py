@@ -12,6 +12,7 @@ POST_PROCESS_ICE_FOG = 'ICE_FOG'
 POST_PROCESS_BLOOM_HIGH = 'BLOOM_HIGH'
 POST_PROCESS_BLOOM_LOW = 'BLOOM_LOW'
 POST_PROCESS_DESATURATE = 'DESATURATE'
+POST_PROCESS_FADE_OUT = 'FADE_OUT'
 POST_PROCESS_INCURSION_OVERLAY = 'INCURSION_OVERLAY'
 POST_PROCESS_SHATTEREDWORMHOLE_OVERLAY = 'SHATTEREDWORMHOLE_OVERLAY'
 POST_PROCESS_DEFAULT_LUT = 'POST_PROCESS_DEFAULT_LUT'
@@ -29,7 +30,8 @@ POST_PROCESS_PATHS = {POST_PROCESS_ASTEROID_FOG: 'res:/fisfx/postprocess/Asteroi
  POST_PROCESS_BLOOM_LOW: 'res:/fisfx/postprocess/BloomExp.red',
  POST_PROCESS_BLOOM_HIGH: 'res:/fisfx/postprocess/BloomVivid.red',
  POST_PROCESS_SHATTEREDWORMHOLE_OVERLAY: 'res:/dx9/scene/postprocess/TheraLUT.red',
- POST_PROCESS_DEFAULT_LUT: 'res:/dx9/scene/postprocess/DefaultLUT.red'}
+ POST_PROCESS_DEFAULT_LUT: 'res:/dx9/scene/postprocess/DefaultLUT.red',
+ POST_PROCESS_FADE_OUT: 'res:/fisfx/postprocess/FadeToBlack.red'}
 
 class EvePostProcess(object):
 
@@ -131,7 +133,8 @@ class EvePostProcessingJob(object):
     _postProcessOrder = [PP_GROUP_FOG,
      PP_GROUP_BLOOM,
      PP_GROUP_LUT,
-     POST_PROCESS_DESATURATE]
+     POST_PROCESS_DESATURATE,
+     POST_PROCESS_FADE_OUT]
 
     def __init__(self, *args):
         self.resolveTarget = None

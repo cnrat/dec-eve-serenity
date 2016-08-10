@@ -67,6 +67,9 @@ class Window(WindowCore):
         WindowCore.Prepare_LoadingIndicator_(self)
         self.sr.loadingIndicator.icons = [ 'ui_38_16_%s' % (210 + i) for i in xrange(8) ]
 
+    def AddCustomHeaderButtons(self, container):
+        pass
+
     def Prepare_HeaderButtons_(self):
         self.sr.headerButtons = ContainerAutoSize(name='headerButtons', state=uiconst.UI_PICKCHILDREN, align=uiconst.TOPRIGHT, parent=self.sr.maincontainer, pos=(4, 4, 0, 16), idx=0)
         isStack = isinstance(self, self.GetStackClass())
@@ -113,6 +116,8 @@ class Window(WindowCore):
             if not showflag:
                 continue
             btn = ButtonIcon(parent=self.sr.headerButtons, align=uiconst.TORIGHT, width=16, texturePath=texturePath, hint=hint, func=clickfunc)
+
+        self.AddCustomHeaderButtons(self.sr.headerButtons)
 
     def Prepare_Background_(self):
         self.sr.underlay = WindowUnderlay(parent=self)

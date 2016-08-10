@@ -1,7 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\structure\accessGroups\accessGroupsController.py
 from eve.client.script.ui.structure.accessGroups.menuProvider import MenuProvider
-from eve.client.script.ui.structure.accessGroups.ownerGroupUtils import GetMemberIDsToUpdate, ConvertDBRowToBundle, GetMembershipTypeByMemberID
+from eve.client.script.ui.structure.accessGroups.ownerGroupUtils import GetMemberIDsToUpdate, GetMembershipTypeByMemberID
 from localization import GetByLabel
 from signals import Signal
 import ownergroups.ownergroupConst as ownergroupConst
@@ -49,7 +49,7 @@ class AccessGroupsController(object):
         self.UpdateClientCache(groupID, self.membersByGroupID, updateDict)
 
     def UpdateClientCache(self, groupID, cacheDict, updateDict):
-        cacheForGroup = cacheDict.get(groupID, None)
+        cacheForGroup = cacheDict.get(groupID)
         if cacheForGroup is None:
             return
         else:
@@ -94,23 +94,16 @@ class AccessGroupsController(object):
         return (memberIDsInGroups, updateDict)
 
     def GetMyGroups(self):
-        if self.groupByGroupID is not None:
-            return self.groupByGroupID
-        else:
-            myGroups = self.remoteSvc.GetMyGroups()
-            self.groupByGroupID = {}
-            for eachGroup in myGroups:
-                groupBundle = ConvertDBRowToBundle(eachGroup)
-                self.groupByGroupID[eachGroup.groupID] = groupBundle
-
-            return self.groupByGroupID
+        if self.groupByGroupID is None:
+            self.groupByGroupID = {g.groupID:g for g in self.remoteSvc.GetMyGroups()}
+        return self.groupByGroupID
 
     def UpdatGroupCache(self, groupID, updateDict):
         self.UpdateClientCache(groupID, self.groupByGroupID, updateDict)
 
     def GetMyGroupInfo(self, groupID):
         myGroups = self.GetMyGroups()
-        return myGroups.get(groupID, None)
+        return myGroups.get(groupID)
 
     def IsGroupCorpOwned(self, groupID):
         groupInfo = self.GetMyGroupInfo(groupID)
@@ -161,20 +154,7 @@ class AccessGroupsController(object):
         elif not fetchToServer:
             return None
         else:
-            groupInfo = self.remoteSvc.GetGroup(groupID)
-            return ConvertDBRowToBundle(groupInfo)
-
-    def GetGroupInfoWithAdmins(self, groupID):
-        groupInfo = self.GetGroupInfoFromID(groupID, fetchToServer=True)
-        if groupInfo and hasattr(groupInfo, 'admins'):
-            return groupInfo
-        groupAdmins = self.remoteSvc.GetGroupAdmins(groupID)
-        groupInfo['admins'] = [ g.memberID for g in groupAdmins ]
-        if groupID in self.publicGroupsByGroupID:
-            self.publicGroupsByGroupID[groupID] = groupInfo
-        elif groupID in self.groupByGroupID:
-            self.groupByGroupID[groupID] = groupInfo
-        return groupInfo
+            return self.remoteSvc.GetGroup(groupID)
 
     def PopulatePublicGroupInfo(self, groupIDs, forceFetchInfoForPublicGroup=False):
         self.GetMyGroups()
@@ -183,10 +163,8 @@ class AccessGroupsController(object):
             for gID in groupIDsToFetch:
                 self.publicGroupsByGroupID.pop(gID, None)
 
-        groupRows = self.remoteSvc.GetGroupsMany(groupIDsToFetch)
-        groupBundles = [ ConvertDBRowToBundle(g) for g in groupRows ]
-        for eachGroup in groupBundles:
-            self.publicGroupsByGroupID[eachGroup.groupID] = eachGroup
+        for group in self.remoteSvc.GetGroupsMany(groupIDsToFetch):
+            self.publicGroupsByGroupID[group.groupID] = group
 
         return
 
@@ -316,19 +294,13 @@ class AccessGroupsController(object):
         if self.IsInChange([ownergroupConst.GROUP_NAME_CHANGED, ownergroupConst.GROUP_DESCRIPTION_CHANGED], recordedChanges):
             self.InvalidateGetMyGroupsIfNeeded()
             self.on_group_updated(groupID)
-        if self.IsInChange([ownergroupConst.GROUP_MEMBER_ADDED, ownergroupConst.GROUP_TYPE_CHANGED, ownergroupConst.GROUP_MEMBER_REMOVED], recordedChanges):
+        if self.IsInChange([ownergroupConst.GROUP_MEMBER_ADDED, ownergroupConst.GROUP_MEMBERTYPE_CHANGED, ownergroupConst.GROUP_MEMBER_REMOVED], recordedChanges):
             oldGroupMembers = self.membersByGroupID.get(groupID, {}).copy()
             self.InvalidateGetMemberCache(groupID)
-            if ownergroupConst.GROUP_IS_CHANGING_SELF in recordedChanges:
+            if ownergroupConst.GROUP_CHANGED_FOR_LISTENER in recordedChanges:
                 self.InvalidateGetMyGroupsIfNeeded()
                 self.on_group_updated(groupID)
                 return
-            if ownergroupConst.GROUP_TYPE_CHANGED in recordedChanges:
-                try:
-                    del self.GetMyGroupInfo(groupID)['admins']
-                except KeyError:
-                    pass
-
             if selectedGroupID == groupID:
                 if ownergroupConst.GROUP_MEMBER_REMOVED in recordedChanges:
                     self.OnCharactersRemoved(groupID, oldGroupMembers)
@@ -356,11 +328,7 @@ class AccessGroupsController(object):
             self.on_groupmembers_removed(groupID, removedMemberIDs)
 
     def IsInChange(self, changeList, recordedChanges):
-        for eachChange in changeList:
-            if eachChange in recordedChanges:
-                return True
-
-        return False
+        return bool(set(changeList) & set(recordedChanges))
 
     def GetCurrentSearchResults(self):
         return self.currentSearchResults

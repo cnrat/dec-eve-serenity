@@ -8,3 +8,12 @@ def ReloadTextures(obj):
         if texresource.resource and texresource.resourcePath.lower() not in reloadedpaths:
             texresource.resource.Reload()
             reloadedpaths.add(texresource.resourcePath.lower())
+
+
+def TrinObjectHasCurves(trinObject):
+    if hasattr(trinObject, 'translationCurve') and trinObject.translationCurve is not None:
+        return True
+    elif hasattr(trinObject, 'rotationCurve') and trinObject.rotationCurve is not None:
+        return True
+    else:
+        return False

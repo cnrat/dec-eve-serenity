@@ -65,7 +65,8 @@ class Inventory(uicontrols.Window):
      'OnCapacityChange',
      'OnWreckLootAll',
      'OnShowFullInvTreeChanged',
-     'DoBallsRemove']
+     'DoBallsRemove',
+     'OnInvTreeUpdatingChanged']
     default_windowID = ('Inventory', None)
     default_width = 600
     default_height = 450
@@ -97,6 +98,7 @@ class Inventory(uicontrols.Window):
         self.containersInRangeUpdater = None
         self.history = HistoryBuffer(HISTORY_LENGTH)
         self.breadcrumbInvIDs = []
+        self.treeUpdatePending = False
         if session.stationid2:
             invCtrl.StationItems().GetItems()
         self.dividerCont = uicontrols.DragResizeCont(name='dividerCont', settingsID='invTreeViewWidth_%s' % self.GetWindowSettingsID(), parent=self.sr.main, align=uiconst.TOLEFT, minSize=50, defaultSize=TREE_DEFAULT_WIDTH, clipChildren=True, onResizeCallback=self.OnDividerContResize, padLeft=4)
@@ -162,7 +164,7 @@ class Inventory(uicontrols.Window):
             self.currInvID = settings.user.ui.Get('invLastOpenContainerData_%s' % self.GetWindowSettingsID(), None)
         self.ShowInvContLoadingWheel()
         uthread.new(self.ConstructFilters)
-        uthread.new(self.RefreshTree)
+        uthread.new(self.RefreshTree, initialLoad=True)
         return
 
     def InventorySettings(self, menuParent):
@@ -675,7 +677,7 @@ class Inventory(uicontrols.Window):
                 return ('ActiveShipCargo', None)
             if invCtrlName in ('StationContainer', 'ShipCargo', 'ShipDroneBay'):
                 return ('%s_%s' % invID, invID[1])
-            if invCtrlName in ('StationCorpHangar', 'POSCorpHangar'):
+            if invCtrlName in ('StationCorpHangar', 'POSCorpHangar', 'StructureCorpHangar'):
                 return ('%s_%s_%s' % invID, None)
             if invCtrlName in 'StationCorpHangars':
                 return ('%s_%s' % invID, None)
@@ -959,6 +961,8 @@ class Inventory(uicontrols.Window):
 
     def _DoBallRemove(self, ball, slimItem, terminal):
         invID = ('ShipCargo', util.GetActiveShip())
+        if slimItem.itemID == session.structureid:
+            return
         for entry in self.GetTreeEntryByItemID(slimItem.itemID):
             if entry.data.GetID() == invID:
                 continue
@@ -1074,9 +1078,12 @@ class Inventory(uicontrols.Window):
         self.RefreshTree()
 
     @telemetry.ZONE_METHOD
-    def RefreshTree(self, invID=None):
+    def RefreshTree(self, invID=None, initialLoad=False):
         if invID:
             self.currInvID = invID
+        if not initialLoad and not sm.GetService('inv').IsTreeUpdatingEnabled():
+            self.treeUpdatePending = True
+            return
         while not session.IsItSafe():
             logger.debug('RefreshTree - session is mutating. Sleeping for 250ms')
             blue.pyos.synchro.SleepSim(250)
@@ -1087,6 +1094,7 @@ class Inventory(uicontrols.Window):
 
     @telemetry.ZONE_METHOD
     def _RefreshTree(self):
+        self.treeUpdatePending = False
         if self.destroyed:
             return
         if self.invCont:
@@ -1322,6 +1330,10 @@ class Inventory(uicontrols.Window):
             self.dividerCont.width = 0
         self.expandTreeBtn.Enable()
         self.SetInvTreeExpandedSetting(False)
+
+    def OnInvTreeUpdatingChanged(self, newState):
+        if newState and self.treeUpdatePending:
+            self.RefreshTree()
 
 
 class InventoryPrimary(Inventory):

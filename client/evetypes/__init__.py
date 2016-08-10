@@ -359,6 +359,10 @@ def GetIsGroupAnchoredByGroup(groupID):
     return _GetAttributeForGroup(groupID, 'anchored')
 
 
+def GetExplosionBucketIDByGroup(groupID):
+    return getattr(_GetGroup(groupID), 'explosionBucketID', None)
+
+
 def IsGroupPublishedByGroup(groupID):
     return _GetAttributeForGroup(groupID, 'published')
 

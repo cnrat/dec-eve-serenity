@@ -43,6 +43,7 @@ class MultiBuy(SellBuyItemsWindow):
     tradeOnConfirm = False
     dropLabelPath = 'UI/Market/Marketbase/DropItemsToAddToBuy'
     cannotBeTradeLabelPath = 'UI/Market/MarketQuote/CannotBeBought'
+    badDeltaWarningPath = 'UI/Market/MarketQuote/MultiBuyTypesAboveAverage'
     corpCheckboxTop = 0
     numbersGridTop = 1
     showTaxAndBrokersFee = False
@@ -178,42 +179,21 @@ class MultiBuy(SellBuyItemsWindow):
         self.CreateNewBuyOrder(failedItems)
         self.VerifyExpiredOrders()
 
-    def ContinueAfterWarning(self, buyItemList):
+    def GetItemsWithBadDelta(self, buyItemList):
         highItems = []
         for item in buyItemList:
             if item.delta > 1.0:
                 highItems.append((item.delta, item))
 
+        return highItems
+
+    def GetOrderDeltaTextForWarning(self):
         orderPercentage = self.GetOrderDelta()
         orderText = ''
         if orderPercentage > 1.0:
             percText = GetByLabel('UI/Common/Percentage', percentage=FmtAmt(abs(orderPercentage * 100), showFraction=0))
             orderText = GetByLabel('UI/Market/MarketQuote/MultiBuyAboveAverage', percentage=percText)
-        hightText = ''
-        if highItems:
-            highTextList = [GetByLabel('UI/Market/MarketQuote/MultiBuyTypesAboveAverage')]
-            highItems.sort(key=lambda x: x[0], reverse=True)
-            for perc, item in highItems:
-                percText = GetByLabel('UI/Common/Percentage', percentage=FmtAmt(perc * 100, showFraction=0))
-                highTextList.append('- %s (%s)' % (evetypes.GetName(item.typeID), percText))
-
-            hightText = '<br>'.join(highTextList)
-        if orderText or hightText:
-            warningTextList = []
-            if orderText:
-                warningTextList.append(orderText)
-                warningTextList.append('')
-            if hightText:
-                warningTextList.append(hightText)
-                warningTextList.append('')
-            warningTextList.append(GetByLabel('UI/Market/MarketQuote/MultiBuyAboveAverageConfirmation'))
-            warningText = '<br>'.join(warningTextList)
-            headerLabel = GetByLabel('UI/Generic/Warning')
-            ret = eve.Message('CustomQuestion', {'header': headerLabel,
-             'question': warningText}, uiconst.YESNO, default=uiconst.ID_NO)
-            if ret != uiconst.ID_YES:
-                return False
-        return True
+        return orderText
 
     def GetValidatedAndFailedTypes(self):
         allItems = self.GetItems()
@@ -393,14 +373,6 @@ class MultiBuy(SellBuyItemsWindow):
                 numAvailableTypes += 1
 
         return (numTypes, numAvailableTypes)
-
-    def GetItemsIterator(self, onlyValid=False):
-        for item in self.GetItems():
-            if not item:
-                continue
-            if onlyValid and not self.GetValidatedItem(item):
-                continue
-            yield item
 
     def DropItems(self, dragObj, nodes):
         if dragObj is None:

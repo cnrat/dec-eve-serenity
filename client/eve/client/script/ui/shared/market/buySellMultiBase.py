@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\eve\client\script\ui\shared\market\buySellMultiBase.py
 import math
+from carbon.common.script.util.format import FmtAmt
 from carbon.common.script.util.linkUtil import GetShowInfoLink
 from carbonui import const as uiconst
 from carbonui.control.scrollContainer import ScrollContainer
@@ -38,6 +39,7 @@ class SellBuyItemsWindow(Window):
     showTaxAndBrokersFee = True
     dropLabelPath = 'UI/Market/Marketbase/DropItemsToAdd'
     cannotBeTradeLabelPath = 'UI/Market/MarketQuote/CannotBeSold'
+    badDeltaWarningPath = 'UI/Market/MarketQuote/MultiBuyTypesAboveAverage'
 
     def ApplyAttributes(self, attributes):
         Window.ApplyAttributes(self, attributes)
@@ -260,3 +262,49 @@ class SellBuyItemsWindow(Window):
 
     def ClearErrorLists(self):
         self.cannotTradeItemList = []
+
+    def GetValidatedItem(self, item):
+        return None
+
+    def GetItemsIterator(self, onlyValid=False):
+        for item in self.GetItems():
+            if not item:
+                continue
+            if onlyValid and not self.GetValidatedItem(item):
+                continue
+            yield item
+
+    def GetOrderDeltaTextForWarning(self):
+        pass
+
+    def GetItemsWithBadDelta(self, args):
+        return []
+
+    def ContinueAfterWarning(self, buyItemList):
+        highItems = self.GetItemsWithBadDelta(buyItemList)
+        orderText = self.GetOrderDeltaTextForWarning()
+        hightText = ''
+        if highItems:
+            highTextList = [GetByLabel(self.badDeltaWarningPath)]
+            highItems.sort(key=lambda x: x[0], reverse=True)
+            for perc, item in highItems:
+                percText = GetByLabel('UI/Common/Percentage', percentage=FmtAmt(perc * 100, showFraction=0))
+                highTextList.append('- %s (%s)' % (evetypes.GetName(item.typeID), percText))
+
+            hightText = '<br>'.join(highTextList)
+        if orderText or hightText:
+            warningTextList = []
+            if orderText:
+                warningTextList.append(orderText)
+                warningTextList.append('')
+            if hightText:
+                warningTextList.append(hightText)
+                warningTextList.append('')
+            warningTextList.append(GetByLabel('UI/Market/MarketQuote/MultiBuyAboveAverageConfirmation'))
+            warningText = '<br>'.join(warningTextList)
+            headerLabel = GetByLabel('UI/Generic/Warning')
+            ret = eve.Message('CustomQuestion', {'header': headerLabel,
+             'question': warningText}, uiconst.YESNO, default=uiconst.ID_NO)
+            if ret != uiconst.ID_YES:
+                return False
+        return True

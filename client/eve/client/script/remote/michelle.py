@@ -282,14 +282,7 @@ class Michelle(service.Service):
         elif not doWait:
             return None
         else:
-            WAIT_TIME = 1
-            MAX_TRIES = 30
-            tries = 0
-            while not self.bpReady and tries < MAX_TRIES:
-                self.LogInfo('Waiting for ballpark', tries)
-                tries = tries + 1
-                blue.pyos.synchro.SleepSim(WAIT_TIME * 1000)
-
+            tries = self.WaitForBallpark()
             if not self.bpReady:
                 logstring = 'Failed to get a valid ballpark in time after trying %d times' % tries
                 self.LogError(logstring)
@@ -298,6 +291,17 @@ class Michelle(service.Service):
                 return None
             return self.__bp
             return None
+
+    def WaitForBallpark(self):
+        WAIT_TIME = 1
+        MAX_TRIES = 30
+        tries = 0
+        while not self.bpReady and tries < MAX_TRIES:
+            self.LogInfo('Waiting for ballpark', tries)
+            tries = tries + 1
+            blue.pyos.synchro.SleepSim(WAIT_TIME * 1000)
+
+        return tries
 
     def GetRemotePark(self):
         if self.__bp is None:
@@ -1288,7 +1292,10 @@ class Park(decometaclass.WrapBlueClass('destiny.Ballpark')):
         balls = []
         for ball in self.globals.itervalues():
             if ball.radius > 90000:
-                balls.append((ball, self.GetInvItem(ball.id), self.GetWarpinPoint(ball.id)))
+                ballItem = self.GetInvItem(ball.id)
+                if ballItem is None:
+                    continue
+                balls.append((ball, ballItem, self.GetWarpinPoint(ball.id)))
 
         return balls
 

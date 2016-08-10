@@ -90,9 +90,6 @@ class TacticalCamera(BaseSpaceCamera):
         distance = max(maxZoom, min(distance, minZoom))
         return distance
 
-    def ResetFOV(self):
-        self.SetFovTarget(self.default_fov)
-
     def _SetLookAtBall(self, ball, duration=0.6):
         if ball:
             self.positionAnimator = PositionAnimatorAttached(self, ball, duration)
@@ -161,17 +158,17 @@ class TacticalCamera(BaseSpaceCamera):
     def ResetCamera(self, *args):
         self.LookAt(self.ego)
 
-    def OnActivated(self, lastCamera=None, itemID=None, **kwargs):
+    def OnActivated(self, lastCamera=None, itemID=None, duration=None, **kwargs):
         settings.char.ui.Set('spaceCameraID', evecamera.CAM_TACTICAL)
         if lastCamera:
             distance = max(self.maxZoom, min(geo2.Vec3Length(self.eyePosition), self.minZoom))
-            if lastCamera.cameraID == evecamera.CAM_SHIPORBIT:
+            if lastCamera.cameraID in (evecamera.CAM_SHIPORBIT, evecamera.CAM_UNDOCK, evecamera.CAM_ENTERSPACE):
                 self._ResetEyeAndAtPosition(lastCamera.eyePosition, lastCamera.atPosition, distance)
             else:
                 animate = lastCamera.cameraID not in (evecamera.CAM_SHIPPOV, evecamera.CAM_HANGAR)
                 self._ResetEyeAndAtPosition(self.eyePosition, self.atPosition, distance, animate)
             self._SetLookAtBall(GetBall(lastCamera.GetItemID()))
-            if lastCamera.cameraID in (evecamera.CAM_SHIPORBIT, evecamera.CAM_JUMP):
+            if lastCamera.cameraID != evecamera.CAM_SHIPPOV:
                 self.fov = lastCamera.fov
             self.ResetFOV()
         else:
@@ -187,11 +184,12 @@ class TacticalCamera(BaseSpaceCamera):
         direction = geo2.Vec3Normalize(direction)
         return direction
 
-    def _ResetEyeAndAtPosition(self, eyePos0, atPos0, distance=LOOKAT_DIST, animate=True):
+    def _ResetEyeAndAtPosition(self, eyePos0, atPos0, distance=LOOKAT_DIST, animate=True, duration=None):
         direction = self._GetNewDirection(geo2.Vec3Subtract(eyePos0, atPos0))
         eyePos1 = geo2.Vec3Add(atPos0, geo2.Vec3Scale(direction, distance))
         if animate:
-            duration = GetDurationByDistance(eyePos0, eyePos1, 0.4, 0.6)
+            if duration is None:
+                duration = GetDurationByDistance(eyePos0, eyePos1, 0.4, 0.6)
             atPos1 = atPos0
             diff = geo2.Vec3Scale(geo2.Vec3Direction(atPos0, eyePos0), distance / 5)
             atPos0 = geo2.Vec3Add(atPos0, diff)
@@ -199,6 +197,7 @@ class TacticalCamera(BaseSpaceCamera):
         else:
             self.SetAtPosition(atPos0)
             self.SetEyePosition(eyePos1)
+        return
 
     def Update(self):
         BaseSpaceCamera.Update(self)
@@ -277,7 +276,9 @@ class TacticalCamera(BaseSpaceCamera):
         distanceToNewAtPos = geo2.Vec3Distance(self.eyePosition, atPos)
         distanceToNewAtPos = min(evecamera.LOOKATRANGE_MAX_NEW, distanceToNewAtPos)
         lookVec = geo2.Vec3Scale(self.GetLookAtDirection(), distanceToNewAtPos)
-        self.SetAtPosition(geo2.Vec3Subtract(self.eyePosition, lookVec))
+        newAtPos = geo2.Vec3Subtract(self.eyePosition, lookVec)
+        if newAtPos != self._eyePosition:
+            self.SetAtPosition(newAtPos)
 
     def OnBallRemoved(self, ball):
         if self.positionAnimator and ball == self.positionAnimator.ball:
@@ -295,7 +296,7 @@ class TacticalCamera(BaseSpaceCamera):
     def Orbit(self, *args):
         if self.IsTracking() and self.IsBeyondZoomDistance():
             self.StopTracking()
-            self.AnimLookAtTransit(self.positionAnimator.GetAtPosition(), self.eyePosition)
+            self.AnimLookAtTransit(self.positionAnimator.ball, self.eyePosition)
         else:
             BaseSpaceCamera.Orbit(self, *args)
 

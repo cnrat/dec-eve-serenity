@@ -121,6 +121,7 @@ class AchievementAuraWindow(Window):
         self.MakeUnstackable()
         mainArea = self.GetMainArea()
         mainArea.clipChildren = True
+        self.isFadingOut = False
         leftSide = Container(parent=mainArea, align=uiconst.TOLEFT, width=AURA_SIZE * 0.8)
         auraSprite = Sprite(parent=leftSide, texturePath='res:/UI/Texture/classes/achievements/auraAlpha.png', pos=(0,
          -4,
@@ -137,6 +138,9 @@ class AchievementAuraWindow(Window):
             self.Step_TaskInfo_Manual(attributes.loadAchievementTask, attributes.loadAchievementGroup)
         else:
             self.UpdateOpportunityState()
+
+    def AddCustomHeaderButtons(self, container):
+        settingControl = OpportunitiesSettingsMenu(parent=container, align=uiconst.TORIGHT, width=16, top=1)
 
     def OpenOpportunitiesTree(self, *args):
         from achievements.client.achievementTreeWindow import AchievementTreeWindow
@@ -168,11 +172,19 @@ class AchievementAuraWindow(Window):
             return
         self.ResetActiveAchievementGroup(self.activeStep)
 
+    def Close(self, setClosed=False, *args, **kwds):
+        if not self.isFadingOut:
+            self.FadeOutTransitionAndClose(args, kwds)
+        else:
+            Window.Close(self, setClosed, args, kwds)
+
     def FadeOutTransitionAndClose(self, *args, **kwds):
+        self.isFadingOut = True
         self.FadeOutTransition()
         activeStep = self.activeStep
         self.Close()
         self.ResetActiveAchievementGroup(activeStep)
+        self.isFadingOut = False
 
     def ResetActiveAchievementGroup(self, activeStep):
         if activeStep in (STEP_INTRO,
@@ -237,39 +249,36 @@ class AchievementAuraWindow(Window):
         self.FadeOutTransition()
         self.mainContent.Flush()
         self.LoadMediumText(GetByLabel('Achievements/AuraText/intro'), padRight=8)
-        self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.Step_PresentOpportunity, None), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
+        self._LoadDismissAcceptButtons()
         self.LoadTreeLink()
         self.SetOrder(0)
         self.activeStep = STEP_INTRO
         settings.char.ui.Set('opportunities_suppress_taskinfo', False)
         self.FadeInTransition()
-        return
 
     def Step_AskStart(self):
         self.FadeOutTransition()
         self.mainContent.Flush()
         self.LoadLargeText(GetByLabel('Achievements/AuraText/IntroAfterDismissHeader'))
         self.LoadMediumText(GetByLabel('Achievements/AuraText/IntroAfterDismissText'))
-        self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.Step_PresentOpportunity, None), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
+        self._LoadDismissAcceptButtons()
         self.LoadTreeLink()
         self.SetCaption(GetByLabel('UI/Achievements/OpportunitiesHint'))
         self.SetOrder(0)
         self.activeStep = STEP_INTRO2
         self.FadeInTransition()
-        return
 
     def Step_ActiveCompleted(self):
         self.FadeOutTransition()
         self.mainContent.Flush()
         self.LoadLargeText(GetByLabel('Achievements/AuraText/CompletedReactivatedHeader'))
         self.LoadMediumText(GetByLabel('Achievements/AuraText/CompletedReactivatedText'))
-        self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.Step_PresentOpportunity, None), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
+        self._LoadDismissAcceptButtons()
         self.LoadTreeLink()
         self.SetCaption(GetByLabel('UI/Achievements/OpportunitiesHint'))
         self.SetOrder(0)
         self.activeStep = STEP_COMPLETED_NEXT
         self.FadeInTransition()
-        return
 
     def Step_PresentOpportunity(self, btn=None, groupToPresent=None, *args):
         if groupToPresent:
@@ -278,19 +287,17 @@ class AchievementAuraWindow(Window):
             nextGroup = GetFirstIncompleteAchievementGroup()
         if not nextGroup:
             return self.Step_AllDone()
-        else:
-            self.FadeOutTransition()
-            self.mainContent.Flush()
-            self.LoadLargeText(GetByLabel(nextGroup.groupName))
-            self.LoadDivider()
-            self.LoadMediumText(GetByLabel(nextGroup.groupDescription))
-            self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.ActivateNextIncompleteOpportunity, (False, groupToPresent)), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
-            self.LoadTreeLink()
-            self.SetCaption(GetByLabel('Achievements/UI/NewOpportunity'))
-            self.SetOrder(0)
-            self.activeStep = STEP_PRESENT_OPPORTUNITY
-            self.FadeInTransition()
-            return
+        self.FadeOutTransition()
+        self.mainContent.Flush()
+        self.LoadLargeText(GetByLabel(nextGroup.groupName))
+        self.LoadDivider()
+        self.LoadMediumText(GetByLabel(nextGroup.groupDescription))
+        self.LoadPresentButtons(groupToPresent)
+        self.LoadTreeLink()
+        self.SetCaption(GetByLabel('Achievements/UI/NewOpportunity'))
+        self.SetOrder(0)
+        self.activeStep = STEP_PRESENT_OPPORTUNITY
+        self.FadeInTransition()
 
     def Step_TaskInfo(self, achievementTask, activeGroup, manualLoad=False):
         self.FadeOutTransition()
@@ -335,12 +342,21 @@ class AchievementAuraWindow(Window):
         self.mainContent.Flush()
         self.LoadLargeText(GetByLabel('Achievements/AuraText/AllCompletedHeader'))
         self.LoadMediumText(GetByLabel('Achievements/AuraText/AllCompletedText'))
-        self.LoadButtons(((GetByLabel('Achievements/UI/Accept'), self.ActivateCareerFunnel, (False,)), (GetByLabel('Achievements/UI/Dismiss'), self.FadeOutTransitionAndClose, None)))
+        self._LoadAllDoneButtons()
         self.SetCaption(GetByLabel('UI/Achievements/OpportunitiesHint'))
         self.SetOrder(0)
         self.activeStep = STEP_ALL_DONE
         self.FadeInTransition()
+
+    def _LoadDismissAcceptButtons(self):
+        self.LoadButtons(((GetByLabel('Achievements/UI/next'), self.Step_PresentOpportunity, None),))
         return
+
+    def LoadPresentButtons(self, groupToPresent):
+        self.LoadButtons(((GetByLabel('Achievements/UI/next'), self.ActivateNextIncompleteOpportunity, (False, groupToPresent)),))
+
+    def _LoadAllDoneButtons(self):
+        self.LoadButtons(((GetByLabel('Achievements/UI/next'), self.ActivateCareerFunnel, (False,)),))
 
     def ActivateNextIncompleteOpportunity(self, emphasize, groupToPresent=None, **kwargs):
         if groupToPresent:
@@ -399,8 +415,6 @@ class AchievementAuraWindow(Window):
 
     def LoadTreeLink(self):
         buttonContainer = ContainerAutoSize(parent=self.mainContent, align=uiconst.TOTOP, alignMode=uiconst.TOPLEFT)
-        textButton = IconTextButton(parent=buttonContainer, align=uiconst.TOPLEFT, label=GetByLabel('Achievements/UI/showAll'), texturePath='res:/ui/Texture/Classes/InfoPanels/opportunitiesTreeIcon.png', func=self.OpenOpportunitiesTree, iconSize=16, top=10)
-        settingControl = OpportunitiesSettingsMenu(parent=self.GetMainArea(), align=uiconst.BOTTOMRIGHT, top=6, left=6)
 
 
 class WindowUnderlayCustom(Container):

@@ -8,7 +8,6 @@ from eve.client.script.ui.view.aurumstore.aurumStoreView import AurumStoreView
 from eve.client.script.ui.view.characterCustomizationView import CharacterCustomizationView
 from eve.client.script.ui.view.characterSelectorView import CharacterSelectorView
 from eve.client.script.ui.view.cqView import CQView
-from eve.client.script.ui.view.fadeFromCQToSpaceTransition import FadeFromCQToSpaceTransition
 from eve.client.script.ui.view.fadeFromCharRecustomToCQTransition import FadeFromCharRecustomToCQTransition
 from eve.client.script.ui.view.fadeToCQTransition import FadeToCQTransition
 from eve.client.script.ui.view.hangarView import HangarView
@@ -22,7 +21,7 @@ from eve.client.script.ui.view.starMapView import StarMapView
 from eve.client.script.ui.view.structureView import StructureView
 from eve.client.script.ui.view.dockPanelView import DockPanelView
 from eve.client.script.ui.view.systemMapView import SystemMapView
-from eve.client.script.ui.view.transitions import FadeToBlackTransition, SpaceToStationTransition, FadeToBlackLiteTransition, SpaceToStructureTransition
+from eve.client.script.ui.view.transitions import FadeToBlackTransition, SpaceToStationTransition, FadeToBlackLiteTransition, SpaceToStructureTransition, StationToSpaceTransition, CharSelectCreateToSpaceTransition, ToHangarTransition, HangarToHangarTransition, ToCharCreationFromStructureTransition, ToStructureFromCharCreationTransition
 from eve.client.script.ui.view.viewStateConst import ViewState, ViewOverlay
 from eve.client.script.ui.view.worldspaceView import WorldspaceView
 logger = logging.getLogger(__name__)
@@ -65,12 +64,10 @@ def SetupViewStates(viewSvc, rootViewLayer):
     viewSvc.AddTransition(None, ViewState.Login)
     viewSvc.AddTransitions((ViewState.Login, None), (ViewState.Intro, ViewState.CharacterSelector, ViewState.CharacterCreation), FadeToBlackTransition(fadeTimeMS=250))
     viewSvc.AddTransitions((ViewState.Intro,), (ViewState.CharacterSelector, ViewState.CharacterCreation), FadeToBlackLiteTransition(fadeTimeMS=500))
-    viewSvc.AddTransitions((ViewState.CharacterSelector,), (ViewState.Space,
-     ViewState.CharacterCreation,
-     ViewState.Hangar,
-     ViewState.Structure,
-     ViewState.VirtualGoodsStore), FadeToBlackTransition(fadeTimeMS=250))
-    viewSvc.AddTransitions((ViewState.CharacterCreation,), (ViewState.Hangar, ViewState.CharacterSelector, ViewState.Space), FadeToBlackTransition(fadeTimeMS=250, allowReopen=False))
+    viewSvc.AddTransitions((ViewState.CharacterSelector,), (ViewState.CharacterCreation, ViewState.Structure, ViewState.VirtualGoodsStore), FadeToBlackTransition(fadeTimeMS=250))
+    viewSvc.AddTransitions((ViewState.CharacterSelector, ViewState.CharacterCreation), (ViewState.Space,), CharSelectCreateToSpaceTransition())
+    viewSvc.AddTransitions((ViewState.CharacterCreation, ViewState.CharacterSelector), (ViewState.Hangar,), ToHangarTransition(fadeTimeMS=250, allowReopen=False))
+    viewSvc.AddTransition(ViewState.CharacterCreation, ViewState.CharacterSelector, FadeToBlackTransition(fadeTimeMS=250, allowReopen=False))
     viewSvc.AddTransitions((ViewState.Space,
      ViewState.Hangar,
      ViewState.Structure,
@@ -88,6 +85,7 @@ def SetupViewStates(viewSvc, rootViewLayer):
      ViewState.WorldSpace,
      ViewState.Space,
      ViewState.Hangar,
+     ViewState.Structure,
      ViewState.StarMap,
      ViewState.SystemMap,
      ViewState.Planet,
@@ -96,13 +94,13 @@ def SetupViewStates(viewSvc, rootViewLayer):
      ViewState.WorldSpace,
      ViewState.Space,
      ViewState.Hangar,
+     ViewState.Structure,
      ViewState.StarMap,
      ViewState.SystemMap,
      ViewState.Planet,
      ViewState.ShipTree), FadeToBlackLiteTransition(fadeInTimeMS=5, fadeOutTimeMS=100))
     viewSvc.AddTransition(ViewState.Space, ViewState.Space, SpaceToSpaceTransition())
     viewSvc.AddTransition(ViewState.StarMap, ViewState.StarMap)
-    viewSvc.AddTransition(ViewState.Hangar, ViewState.Hangar, FadeToBlackLiteTransition(fadeTimeMS=250, allowReopen=False))
     viewSvc.AddTransitions((ViewState.Station, ViewState.WorldSpace), (ViewState.Hangar,
      ViewState.StarMap,
      ViewState.SystemMap,
@@ -120,14 +118,16 @@ def SetupViewStates(viewSvc, rootViewLayer):
      ViewState.ShipTree,
      ViewState.Structure), (ViewState.Station, ViewState.WorldSpace), FadeToCQTransition(fadeTimeMS=200, fallbackView=ViewState.Hangar, allowReopen=False))
     viewSvc.AddTransition(ViewState.Space, ViewState.Hangar, SpaceToStationTransition())
-    viewSvc.AddTransition(ViewState.Hangar, ViewState.Space, FadeToBlackTransition(fadeTimeMS=500))
     viewSvc.AddTransition(ViewState.Space, ViewState.Station, SpaceToStationTransition())
     viewSvc.AddTransition(ViewState.Hangar, ViewState.ShipTree, SpaceToStationTransition())
+    viewSvc.AddTransitions((ViewState.Hangar, ViewState.Station), (ViewState.Space,), StationToSpaceTransition(fadeTimeMS=500, fadeOutTimeMS=1000))
     viewSvc.AddTransition(ViewState.Structure, ViewState.Space)
     viewSvc.AddTransition(ViewState.Space, ViewState.Structure, SpaceToStructureTransition())
     viewSvc.AddTransition(ViewState.Structure, ViewState.Hangar, FadeToBlackTransition(fadeTimeMS=500))
     viewSvc.AddTransition(ViewState.Hangar, ViewState.Structure, FadeToBlackTransition(fadeTimeMS=500))
-    viewSvc.AddTransition(ViewState.Hangar, ViewState.Hangar, FadeToBlackTransition(fadeTimeMS=500))
+    viewSvc.AddTransition(ViewState.Structure, ViewState.CharacterCreation, ToCharCreationFromStructureTransition(fadeTimeMS=500))
+    viewSvc.AddTransition(ViewState.CharacterCreation, ViewState.Structure, ToStructureFromCharCreationTransition(fadeTimeMS=500))
+    viewSvc.AddTransition(ViewState.Hangar, ViewState.Hangar, HangarToHangarTransition(fadeTimeMS=500))
     viewSvc.AddTransitions((ViewState.StarMap,
      ViewState.Planet,
      ViewState.SystemMap,
@@ -141,7 +141,6 @@ def SetupViewStates(viewSvc, rootViewLayer):
      ViewState.WorldSpace), (ViewState.CharacterCreation,), FadeToBlackTransition(fadeTimeMS=200))
     viewSvc.AddTransition(ViewState.DockPanel, ViewState.DockPanel)
     viewSvc.AddTransition(ViewState.CharacterCreation, (ViewState.Station, ViewState.WorldSpace), FadeFromCharRecustomToCQTransition(fadeTimeMS=250))
-    viewSvc.AddTransition(ViewState.Station, ViewState.Space, FadeFromCQToSpaceTransition(fadeTimeMS=250))
     viewSvc.AddTransitions((ViewState.VirtualGoodsStore,), VIEWS_TO_AND_FROM_AURUM_STORE, FadeToBlackTransition(fadeTimeMS=250))
     viewSvc.AddTransitions(VIEWS_TO_AND_FROM_AURUM_STORE, (ViewState.VirtualGoodsStore,), FadeToBlackTransition(fadeTimeMS=250))
     logger.debug('Adding view state controlled overlays')

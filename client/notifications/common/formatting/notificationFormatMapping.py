@@ -11,6 +11,7 @@ from notifications.common.formatters.mailsummary import MailSummaryFormatter
 from notifications.common.formatters.newMail import NewMailFormatter
 from notifications.common.formatters.opportunity import AchievementOpportunityFormatter
 from notifications.common.formatters.plexDonation import PlexDonationReceivedFormatter, PlexDonationSentFormatter
+from notifications.common.formatters.seasons import SeasonalChallengeCompletedFormatter
 from notifications.common.formatters.skillPoints import UnusedSkillPointsFormatter
 from notifications.common.formatters.sovAllianceCapitalChange import SovAllianceCapitalChanged
 from notifications.common.formatters.sovBase import SovStructureDestroyed, SovEntosisCaptureStarted, SovStationServiceEnabled, SovStationServiceDisabled, SovStationServiceHalfCaptured, SovStructureDestructFinished
@@ -68,7 +69,8 @@ class NotificationFormatMapper:
          notificationConst.notificationTypeStructureLostDockingAccess: StructureLostDockingAccess,
          notificationConst.notificationTypeStructureServicesOffline: StructureServicesOffline,
          notificationConst.notificationTypeOwnershipTransferred: StructureOwnershipTransferred,
-         notificationConst.notificationTypeStructureItemsDelivered: StructureItemsDelivered}
+         notificationConst.notificationTypeStructureItemsDelivered: StructureItemsDelivered,
+         notificationConst.notificationTypeSeasonalChallengeCompleted: SeasonalChallengeCompletedFormatter}
 
     def Register(self, notificationTypeID, formatter):
         self.registry[notificationTypeID] = formatter

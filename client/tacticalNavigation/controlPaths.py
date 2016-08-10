@@ -4,12 +4,14 @@ import math
 from carbon.common.script.util.mathUtil import RayToPlaneIntersection
 import geo2
 import trinity
+import carbonui.const as uiconst
 import tacticalNavigation.ui as navUI
 from evegraphics.wrappers.vectorFunctions import OffsetPositionFunction, VectorFunction, XZPlaneRotationFunction
 _PATH_STATE_PICK_XZ = 0
 _PATH_STATE_PICK_Y = 1
 _PATH_STATE_INACTIVE = 2
 _PATH_STATE_DONE = 3
+LABEL_OFFSET = (0, 100, 0)
 _MAX_PICK_DISTANCE = 4000000
 
 class AreaIndication:
@@ -162,6 +164,7 @@ class SinglePointPath:
         self.fixedDistance = isFixed
 
     def Start(self, anchorCurve=None, areaIndication=None):
+        uicore.uilib.SetCursor(uiconst.UICURSOR_NONE)
         self.anchorFunction = VectorFunction(anchorCurve)
         self.offsetAnchorFunction = OffsetPositionFunction(anchorCurve)
         self.planarFunction = OffsetPositionFunction(anchorCurve)
@@ -169,6 +172,8 @@ class SinglePointPath:
         self.destinationFunction = OffsetPositionFunction(anchorCurve)
         destCurve = self.destinationFunction.GetBlueFunction()
         xzDirectionCurve = XZPlaneRotationFunction(anchorCurve, destCurve).GetBlueFunction()
+        self.labelFunction = OffsetPositionFunction(destCurve)
+        labelCurve = self.labelFunction.GetBlueFunction()
         self.distanceCircle = navUI.CreateRangeCircleConnector(navUI.STYLE_STRONG, self.color, anchorCurve, destCurve)
         self.xzLine = navUI.CreateStraightConnector(navUI.STYLE_DOTTED, self.color, anchorCurve, xzDirectionCurve)
         self.yLine = navUI.CreateStraightAnchorConnector(navUI.STYLE_FAINT, self.color, planarCurve, destCurve)
@@ -179,11 +184,13 @@ class SinglePointPath:
             areaIndication.SetCurves(self.offsetAnchorFunction, self.destinationFunction)
             areaIndication.Start()
         if self.showRange:
-            self.label = navUI.CreateHoverLabel('0', navUI.ColorCombination(self.color, navUI.ALPHA_HIGH), destCurve)
+            self.label = navUI.CreateHoverLabel('0', navUI.ColorCombination(self.color, navUI.ALPHA_SOLID), labelCurve)
+            self.label.measurer.fontSize = 20
         self.state = _PATH_STATE_PICK_XZ
         return
 
     def Abort(self):
+        uicore.uilib.SetCursor(uiconst.UICURSOR_HASMENU)
 
         def _destroyConnector(connector):
             if connector is not None:
@@ -223,6 +230,7 @@ class SinglePointPath:
         return
 
     def UpdatePosition(self, cameraController):
+        uicore.uilib.SetCursor(uiconst.UICURSOR_NONE)
         if self.state == _PATH_STATE_PICK_XZ:
             plane_center = self.anchorFunction.GetValue()
             ray_dir, ray_start = cameraController.GetPickVector()
@@ -231,6 +239,7 @@ class SinglePointPath:
             multiplier = (ray_start[1] - plane_center[1]) / -ray_dir[1]
             pick_position = geo2.Vec3Add(ray_start, geo2.Vec3Scale(ray_dir, multiplier))
             pick_dir = geo2.Vec3Subtract(pick_position, plane_center)
+            label_position = geo2.Vec3Add(LABEL_OFFSET, geo2.Vec3Scale(pick_position, 0.5))
             maxDistance = self.maxDistance + self.baseDistance
             if multiplier < 0:
                 pick_dir = geo2.Vec3Normalize(geo2.Vec3Scale(pick_dir, -1))
@@ -241,6 +250,7 @@ class SinglePointPath:
                 pick_position = geo2.Vec3Add(plane_center, geo2.Vec3Scale(pick_dir, maxDistance))
             self.planarFunction.SetOffsetWorldspace(pick_position)
             self.destinationFunction.SetOffsetWorldspace(pick_position)
+            self.labelFunction.SetOffsetWorldspace(label_position)
             self._UpdateDistanceText()
         elif self.state == _PATH_STATE_PICK_Y:
             xz_position = self.planarFunction.GetValue()

@@ -226,8 +226,11 @@ class ComboCore(Container):
             config = prefskey[-1]
             prefstype = prefskey[:-1]
             s = GetAttrs(settings, *prefstype)
-            if s:
+            try:
                 s.Set(config, self.GetValue())
+            except:
+                log.LogError('Failed to assign setting to: %s, %s' % (prefstype, config))
+
             return
 
     def _Expanded(self):

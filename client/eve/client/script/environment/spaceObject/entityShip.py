@@ -71,6 +71,8 @@ class EntityShip(Ship):
         else:
             self.fitted = True
             turretLocatorCount = int(self.model.GetTurretLocatorCount())
+            if 'dreadnought' in self.typeData.get('typeName', '').lower():
+                turretLocatorCount = min(max(turretLocatorCount, 1), 3)
             if self.launcherTypeID:
                 launcherSet = TurretSet.FitTurret(self.model, self.launcherTypeID, turretLocatorCount, count=1)
                 self.modules[0] = launcherSet

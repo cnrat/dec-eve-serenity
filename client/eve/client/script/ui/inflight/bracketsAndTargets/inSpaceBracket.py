@@ -603,8 +603,6 @@ class InSpaceBracket(uiprimitives.Bracket):
             self.OnClickSelect()
             if sm.GetService('target').IsTarget(self.itemID):
                 sm.GetService('state').SetState(self.itemID, state.activeTarget, 1)
-            elif uicore.uilib.Key(uiconst.VK_CONTROL) and uicore.uilib.Key(uiconst.VK_SHIFT):
-                sm.GetService('fleet').SendBroadcast_Target(self.itemID)
             self.sr.clicktime = blue.os.GetWallclockTime()
         self.OnTacticalItemClick()
         return

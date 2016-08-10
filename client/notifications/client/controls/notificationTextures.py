@@ -1,6 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\notifications\client\controls\notificationTextures.py
 import eve.common.script.util.notificationconst as nConst
+from seasons.client.const import SCOPE_LOGO_RES_PATH
 texturePath = 'res:/UI/Texture/Icons/notifications/notificationIcon_%s.png'
 NOTIFICATION_TYPE_TO_TEXTURE = {1234: 'res:/UI/Texture/icons/50_64_11.png',
  nConst.notificationTypeCharTerminationMsg: texturePath % 2,
@@ -160,4 +161,5 @@ NOTIFICATION_TYPE_TO_TEXTURE = {1234: 'res:/UI/Texture/icons/50_64_11.png',
  nConst.notificationTypeQuestComplete: texturePath % 1040,
  nConst.notificationTypeGameTimeSent: texturePath % 1031,
  nConst.notificationTypeContactSignedOn: texturePath % 2001,
- nConst.notificationTypeContactSignedOff: texturePath % 2002}
+ nConst.notificationTypeContactSignedOff: texturePath % 2002,
+ nConst.notificationTypeSeasonalChallengeCompleted: SCOPE_LOGO_RES_PATH}

@@ -143,7 +143,7 @@ def GetIconColor(slimItem, getSortValue=False, getColorHint=False):
             iconColor = const.OVERVIEW_NPC_NEUTRAL_COLOR
             colorSortValue = 2
             colorHint = localization.GetByLabel('Tooltips/Overview/NeutralNPC')
-    elif slimItem.groupID == const.groupStation:
+    elif slimItem.groupID == const.groupStation or slimItem.categoryID == const.categoryStructure:
         waypoints = sm.GetService('starmap').GetWaypoints()
         if waypoints and slimItem.itemID == waypoints[0]:
             iconColor = const.OVERVIEW_AUTO_PILOT_DESTINATION_COLOR

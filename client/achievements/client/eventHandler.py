@@ -27,7 +27,8 @@ class EventHandler(object):
      'OnClientEvent_BlueprintLoaded',
      'OnProbeAdded',
      'OnClientEvent_PerfectScanResultReached',
-     'OnBookmarkCreated']
+     'OnBookmarkCreated',
+     'OnAutoPilotJump']
 
     def __init__(self, achievementSvc):
         sm.RegisterNotify(self)
@@ -82,6 +83,9 @@ class EventHandler(object):
 
     def OnAutoPilotOn(self, *args):
         self.LogAchievementEvent(eventConst.TRAVEL_ACTIVATE_AUTOPILOT_CLIENT)
+
+    def OnAutoPilotJump(self, *args):
+        self.LogAchievementEvent(eventConst.TRAVEL_JUMP_TO_NEXT_SYSTEM_CLIENT)
 
     def OnClientEvent_JumpedToNextSystemInRoute(self):
         self.LogAchievementEvent(eventConst.TRAVEL_JUMP_TO_NEXT_SYSTEM_CLIENT)

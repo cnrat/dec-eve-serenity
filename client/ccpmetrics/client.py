@@ -1,7 +1,7 @@
 # Python bytecode 2.7 (decompiled from Python 2.7)
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\ccpmetrics\client.py
 import json
-import httplib
+import requests
 import time
 import datetime
 from socket import gethostname
@@ -9,14 +9,12 @@ from time import gmtime, strftime
 
 class Client(object):
 
-    def __init__(self, host, env_tags=None, port=80):
+    def __init__(self, host, env_tags=None):
         self.host = host
-        self.port = port
         self.env_tags = env_tags
 
     def gauge(self, metric, value, tags=None, secondaryValues=None, sample_rate=1):
-        self._write_metric(metric, value, 'gauge', tags=None, secondaryValues=None, sample_rate=1)
-        return
+        self._write_metric(metric, value, 'gauge', tags=tags, secondaryValues=secondaryValues, sample_rate=sample_rate)
 
     def increment(self, metric, value=1, tags=None, secondaryValues=None, sample_rate=1):
         self._write_metric(metric, value, 'counter', tags, secondaryValues, sample_rate)
@@ -32,17 +30,17 @@ class Client(object):
 
     def event(self, title, text, alert_type=None, aggregation_key=None, source_type_name=None, priority=None, tags=None, hostname=None, date_happened=None):
         tags = self.add_app_tags(tags)
-        http_serv = httplib.HTTPConnection(self.host, self.port)
         output = json.dumps({'name': title,
          'text': text,
          'host': hostname,
          'alerttype': alert_type,
          'priority': priority,
-         'timestamp': strftime('%a, %d %b %Y %H:%M:%S +0000', gmtime()),
+         'timestamp': time.time(),
          'AggregationKey': aggregation_key,
          'SourceType': source_type_name,
          'tags': tags})
-        http_serv.request('POST', '/events', output)
+        resp = requests.post('https://' + self.host + '/events', output)
+        resp.raise_for_status()
 
     def add_app_tags(self, tags):
         if tags is None:
@@ -69,15 +67,14 @@ class Client(object):
         tags = self.add_app_tags(tags)
         if tags is None:
             tags = {}
-        http_serv = httplib.HTTPConnection(self.host, self.port)
-        hostname = gethostname()
         output = json.dumps({'name': metric,
-         'host': hostname,
+         'host': gethostname(),
          'timestamp': time.time(),
          'type': metric_type,
          'value': value,
          'secondarydata': secondaryValues,
          'sampling': sample_rate,
          'tags': tags})
-        http_serv.request('POST', '/metrics', output)
+        resp = requests.post('https://' + self.host + '/metrics', output)
+        resp.raise_for_status()
         return

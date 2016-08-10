@@ -747,6 +747,7 @@ class StreamingVideoSprite(Sprite):
     __guid__ = 'uiprimitives.StreamingVideoSprite'
     __renderObject__ = trinity.Tr2Sprite2d
     __notifyevents__ = ['OnAudioActivated', 'OnAudioDeactivated']
+    default_disableAudio = False
     default_videoPath = ''
     default_videoLoop = False
     default_videoAutoPlay = True
@@ -766,9 +767,11 @@ class StreamingVideoSprite(Sprite):
         self.path = None
         self.audioTrack = 0
         self.videoLoop = False
+        self.emitter = None
         self._updateStep = None
         self._isFetchingFile = False
         RO = self.GetRenderObject()
+        self.disableAudio = attributes.get('disableAudio', self.default_disableAudio)
         self._positionComponent = attributes.get('positionComponent', None)
         self.positionComponent = None
         if 'videoPath' in attributes and attributes['videoPath'] and attributes.get('videoAutoPlay', self.default_videoAutoPlay):
@@ -865,13 +868,15 @@ class StreamingVideoSprite(Sprite):
                     self._isFetchingFile = True
                     uthread.new(prefetch)
                     return
-        self.emitter, outputChannel = uicore.audioHandler.GetAudioBus(is3D=self._positionComponent is not None, rate=48000)
-        self.positionComponent = self.SetPositionComponent(self._positionComponent)
+        if not self.disableAudio:
+            is3D = self._positionComponent is not None
+            self.emitter, outputChannel = uicore.audioHandler.GetAudioBus(is3D=is3D, rate=48000)
+            self.positionComponent = self.SetPositionComponent(self._positionComponent)
         if path.lower().startswith('res:/') or path.find(':') < 2:
             stream = blue.paths.open(path)
         else:
             stream = blue.BlueNetworkStream(unicode(path).encode('utf-8'))
-        if uicore.audioHandler.active:
+        if uicore.audioHandler.active and not self.disableAudio:
             sink = videoplayer.Audio2Sink(audio2.GetDirectSoundPtr(), audio2.GetStreamPositionPtr(), outputChannel)
         else:
             sink = None

@@ -29,6 +29,9 @@ class ExperimentClientService(service.Service):
         characterLogonTime = blue.os.GetWallclockTime()
         self.manager.Initialize(languageID=languageID, logonTime=characterLogonTime, infoGatheringSvc=sm.GetService('infoGatheringSvc'))
 
+    def IsMinorImprovementsEnabled(self):
+        return self.manager.IsMinorImprovementsEnabled()
+
     def TearDown(self):
         self.manager.TearDown()
         self.manager = ABTestClientManager()

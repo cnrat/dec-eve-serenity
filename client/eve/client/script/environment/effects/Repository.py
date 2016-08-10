@@ -13,6 +13,7 @@ from eve.client.script.environment.effects.MicroJumpDrive import MicroJumpDriveJ
 from eve.client.script.environment.effects.orbitalStrike import OrbitalStrike
 from eve.client.script.environment.effects.pointDefense import PointDefense
 from eve.client.script.environment.effects.siegeMode import SiegeMode
+from eve.client.script.environment.effects.TriageMode import TriageMode
 from eve.client.script.environment.effects.skinChange import SkinChange
 from eve.client.script.environment.effects.soundEffect import SoundEffect
 from eve.client.script.environment.effects.shipRenderEffect import ShipRenderEffect, ShipRenderTargetedEffect
@@ -23,6 +24,7 @@ from eve.client.script.environment.effects.Warp import Warping
 from eve.client.script.environment.effects.WarpDisruptFieldGenerating import WarpDisruptFieldGenerating
 from eve.client.script.environment.effects.WarpFlash import WarpFlashOut, WarpFlashIn
 from eve.client.script.environment.effects.impactEffect import ImpactEffect
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 typeToClass = {'AccelerationGate': AccelerationGate,
  'AnchorDrop': AnchorDrop,
  'AnchorLift': AnchorLift,
@@ -58,6 +60,7 @@ typeToClass = {'AccelerationGate': AccelerationGate,
  'OrbitalStrike': OrbitalStrike,
  'PointDefense': PointDefense,
  'SiegeMode': SiegeMode,
+ 'TriageMode': TriageMode,
  'SkinChange': SkinChange,
  'SlashWeapon': SlashWeapon,
  'SoundEffect': SoundEffect,
@@ -80,6 +83,5 @@ def GetClassification(guid):
     else:
         classType = typeToClass.get(effect.type, None)
         graphicID = getattr(effect, 'graphicID', None)
-        graphic = cfg.graphics.get(graphicID, None)
-        resPath = getattr(graphic, 'graphicFile', None)
+        resPath = GetGraphicFile(graphicID)
         return (classType, effect, resPath)

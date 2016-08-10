@@ -4,6 +4,7 @@ from eve.client.script.ui.control.buttons import Button
 from eve.client.script.ui.control.divider import Divider
 from eve.client.script.ui.control.infoIcon import InfoIcon
 import evetypes
+from eve.common.script.sys.eveCfg import IsDocked
 from inventorycommon.util import IsModularShip
 import uicontrols
 import uiprimitives
@@ -24,7 +25,7 @@ class FittingMgmt(uicontrols.Window):
     __nonpersistvars__ = []
     default_windowID = 'FittingMgmt'
     default_captionLabelPath = 'UI/Fitting/FittingWindow/FittingManagement/WindowCaption'
-    default_iconNum = 'res:/ui/Texture/WindowIcons/fitting.png'
+    default_iconNum = 'res:/ui/Texture/WindowIcons/fittingManagement.png'
 
     def ApplyAttributes(self, attributes):
         uicontrols.Window.ApplyAttributes(self, attributes)
@@ -108,12 +109,14 @@ class FittingMgmt(uicontrols.Window):
          1,
          120,
          0), maxLength=40)
-        self.sr.useNameCheckBox = uicontrols.Checkbox(text=localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/UseFittingNameForShip'), parent=topRightParent, align=uiconst.TOTOP, left=3, callback=self.UseFittingNameCallback, checked=settings.user.ui.Get('useFittingNameForShips', 0))
+        nameCbChecked = settings.user.ui.Get('useFittingNameForShips', 0)
+        cbText = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/UseFittingNameForShip')
+        self.useNameCheckBox = uicontrols.Checkbox(text=cbText, parent=topRightParent, align=uiconst.TOTOP, left=3, checked=nameCbChecked, prefstype=('user', 'ui'), configName='useFittingNameForShips')
         shipInfoContainer = uiprimitives.Container(parent=topRightParent, align=uiconst.TOTOP, height=20, padTop=5)
         self.sr.shipTypeName = uicontrols.EveLabelMedium(text='', parent=shipInfoContainer, align=uiconst.RELATIVE, state=uiconst.UI_NORMAL, left=const.defaultPadding)
         self.sr.infoicon = InfoIcon(parent=shipInfoContainer, left=1, top=0, idx=0, state=uiconst.UI_HIDDEN)
         self.sr.infoicon.OnClick = self.ShowInfo
-        topPadding = fittingNameContainer.height + shipInfoContainer.height + self.sr.useNameCheckBox.height + 5
+        topPadding = fittingNameContainer.height + shipInfoContainer.height + self.useNameCheckBox.height + 5
         self.sr.radioButton = uiprimitives.Container(name='', parent=topRightParent, align=uiconst.TOPLEFT, height=50, width=100, top=topPadding)
         radioBtns = []
         for cfgname, value, label, checked, group in [['fittingNone',
@@ -154,9 +157,6 @@ class FittingMgmt(uicontrols.Window):
             multiBuyUtil.AddBuyButton(parent=saveDeleteButtons, fittingMgmtWnd=self)
             self.exportBtn.hint = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/ExportToClipboardHint')
         return
-
-    def UseFittingNameCallback(self, *args):
-        settings.user.ui.Set('useFittingNameForShips', self.sr.useNameCheckBox.checked)
 
     def SimulateFitting(self, *args):
         sm.GetService('ghostFittingSvc').SimulateFitting(self.fitting)
@@ -297,7 +297,7 @@ class FittingMgmt(uicontrols.Window):
         for fitting in nodedata.fittings:
             fittings.append((fitting.name, fitting))
 
-        fittings.sort
+        fittings.sort()
         for fittingName, fitting in fittings:
             data = util.KeyVal()
             data.label = fittingName
@@ -322,8 +322,13 @@ class FittingMgmt(uicontrols.Window):
         else:
             fittingID = entry.sr.node.fittingID
             ownerID = entry.sr.node.ownerID
-            m = [(localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/DeleteFitting'), self.DeleteFitting, [entry]), (localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/LoadFitting'), self.fittingSvc.LoadFittingFromFittingID, [ownerID, fittingID])]
+            maxShipsAllowed = int(sm.GetService('machoNet').GetGlobalConfig().get('bulkFit_maxShips', 30))
+            m = [(localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/LoadFitting'), self.fittingSvc.LoadFittingFromFittingID, [ownerID, fittingID])]
+            if maxShipsAllowed and IsDocked() and not IsModularShip(entry.sr.node.fitting.shipTypeID):
+                m += [(localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/OpenMultifit'), self.DoBulkFit, [entry])]
+            m += [None, (localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/DeleteFitting'), self.DeleteFitting, [entry])]
             if session.role & service.ROLE_WORLDMOD and self.fittingSpawner is not None:
+                m.append(None)
                 m.append(('DEV Hax This Together!', self.fittingSpawner.SpawnFitting, [ownerID, entry.sr.node.fitting]))
                 m.append(('Mass DEV Hax This Together!', self.fittingSpawner.MassSpawnFitting, [ownerID, entry.sr.node.fitting]))
             return m
@@ -342,6 +347,10 @@ class FittingMgmt(uicontrols.Window):
                     self.HideRightPanel()
             return
 
+    def DoBulkFit(self, entry):
+        fitting = entry.sr.node.fitting
+        OpenOrLoadMultiFitWnd(fitting)
+
     def ClickEntry(self, entry, *args):
         if not self or self.destroyed:
             return
@@ -351,6 +360,7 @@ class FittingMgmt(uicontrols.Window):
                 return
             self.fitting = fitting = entry.sr.node.fitting
             self.sr.fittingName.SetText(fitting.name)
+            self.RefreshNameCheckbox()
             self.sr.fittingDescription.SetText(fitting.description)
             shipName = evetypes.GetName(fitting.shipTypeID)
             self.sr.shipTypeName.text = shipName
@@ -368,6 +378,10 @@ class FittingMgmt(uicontrols.Window):
             scrolllist = self.fittingSvc.GetFittingInfoScrollList(fitting)
             self.sr.fittingInfo.Load(contentList=scrolllist)
             return
+
+    def RefreshNameCheckbox(self):
+        checked = settings.user.ui.Get('useFittingNameForShips', 0)
+        self.useNameCheckBox.SetValue(checked)
 
     def Save(self, *args):
         if self.fitting is None:
@@ -448,8 +462,19 @@ class ViewFitting(uicontrols.Window):
         self.SetWndIcon(None)
         self.SetMinSize([250, 300])
         self.fittingSvc = sm.GetService('fittingSvc')
+        self.SetHeaderIcon()
+        settingsIcon = self.sr.headerIcon
+        settingsIcon.state = uiconst.UI_NORMAL
+        settingsIcon.GetMenu = self.GetHeaderIconMenu
+        settingsIcon.expandOnLeft = 1
         self.Draw()
         return
+
+    def GetHeaderIconMenu(self, *args):
+        fittingcopy = self.fitting.copy()
+        fittingcopy.name = self.sr.fittingName.GetValue().strip()
+        m = [(localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/OpenMultifit'), OpenOrLoadMultiFitWnd, [fittingcopy])]
+        return m
 
     def ClickDragIcon(self, *args):
         subsystems = {}
@@ -471,7 +496,7 @@ class ViewFitting(uicontrols.Window):
     def Draw(self):
         self.sr.main.Flush()
         uiprimitives.Container(name='push', parent=self.sr.main, align=uiconst.TOTOP, height=6)
-        topParent = uiprimitives.Container(parent=self.sr.main, align=uiconst.TOTOP, height=80)
+        topParent = uiprimitives.Container(parent=self.sr.main, align=uiconst.TOTOP, height=100)
         topLeftParent = uiprimitives.Container(parent=topParent, align=uiconst.TOLEFT, width=70)
         topRightParent = uiprimitives.Container(parent=topParent, align=uiconst.TOALL, pos=(0, 0, 0, 0))
         bottomParent = uiprimitives.Container(parent=self.sr.main, align=uiconst.TOALL, pos=(0, 0, 0, 0))
@@ -494,6 +519,9 @@ class ViewFitting(uicontrols.Window):
          160,
          0), maxLength=40)
         self.sr.fittingName.SetText(self.fitting.name)
+        cbText = localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/UseFittingNameForShip')
+        nameCbChecked = settings.user.ui.Get('useFittingNameForShips', 0)
+        self.useNameCheckBox = uicontrols.Checkbox(text=cbText, parent=topRightParent, align=uiconst.TOTOP, left=3, checked=nameCbChecked, prefstype=('user', 'ui'), configName='useFittingNameForShips')
         if self.truncated:
             uicontrols.EveLabelMedium(text=localization.GetByLabel('UI/Fitting/FittingWindow/FittingManagement/Truncated'), parent=fittingNameContainer, left=self.sr.fittingName.width + 10, top=3, width=60, height=20, state=uiconst.UI_NORMAL)
         shipInfoContainer = uiprimitives.Container(parent=topRightParent, align=uiconst.TOTOP, height=20)
@@ -502,7 +530,8 @@ class ViewFitting(uicontrols.Window):
         self.sr.infoicon = InfoIcon(parent=shipInfoContainer, left=1, top=0, idx=0)
         self.sr.infoicon.OnClick = self.ShowInfo
         self.sr.infoicon.left = self.sr.shipName.textwidth + 6
-        self.sr.radioButton = uiprimitives.Container(name='', parent=topRightParent, align=uiconst.TOPLEFT, height=50, width=100, top=fittingNameContainer.height + shipInfoContainer.height)
+        topPadding = fittingNameContainer.height + shipInfoContainer.height + self.useNameCheckBox.height + 5
+        self.sr.radioButton = uiprimitives.Container(name='', parent=topRightParent, align=uiconst.TOPLEFT, height=50, width=100, top=topPadding)
         radioBtns = []
         for cfgname, value, label, checked, group in [['fittingNone',
           session.charid,
@@ -585,3 +614,14 @@ class FittingDraggableIcon(uiprimitives.Container):
         entry.fitting = self.fitting
         entry.__guid__ = 'listentry.FittingEntry'
         return [entry]
+
+
+def OpenOrLoadMultiFitWnd(fitting):
+    sm.GetService('fittingSvc').CheckBusyFittingAndRaiseIfNeeded()
+    from eve.client.script.ui.shared.fitting.multiFitWnd import MultiFitWnd
+    wnd = MultiFitWnd.GetIfOpen()
+    if wnd:
+        wnd.LoadWindow(fitting)
+        wnd.Maximize()
+    else:
+        MultiFitWnd.Open(fitting=fitting)

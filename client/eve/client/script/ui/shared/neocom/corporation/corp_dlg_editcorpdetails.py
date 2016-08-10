@@ -13,6 +13,7 @@ import carbonui.const as uiconst
 import uicls
 import localization
 import random
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 
 class CorpDetails(uicontrols.Window):
     __guid__ = 'form.CorpDetails'
@@ -105,7 +106,7 @@ class CorpDetails(uicontrols.Window):
             btn.OnClick = (self.ClickCol, i, btn)
             self.sr.layercols.append(btn)
             if colors[i]:
-                newshader = blue.resMan.LoadObject(util.GraphicFile(colors[i]))
+                newshader = blue.resMan.LoadObject(GetGraphicFile(colors[i]))
                 color, blendMode = self.GetLogoLibColor(colors[i])
                 btn.SetRGB(*color)
                 self.sr.prefs[i + 3] = colors[i]

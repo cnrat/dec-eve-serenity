@@ -35,7 +35,8 @@ class MapViewPanel(DockablePanel):
         DockablePanel.ApplyAttributes(self, attributes)
         if uicore.cmd.IsUIHidden():
             self.toolbarContainer.display = False
-        self.mapView = MapView(parent=self.GetMainArea(), isFullScreen=self.IsFullscreen(), mapViewID=self.mapViewID, interestID=attributes.interestID, starColorMode=attributes.starColorMode)
+        zoomToItem = attributes.get('zoomToItem', True)
+        self.mapView = MapView(parent=self.GetMainArea(), isFullScreen=self.IsFullscreen(), mapViewID=self.mapViewID, interestID=attributes.interestID, starColorMode=attributes.starColorMode, zoomToItem=zoomToItem)
         if self.IsFullscreen():
             self.mapView.overlayTools.padding = (OVERLAY_LEFT_PADDING_FULLSCREEN,
              self.toolbarContainer.height + 6,

@@ -9,7 +9,6 @@ import geo2
 import uthread
 import blue
 import evegraphics.settings as gfxsettings
-K_ZOOMPOWER = 9
 
 class Camera(object):
     __typename__ = None
@@ -21,19 +20,20 @@ class Camera(object):
     default_eyePosition = (0, 500, 1000)
     default_atPosition = (0, 0, 0)
     default_upDirection = (0, 1, 0)
-    default_isActive = False
     maxFov = 1.5
     minFov = 0.2
     kZoomSpeed = 10.0
     kZoomStopDist = 1e-05
     maxZoom = 100
     minZoom = 10000
+    kZoomPower = 9
     kFovSpeed = 10.0
     kFovStopDist = 0.001
     kOrbitSpeed = 5.0
-    kRotateSpeed = 5.0
     kOrbitStopAngle = 0.0001
+    kRotateSpeed = 5.0
     kRotateStopDist = 0.0001
+    kMinRotateX = math.pi
     kMinPitch = 0.05
     kMaxPitch = math.pi - kMinPitch
     kPanSpeed = 5.0
@@ -66,20 +66,16 @@ class Camera(object):
         self._eyeTransitOffset = None
         self._effectOffset = None
         self.centerOffset = None
-        self.isActive = self.default_isActive
+        self.isActive = False
         self._transitDoneTime = None
         self.viewMatrix = trinity.TriView()
         self.projectionMatrix = trinity.TriProjection()
-        self.updateThread = uthread.new(self.UpdateThread)
         return
 
     def UpdateThread(self):
         while self.isActive:
             self._Update()
             blue.synchro.Yield()
-
-        self.updateThread = None
-        return
 
     def _Update(self):
         self._eyeOffset = None
@@ -120,16 +116,11 @@ class Camera(object):
     def OnActivated(self, **kwargs):
         self.isActive = True
         self.Update()
-        if not self.updateThread:
-            self.updateThread = uthread.new(self.UpdateThread)
 
     def OnDeactivated(self):
         self.isActive = False
         self.StopAnimations()
         self.StopUpdateThreads()
-        if self.updateThread:
-            self.updateThread.kill()
-            self.updateThread = None
         self.OnTransitEnd()
         self._eyeAndAtOffset = None
         self._atOffset = None
@@ -256,20 +247,21 @@ class Camera(object):
 
     def GetPitch(self):
         x, y, z = self.GetLookAtDirection()
-        return math.atan2(math.sqrt(z ** 2 + x ** 2), -y)
+        pitch = math.atan2(math.sqrt(z ** 2 + x ** 2), -y)
+        return math.pi - pitch
 
     def SetPitch(self, pitch):
-        pitch = max(self.kMinPitch, min(pitch, self.kMaxPitch))
-        axis = geo2.Vec3Cross(self.GetLookAtDirection(), self.upDirection)
+        pitch = self.ClampPitch(pitch)
+        axis = geo2.Vec3Cross(self.upDirection, self.GetLookAtDirection())
         rotMat = geo2.MatrixRotationAxis(axis, pitch)
         vec = (0, self.GetZoomDistance(), 0)
-        self._eyePosition = geo2.Vec3Subtract(self._atPosition, geo2.Vec3Transform(vec, rotMat))
+        self._eyePosition = geo2.Vec3Add(self._atPosition, geo2.Vec3Transform(vec, rotMat))
 
     pitch = property(GetPitch, SetPitch)
 
     def GetRotationQuat(self):
         yaw = self.GetYaw()
-        pitch = self.GetPitch() + math.pi / 2
+        pitch = 3 * math.pi / 2 - self.GetPitch()
         return geo2.QuaternionRotationSetYawPitchRoll(yaw, pitch, 0.0)
 
     def GetLookAtDirection(self):
@@ -408,13 +400,13 @@ class Camera(object):
         return max(minZoomProp, min(ret, 1.0))
 
     def GetMinZoomProp(self):
-        return 0.2 + self.maxZoom / self.minZoom
+        return min(0.2 + self.maxZoom / self.minZoom, 1.0)
 
     def GetZoomDistanceByZoomProportion(self, zoomProp):
-        return self.maxZoom + zoomProp ** K_ZOOMPOWER * (self.minZoom - self.maxZoom)
+        return self.maxZoom + zoomProp ** self.kZoomPower * (self.minZoom - self.maxZoom)
 
     def GetZoom(self):
-        return 1.0 - self.GetZoomProportion()
+        return self.GetZoomProportion()
 
     def SetZoom(self, proportion):
         proportion = self._ClampZoomProp(proportion)
@@ -526,7 +518,7 @@ class Camera(object):
     def GetZoomProportionByZoomDistance(self, zoomDist):
         zoomProp = self.GetZoomProportionByZoomDistanceLinear(zoomDist)
         zoomProp = max(0.0, zoomProp)
-        return zoomProp ** (1.0 / K_ZOOMPOWER)
+        return zoomProp ** (1.0 / self.kZoomPower)
 
     def GetZoomProportionByZoomDistanceLinear(self, zoomDist):
         zoomProp = (zoomDist - self.maxZoom) / (self.minZoom - self.maxZoom)
@@ -544,6 +536,12 @@ class Camera(object):
         else:
             self.minZoom = value
 
+    def SetMinMaxZoom(self, minZoom, maxZoom):
+        if minZoom <= maxZoom:
+            LogException('Camera: Cannot set minZoom to a value smaller than maxZoom: minZoom=%s, maxZoom=%s, %s' % (minZoom, maxZoom, self))
+        self.minZoom = minZoom
+        self.maxZoom = maxZoom
+
     def Orbit(self, dx=0, dy=0):
         if not self.orbitTarget:
             self.orbitTarget = (0, self.GetAngleLookAtToUpDirection())
@@ -551,10 +549,13 @@ class Camera(object):
             dy *= -1
         yaw = self.orbitTarget[0] - dx
         pitch = self.orbitTarget[1] - dy / 2.0
-        pitch = max(self.kMinPitch, min(pitch, self.kMaxPitch))
+        pitch = self.ClampPitch(pitch)
         self.orbitTarget = [yaw, pitch]
         if not self.orbitUpdateThread:
             self.orbitUpdateThread = uthread.new(self.OrbitUpdateThread)
+
+    def ClampPitch(self, pitch):
+        return max(self.kMinPitch, min(pitch, self.kMaxPitch))
 
     def OrbitUpdateThread(self):
         try:
@@ -614,12 +615,13 @@ class Camera(object):
         self._SetRotateTarget(x, y)
 
     def _ClampRotateX(self, x):
-        x = max(-math.pi, min(x, math.pi))
+        x = max(-self.kMinRotateX, min(x, self.kMinRotateX))
         return x
 
     def _ClampRotateY(self, y):
-        yMax = min(math.pi - self.kMinPitch - self.GetPitch(), 0.3 * math.pi)
-        yMin = max(-(self.GetPitch() - self.kMinPitch), -0.3 * math.pi)
+        pitch = math.pi - self.GetPitch()
+        yMax = min(math.pi - self.kMinPitch - pitch, 0.3 * math.pi)
+        yMin = max(-(pitch - self.kMinPitch), -0.3 * math.pi)
         y = max(yMin, min(y, yMax))
         return y
 

@@ -534,7 +534,7 @@ class BaseDogmaLocation(object):
         elif not self.dogmaStaticMgr.TypeHasEffect(item.typeID, const.effectOnline):
             log.LogTraceback('type: %s does not have online effect' % item.typeID)
             return
-        elif pilotID is not None or item.categoryID == const.categoryStructure:
+        elif pilotID is not None or item.categoryID == const.categoryStructureModule:
             self._StartModuleOnlineEffect(itemID, pilotID, locationID, context=context, raiseUserError=raiseUserError)
             return
         else:
@@ -1851,3 +1851,6 @@ class BaseDogmaLocation(object):
     def IsItemIdStructure(self, itemId):
         shipDogmaItem = self.dogmaItems.get(itemId, None)
         return shipDogmaItem and shipDogmaItem.categoryID == const.categoryStructure
+
+    def UpdateStructureServices(self, structureID):
+        pass

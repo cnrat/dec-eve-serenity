@@ -20,6 +20,7 @@ import carbonui.const as uiconst
 import log
 import localization
 import evetypes
+import const
 
 def FmtWalletCurrency(amt, currency=const.creditsISK, showFractions=None):
     if showFractions is None:
@@ -287,6 +288,8 @@ class WalletSvc(service.Service):
                 if notifyAccountChangeEnabled:
                     myAccountWasChanged = True
                     self.Blink(1)
+                difference = balance - self.wealth
+                sm.ScatterEvent('OnPersonalAccountChangedClient', self.wealth, difference)
                 self.wealth = balance
                 if self.mywallet and not self.mywallet.destroyed:
                     self.mywallet.SetMoney(self.wealth)
@@ -454,7 +457,7 @@ class WalletSvc(service.Service):
     def OnCloseWnd(self, *args):
         self.Reset()
 
-    def SetBalance(self, label, amount, startamount, color, currency, cLeft, showFractions=None):
+    def SetBalance(self, label, amount, startamount, color, currency):
         start, ndt = blue.os.GetWallclockTime(), 0.0
         if settings.char.ui.Get('walletBalanceDelay', 1):
             while ndt != 1.0:
@@ -462,11 +465,10 @@ class WalletSvc(service.Service):
                     return
                 ndt = min(blue.os.TimeDiffInMs(start, blue.os.GetWallclockTime()) / 1000.0, 1.0)
                 money = mathUtil.Lerp(startamount, amount, ndt)
-                label.text = localization.GetByLabel('UI/Wallet/WalletWindow/CurrencyDisplay', color=color, currency=FmtWalletCurrency(money, showFractions=showFractions, currency=currency))
-                cLeft = max(cLeft, 32 + label.left + label.textwidth)
+                label.text = localization.GetByLabel('UI/Wallet/WalletWindow/CurrencyDisplay', color=color, currency=FmtWalletCurrency(money, currency=currency))
                 blue.pyos.synchro.Yield()
 
-        label.text = localization.GetByLabel('UI/Wallet/WalletWindow/CurrencyDisplay', color=color, currency=FmtWalletCurrency(amount, showFractions=showFractions, currency=currency))
+        label.text = localization.GetByLabel('UI/Wallet/WalletWindow/CurrencyDisplay', color=color, currency=FmtWalletCurrency(amount, currency=currency))
 
 
 class WalletContainer(uiprimitives.Container):
@@ -865,6 +867,8 @@ class WalletContainer(uiprimitives.Container):
                     if not self.sr.scroll.GetNodes():
                         self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintClickLoadToFetch'))
                 uicore.registry.SetFocus(self.sr.journalloadbutton)
+                if sm.GetService('experimentClientSvc').IsMinorImprovementsEnabled() and self._HasJournalPrivileges():
+                    self.ShowJournal()
             elif args == 'orders':
                 self.ShowOrders()
             elif args == 'transactions':
@@ -1413,8 +1417,14 @@ class WalletContainer(uiprimitives.Container):
 
         return scrolllist
 
+    def _HasJournalPrivileges(self):
+        if self.isCorpWallet and not sm.GetService('wallet').AmAccountantOrJuniorAccountant():
+            return False
+        else:
+            return True
+
     def ShowJournal(self, browse=None):
-        if self.isCorpWallet and not (const.corpRoleAccountant | const.corpRoleJuniorAccountant) & eve.session.corprole != 0:
+        if not self._HasJournalPrivileges():
             self.sr.scroll.Clear()
             self.SetHint(localization.GetByLabel('UI/Wallet/WalletWindow/HintNeedAccountantRoles'))
             return
@@ -1925,11 +1935,21 @@ class WalletContainer(uiprimitives.Container):
         sm.GetService('wallet').TransferMoney(eve.session.corpid, key, eve.session.corpid, eve.session.corpAccountKey)
 
     def OnTransactionMenu(self, entry):
-        stationID = entry.sr.node.rec.stationID
-        stationInfo = sm.GetService('ui').GetStation(stationID)
         m = sm.GetService('menu').GetMenuFormItemIDTypeID(None, entry.sr.node.rec.typeID, ignoreMarketDetails=0)
         m += [None]
-        m += [(uiutil.MenuLabel('UI/Wallet/WalletWindow/MenuLocation'), sm.GetService('menu').CelestialMenu(stationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID))]
+        stationID = entry.sr.node.rec.stationID
+        stationTypeID = solarSystemID = None
+        if util.IsStation(stationID):
+            stationInfo = sm.GetService('ui').GetStation(stationID)
+            stationTypeID = stationInfo.stationTypeID
+            solarSystemID = stationInfo.solarSystemID
+        else:
+            structureInfo = sm.GetService('structureDirectory').GetStructureInfo(stationID)
+            if structureInfo:
+                stationTypeID = structureInfo.typeID
+                solarSystemID = structureInfo.solarSystemID
+        if stationTypeID and solarSystemID:
+            m += [(uiutil.MenuLabel('UI/Wallet/WalletWindow/MenuLocation'), sm.GetService('menu').CelestialMenu(stationID, typeID=stationTypeID, parentID=solarSystemID))]
         m += [(uiutil.MenuLabel('UI/Wallet/WalletWindow/ColHeaderClient'), sm.GetService('menu').CharacterMenu(entry.sr.node.clientID))]
         return m
 
@@ -2098,8 +2118,7 @@ class WalletContainer(uiprimitives.Container):
         color = '<color=0xffaaaaaa>'
         startamount = label.data['amount']
         label.data['amount'] = amount
-        cLeft = 128
-        sm.GetService('wallet').SetBalance(label, amount, startamount, color, currency, cLeft)
+        sm.GetService('wallet').SetBalance(label, amount, startamount, color, currency)
 
     def OnShareChange(self, shareholderID, corporationID, change):
         if not self.sr.Get('tabs', None):
@@ -2250,8 +2269,24 @@ class WalletWindow(uicontrols.Window):
          ('notifyShareChange', 'UI/Wallet/WalletWindow/NotifyShareChange', True),
          ('notifyOrderChange', 'UI/Wallet/WalletWindow/NotifyOrderChange', True),
          ('walletBalanceDelay', 'UI/Wallet/WalletWindow/WalletBalanceDelay', True),
-         ('walletShowCents', 'UI/Wallet/WalletWindow/WalletShowCents', False)):
+         ('walletShowCents', 'UI/Wallet/WalletWindow/WalletShowCents', False),
+         ('walletShowBalanceUpdates', 'UI/Wallet/WalletWindow/Configuration/WalletShowBalanceChange', True)):
             menuParent.AddCheckBox(text=localization.GetByLabel(label), checked=settings.char.ui.Get(settingName, default), callback=(self.OnSettingChanged, settingName))
+
+        grid = menuParent.AddLayoutGrid(columns=2, cellPadding=4)
+        uicontrols.Label(name='iskThresholdLabel', parent=grid, text=localization.GetByLabel('UI/Wallet/WalletWindow/Configuration/WalletBalanceChangeThreshold'))
+        iskThreshold = settings.char.ui.Get('iskNotifyThreshold', 0)
+        thresholdEdit = uicontrols.SinglelineEdit(name='iskThresholdEdit', parent=grid, setvalue=str(iskThreshold), OnChange=self.OnIskThresholdChanged)
+        thresholdEdit.IntMode(0, const.maxBigint)
+
+    def OnIskThresholdChanged(self, value, *args):
+        try:
+            if value is '':
+                value = 0
+            newValue = abs(int(value))
+            settings.char.ui.Set('iskNotifyThreshold', newValue)
+        except:
+            pass
 
     def OnSettingChanged(self, settingName):
         currVal = settings.char.ui.Get(settingName, True)

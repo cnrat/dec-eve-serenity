@@ -65,11 +65,11 @@ class MarketOrder(listentry.Generic):
             stationInfo = sm.GetService('ui').GetStation(stationID)
             if stationInfo:
                 m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=stationInfo.stationTypeID, parentID=stationInfo.solarSystemID, mapItem=None))]
-            elif solarSystemID:
-                invItem = self._GetStationInvItemInBallpark(stationID)
-                if invItem:
-                    m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=invItem.typeID, parentID=solarSystemID))]
-                else:
+            else:
+                structureInfo = sm.GetService('structureDirectory').GetStructureInfo(stationID)
+                if structureInfo:
+                    m += [(MenuLabel('UI/Common/Location'), sm.GetService('menu').CelestialMenu(stationID, typeID=structureInfo.typeID, parentID=stationID))]
+                elif solarSystemID:
                     m += [(MenuLabel('UI/Common/SolarSystem'), sm.GetService('menu').CelestialMenu(solarSystemID))]
         if self.sr.node.markAsMine:
             m.append((MenuLabel('UI/Market/Orders/ModifyOrder'), self.ModifyPrice, (self.sr.node,)))

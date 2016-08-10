@@ -61,14 +61,10 @@ class SceneRenderJobSpaceEmbedded(SceneRenderJobSpace):
     def SetStencil(self, path=None):
         self.stencilPath = path
         self.SetupStencilBlitEffect()
-        if path is not None:
-            self.DisableStep('CLEAR')
-        else:
-            self.EnableStep('CLEAR')
+        self.EnableStep('CLEAR')
         self._RefreshAntiAliasing()
         self._CreateRenderTargets()
         self._RefreshRenderTargets()
-        return
 
     def EnableFXAA(self, enable):
         pass

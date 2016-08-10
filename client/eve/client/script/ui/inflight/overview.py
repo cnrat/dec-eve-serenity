@@ -377,7 +377,9 @@ class OverView(ActionPanel):
     def OnDestinationSet(self, *etc):
         for node in self.sr.scroll.sr.nodes:
             slimItem = node.slimItem()
-            if not slimItem or slimItem.groupID not in (const.groupStargate, const.groupStation):
+            if not slimItem:
+                continue
+            if slimItem.groupID not in (const.groupStargate, const.groupStation) and slimItem.categoryID != const.categoryStructure:
                 continue
             node.iconColor = None
 

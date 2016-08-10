@@ -43,7 +43,7 @@ class ImagePicker(uiprimitives.Container):
         self._availableTypeIDs = set()
         if session.role & service.ROLE_CONTENT:
             invCache = sm.GetService('invCache')
-            if session.stationid:
+            if session.stationid or session.structureid:
                 try:
                     inv = invCache.GetInventory(const.containerHangar)
                     self._availableTypeIDs.update({i.typeID for i in inv.List(const.flagHangar) if i.categoryID == const.categoryApparel})

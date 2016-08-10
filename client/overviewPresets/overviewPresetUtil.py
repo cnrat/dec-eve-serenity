@@ -2,8 +2,8 @@
 # Embedded file name: e:\jenkins\workspace\client_SERENITY\branches\release\SERENITY\packages\overviewPresets\overviewPresetUtil.py
 import hashlib
 import yaml
-MAX_SHARED_PRESETS = 15
-MAX_TAB_NUM = 5
+MAX_SHARED_PRESETS = 16
+MAX_TAB_NUM = 8
 
 def GetDeterministicListFromDict(inputDict):
     outputList = [ (x, y) for x, y in inputDict.iteritems() ]

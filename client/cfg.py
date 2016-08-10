@@ -18,7 +18,6 @@ from eve.common.script.sys.eveCfg import Race
 from eve.common.script.sys.eveCfg import RamActivity
 from eve.common.script.sys.eveCfg import RamCompletedStatus
 from eve.common.script.sys.eveCfg import Schematic
-from eve.common.script.sys.eveCfg import CfgGraphics
 from eve.common.script.sys.eveCfg import CfgFsdDustIcons
 from eve.common.script.sys.eveCfg import CfgIcons
 from eve.common.script.sys.eveCfg import CfgSounds

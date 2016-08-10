@@ -24,7 +24,7 @@ def ThrottlePerMinute(max=1, message='GenericStopSpamming'):
     def Helper(f):
 
         def Wrapper(*args, **kwargs):
-            if session is not None and session.role & ROLE_PLAYER == ROLE_PLAYER:
+            if session and session.role & ROLE_PLAYER == ROLE_PLAYER:
                 session.Throttle(f.__name__, max, const.MIN, message)
             return f(*args, **kwargs)
 
@@ -38,7 +38,7 @@ def ThrottlePer5Minutes(max=1, message='GenericStopSpamming'):
     def Helper(f):
 
         def Wrapper(*args, **kwargs):
-            if session is not None and session.role & ROLE_PLAYER == ROLE_PLAYER:
+            if session and session.role & ROLE_PLAYER == ROLE_PLAYER:
                 session.Throttle(f.__name__, max, 5 * const.MIN, message)
             return f(*args, **kwargs)
 
@@ -52,7 +52,7 @@ def ThrottlePerSecond(max=1, message='GenericStopSpamming'):
     def Helper(f):
 
         def Wrapper(*args, **kwargs):
-            if session is not None and session.role & ROLE_PLAYER == ROLE_PLAYER:
+            if session and session.role & ROLE_PLAYER == ROLE_PLAYER:
                 session.Throttle(f.__name__, max, const.SEC, message)
             return f(*args, **kwargs)
 

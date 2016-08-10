@@ -530,7 +530,7 @@ def ColorStarsByJumps1Hour(colorInfo, starColorMode):
 
     if maxCount > 1:
         divisor = 1.0 / math.log(pow(float(maxCount), 4.0))
-        hintFunc = lambda count, solarSystemID: GetByLabel('UI/Map/StarModeHandler/jumpsLastHour', count=count, solarSystem=solarSystemID)
+        hintFunc = lambda count, solarSystemID: GetByLabel('UI/Map/StarModeHandler/JumpsLastHour', count=count, solarSystem=solarSystemID)
         for solarSystemID, amount in history:
             age = divisor * math.log(pow(float(amount), 4.0))
             size = 2.0 + pow(age, 0.5) * 2.0

@@ -3,8 +3,8 @@
 from eve.client.script.environment.spaceObject.spaceObject import SpaceObject
 from eve.client.script.paperDoll.commonClientFunctions import GetSkinTypeOrToneColorVariation
 import eve.common.lib.appConst as const
-import evegraphics.utils as gfxutils
 import random
+from evegraphics.fsd.graphicIDs import GetGraphicFile
 GENDER_FEMALE = 0
 GENDER_MALE = 1
 COLOR_LIGHT = 0
@@ -85,7 +85,7 @@ def GetCorpseVariation():
 
 def GetCorpsePath(gender, color, variation):
     graphicID = corpseGraphicsIDs[gender][color][variation]
-    return gfxutils.GetResPathFromGraphicID(graphicID)
+    return GetGraphicFile(graphicID)
 
 
 def GetCorpsePathForCharacter(charID, variation=None):

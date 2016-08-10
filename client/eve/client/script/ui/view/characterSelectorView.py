@@ -6,7 +6,7 @@ from eve.client.script.ui.login.charSelection.characterSelection import Characte
 class CharacterSelectorView(View):
     __guid__ = 'viewstate.CharacterSelectorView'
     __notifyevents__ = []
-    __dependencies__ = ['menu', 'tutorial']
+    __dependencies__ = ['menu', 'tutorial', 'seasonService']
     __layerClass__ = CharacterSelection
     __progressText__ = 'UI_CHARSEL_ENTERINGCHARSEL'
 
